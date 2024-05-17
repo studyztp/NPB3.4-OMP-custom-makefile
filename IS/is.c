@@ -47,6 +47,10 @@
 #include <omp.h>
 #endif
 
+// forward declarations for roi functions
+void roi_begin_();
+void roi_end_();
+
 
 /*****************************************************************/
 /* For serial IS, buckets are not really req'd to solve NPB1 IS  */
@@ -955,6 +959,7 @@ int main( int argc, char **argv )
 
 /*  Start timer  */             
     timer_start( 0 );
+    roi_begin_();
 
 
 /*  This is the main iteration */
@@ -966,6 +971,7 @@ int main( int argc, char **argv )
 
 
 /*  End of timing, obtain maximum time of all processors */
+    roi_end_();
     timer_stop( 0 );
     timecounter = timer_read( 0 );
 

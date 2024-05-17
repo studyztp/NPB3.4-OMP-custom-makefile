@@ -237,7 +237,7 @@
  
       end do
   900 continue
- 
+
       call timer_stop(1)
       maxtime= timer_read(1)
  
