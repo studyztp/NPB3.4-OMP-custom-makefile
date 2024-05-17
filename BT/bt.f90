@@ -147,6 +147,7 @@
           call timer_clear(i)
        end do
        call timer_start(1)
+       call roi_begin
 
        do  step = 1, niter
 
@@ -159,7 +160,8 @@
           call adi
 
        end do
-
+       
+       call roi_end
        call timer_stop(1)
        tmax = timer_read(1)
        

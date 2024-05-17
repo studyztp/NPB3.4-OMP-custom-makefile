@@ -42,8 +42,8 @@ void increment_array_element_at(uint64_t* arr, int index) {
 }
 
 __attribute__((profiler_helper))
-void reset_array_element_at(uint64_t* arr, int index) {
-    arr[index] = 0;
+void set_array_element_at(uint64_t* arr, int index, uint64_t val) {
+    arr[index] = val;
 }
 
 __attribute__((profiler_helper))

@@ -10,6 +10,8 @@ LLC_FLAGS = -relocation-model=pic -filetype=obj
 COMMON = ../common
 SYS_DIR =../sys/
 
+PROGRAM = ft
+
 BLKFAC=32
 
 RAND = randi8
