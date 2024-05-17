@@ -14,7 +14,6 @@ run_profiling_all: build_profiling_all
 	cd MG/profiling && ./mg_profiling
 	cd SP/profiling && ./sp_profiling
 
-
 pre: 
 	cd common; ${MAKE}
 
