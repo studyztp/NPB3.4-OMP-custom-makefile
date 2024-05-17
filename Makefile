@@ -1,72 +1,98 @@
-SHELL=/bin/sh
-CLASS=W
-VERSION=
-SFILE=config/suite.def
+SIZE = B
+OMP_NUM_THREADS = 1
 
-default: header
-	@ sys/print_instructions
+build_profiling_all: pre BT/profiling/bt_profiling CG/profiling/cg_profiling DC/profiling/dc_profiling EP/profiling/ep_profiling FT/profiling/ft_profiling IS/profiling/is_profiling LU/profiling/lu_profiling MG/profiling/mg_profiling SP/profiling/sp_profiling
 
-BT: bt
-bt: header
-	cd BT; $(MAKE) CLASS=$(CLASS) VERSION=$(VERSION)
-
-SP: sp		       
-sp: header	       
-	cd SP; $(MAKE) CLASS=$(CLASS)
-
-LU: lu		       
-lu: header	       
-	cd LU; $(MAKE) CLASS=$(CLASS) VERSION=$(VERSION)
-
-MG: mg		       
-mg: header	       
-	cd MG; $(MAKE) CLASS=$(CLASS)
-
-FT: ft		       
-ft: header	       
-	cd FT; $(MAKE) CLASS=$(CLASS)
-
-IS: is		       
-is: header	       
-	cd IS; $(MAKE) CLASS=$(CLASS)
-
-CG: cg		       
-cg: header	       
-	cd CG; $(MAKE) CLASS=$(CLASS)
-
-EP: ep		       
-ep: header	       
-	cd EP; $(MAKE) CLASS=$(CLASS)
-
-UA: ua
-ua: header	       
-	cd UA; $(MAKE) CLASS=$(CLASS)
-
-DC: dc
-dc: header	       
-	cd DC; $(MAKE) CLASS=$(CLASS)
-
-# Awk script courtesy cmg@cray.com, modified by Haoqiang Jin
-suite:
-	@ awk -f sys/suite.awk SMAKE=$(MAKE) $(SFILE) | $(SHELL)
+run_profiling_all: build_profiling_all
+	cd BT/profiling && ./bt_profiling
+	cd CG/profiling && ./cg_profiling
+	# cd DC/profiling && ./dc_profiling
+	cd EP/profiling && ./ep_profiling
+	cd FT/profiling && ./ft_profiling
+	cd IS/profiling && ./is_profiling
+	cd LU/profiling && ./lu_profiling
+	cd MG/profiling && ./mg_profiling
+	cd SP/profiling && ./sp_profiling
 
 
-# It would be nice to make clean in each subdirectory (the targets
-# are defined) but on a really clean system this will won't work
-# because those makefiles need config/make.def
+pre: 
+	cd common; ${MAKE}
+
+BT/bt.bc:
+	cd BT; ${MAKE}
+
+BT/profiling/bt_profiling: BT/bt.bc
+	cd BT; ${MAKE} profiling
+
+CG/cg.bc:
+	cd CG; ${MAKE}
+
+CG/profiling/cg_profiling: CG/cg.bc
+	cd CG; ${MAKE} profiling
+
+DC/dc.bc:
+	cd DC; ${MAKE}
+
+DC/profiling/dc_profiling: DC/dc.bc
+	cd DC; ${MAKE} profiling
+
+EP/ep.bc:
+	cd EP; ${MAKE}
+
+EP/profiling/ep_profiling: EP/ep.bc
+	cd EP; ${MAKE} profiling
+
+FT/ft.bc:
+	cd FT; ${MAKE}
+
+FT/profiling/ft_profiling: FT/ft.bc
+	cd FT; ${MAKE} profiling
+
+IS/is.bc:
+	cd IS; ${MAKE}
+
+IS/profiling/is_profiling: IS/is.bc
+	cd IS; ${MAKE} profiling
+
+LU/lu.bc:
+	cd LU; ${MAKE}
+
+LU/profiling/lu_profiling: LU/lu.bc
+	cd LU; ${MAKE} profiling
+
+MG/mg.bc:
+	cd MG; ${MAKE}
+
+MG/profiling/mg_profiling: MG/mg.bc
+	cd MG; ${MAKE} profiling
+
+SP/sp.bc:
+	cd SP; ${MAKE}	
+
+SP/profiling/sp_profiling: SP/sp.bc
+	cd SP; ${MAKE} profiling
+
 clean:
-	- rm -f core *~ */core */*~
-	- rm -f */*.o */*.obj */*.exe */*.mod */npbparams.h */blk_par.h
-	- rm -f sys/setparams sys/makesuite sys/setparams.h
-	- rm -rf */rii_files
-
-veryclean: clean
-	- rm -f config/make.def config/suite.def 
-	- rm -f bin/sp.* bin/lu.* bin/mg.* bin/ft.* bin/bt.* bin/is.*
-	- rm -f bin/ep.* bin/cg.* bin/ua.* bin/dc.* bin/ADC.*
-
-header:
-	@ sys/print_header
+	cd BT; ${MAKE} clean
+	cd CG; ${MAKE} clean
+	cd DC; ${MAKE} clean
+	cd EP; ${MAKE} clean
+	cd FT; ${MAKE} clean
+	cd IS; ${MAKE} clean
+	cd LU; ${MAKE} clean
+	cd MG; ${MAKE} clean
+	cd SP; ${MAKE} clean
+	cd common; ${MAKE} clean
 
 
-
+clean_all:
+	cd BT; ${MAKE} clean_all
+	cd CG; ${MAKE} clean_all
+	cd DC; ${MAKE} clean_all
+	cd EP; ${MAKE} clean_all
+	cd FT; ${MAKE} clean_all
+	cd IS; ${MAKE} clean_all
+	cd LU; ${MAKE} clean_all
+	cd MG; ${MAKE} clean_all
+	cd SP; ${MAKE} clean_all
+	cd common; ${MAKE} clean
