@@ -37,7 +37,14 @@ naive: ft.bc ${COMMON}/profile_helper_naive.ll
 	mkdir -p naive
 	${LLVM_LINK} -o naive/ft_naive.bc ft.bc ${COMMON}/profile_helper_naive.ll
 	${LLC} ${LLC_FLAGS} naive/ft_naive.bc -o naive/ft_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/ft_naive naive/ft_naive.o
+	${FC} ${COMPILER_FLAGS} -fopenmp -o naive/ft_naive naive/ft_naive.o
+
+papi_naive: ft.bc ${COMMON}/profile_helper_papi_naive.ll
+	mkdir -p naive
+	${LLVM_LINK} -o naive/ft_papi_naive.bc ft.bc ${COMMON}/profile_helper_papi_naive.ll
+	${LLC} ${LLC_FLAGS} naive/ft_papi_naive.bc -o naive/ft_papi_naive.o
+	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/ft_papi_naive naive/ft_papi_naive.o
+
 
 profiling: ft.bc ${COMMON}/profile_helper_profiling.ll
 	mkdir -p profiling
@@ -87,7 +94,15 @@ ft.ll: ft.f90 ft_data.ll
 	${FC} ${FLAGS} -S -emit-llvm ft.f90 -o ft.ll
 
 clean:
-	rm -f blk_par.h
-	rm -f *.ll *.bc
-	# rm -f ${COMMON}/*.ll ${COMMON}/*.bc
-	rm -f setparams
+	- rm -f *.o *~ mputil* *.mod
+	- rm -f ft npbparams.h core blk_par.h
+	- if [ -d rii_files ]; then rm -r rii_files; fi
+	- rm -f *.ll *.bc
+
+clean_all:
+	- rm -f *.o *~ mputil* *.mod
+	- rm -f ft npbparams.h core blk_par.h
+	- if [ -d rii_files ]; then rm -r rii_files; fi
+	- rm -f *.ll *.bc
+	- rm -rf naive profiling m5_fs papi papi_naive
+	

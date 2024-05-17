@@ -49,8 +49,12 @@ wtime.ll: wtime.c
 	${CC} ${FLAGS} -S -emit-llvm wtime.c -o wtime.ll
 
 profile_helper_naive.ll: profile_helper.c
-	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI_NAIVE -emit-llvm \
+	${CC} ${FLAGS} -S -DNAIVE -emit-llvm \
 							profile_helper.c -o profile_helper_naive.ll
+
+profile_helper_papi_naive.ll: profile_helper.c
+	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI_NAIVE -emit-llvm \
+							profile_helper.c -o profile_helper_papi_naive.ll
 
 profile_helper_profiling.ll: profile_helper.c
 	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \

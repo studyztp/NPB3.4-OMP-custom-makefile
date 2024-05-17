@@ -53,6 +53,9 @@
 #include <omp.h>
 #endif
 
+// forward declarations of roi functions
+void roi_begin_();
+void roi_end_();
 
 #include "adc.h"
 #include "macrodef.h"
@@ -198,7 +201,10 @@ int32 DC(ADC_VIEW_PARS *adcpp) {
       fprintf(stdout,"Warning: Maximum number of tasks reached: %d\n",
               adcpp->nTasks);
    }
+  roi_begin_();
 #pragma omp parallel shared(pvstp) private(itsk)
+#else
+  roi_begin_();
 #endif
   {
    double tm0=0;
@@ -251,6 +257,7 @@ int32 DC(ADC_VIEW_PARS *adcpp) {
      adccntlp->verificationFailed = 1;
    }
  } /* omp parallel */
+  roi_end_();
 
    t_total=pvstp->tm_max; 
  

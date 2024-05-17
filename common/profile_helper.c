@@ -7,7 +7,9 @@
 #elif M5_FS
 #include "gem5/m5ops.h"
 #include "gem5/m5_mmap.h"
-#else
+#elif PAPI_NAIVE
+#include "papi.h"
+#elif PAPI
 #include "papi.h"
 #endif
 
@@ -74,6 +76,8 @@ void roi_begin_() {
     m5op_addr = 0x10010000;
     map_m5_mem();
     printf("M5_FS ROI started\n");
+#elif NAIVE
+    printf("ROI started\n");
 #elif PAPI_NAIVE
 int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -90,7 +94,7 @@ int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_begin failed due to %d.\n", retval);
     }
-#else
+#elif PAPI
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
         printf("PAPI_library_init failed due to %d.\n", retval);
@@ -115,6 +119,8 @@ void roi_end_() {
 #elif M5_FS
     unmap_m5_mem();
     printf("M5_FS ROI ended\n");
+#elif NAIVE
+    printf("ROI ended\n");
 #elif PAPI_NAIVE
     int retval = PAPI_hl_region_end("roi");
     if (retval != PAPI_OK) {
@@ -149,7 +155,9 @@ void start_marker() {
 #elif M5_FS
     printf("M5_FS Start marker\n");
     m5_work_begin(0, 0);
-#else
+#elif NAIVE
+    printf("Start marker\n");
+#elif PAPI
     printf("Start marker\n");
     char str[] = "0";
     int retval = PAPI_hl_region_begin(str);
@@ -167,7 +175,9 @@ void end_marker() {
 #elif M5_FS
     printf("M5_FS End marker\n");
     m5_work_end(0,0);
-#else
+#elif NAIVE
+    printf("End marker\n");
+#elif PAPI
     char str[] = "0";
     int retval = PAPI_hl_region_end(str);
     if (retval != PAPI_OK) {

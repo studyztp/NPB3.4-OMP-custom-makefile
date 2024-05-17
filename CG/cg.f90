@@ -280,6 +280,7 @@
  2000 format(' Initialization time = ',f15.3,' seconds')
 
       call timer_start( T_bench )
+      call roi_begin
 
 !---------------------------------------------------------------------
 !---->
@@ -337,7 +338,7 @@
 
 
       enddo                              ! end of main iter inv pow meth
-
+      call roi_end
       call timer_stop( T_bench )
 
 !---------------------------------------------------------------------

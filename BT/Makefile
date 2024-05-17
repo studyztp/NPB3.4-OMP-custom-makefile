@@ -42,11 +42,18 @@ bt: bt.ll bt_data.ll initialize.ll exact_solution.ll \
 	z_solve$(BLK).ll add.ll error.ll verify.ll work_lhs$(BLK).ll \
 	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
-native: bt.bc
-	mkdir -p native
-	${LLVM_LINK} -o native/bt_naive.bc bt.bc ${COMMON}/profile_helper_naive.ll
-	${LLC} ${LLC_FLAGS} native/bt_naive.bc -o native/bt_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o native/bt_naive native/bt_naive.o
+naive: bt.bc ${COMMON}/profile_helper_naive.ll
+	mkdir -p naive
+	${LLVM_LINK} -o naive/bt_naive.bc bt.bc ${COMMON}/profile_helper_naive.ll
+	${LLC} ${LLC_FLAGS} naive/bt_naive.bc -o naive/bt_naive.o
+	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/bt_naive naive/bt_naive.o
+
+papi_naive: bt.bc ${COMMON}/profile_helper_papi_naive.ll
+	mkdir -p naive
+	${LLVM_LINK} -o naive/bt_papi_naive.bc bt.bc ${COMMON}/profile_helper_papi_naive.ll
+	${LLC} ${LLC_FLAGS} naive/bt_papi_naive.bc -o naive/bt_papi_naive.o
+	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/bt_papi_naive naive/bt_papi_naive.o
+
 
 profiling: bt.bc ${COMMON}/profile_helper_profiling.ll
 	mkdir -p profiling
@@ -136,7 +143,14 @@ blk_par.h: FORCE
 FORCE:
 
 clean:
-	rm -f blk_par.h
-	rm -f *.ll *.bc
-	# rm -f ${COMMON}/*.ll ${COMMON}/*.bc
-	rm -f setparams
+	- rm -f *.o *~ *.mod mputil*
+	- rm -f npbparams.h core blk_par.h
+	- if [ -d rii_files ]; then rm -r rii_files; fi
+	- rm -f *.ll *.bc
+
+clean_all:
+	- rm -f *.o *~ *.mod mputil*
+	- rm -f npbparams.h core blk_par.h
+	- if [ -d rii_files ]; then rm -r rii_files; fi
+	- rm -f *.ll *.bc
+	- rm -rf naive profiling m5_fs papi papi_naive
