@@ -1,0 +1,9 @@
+*.ll
+*.bc
+*.mod
+*npbparams.h
+*blk_par.h
+*setparams
+*.bak
+*/profiling
+*.json
