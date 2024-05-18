@@ -23,7 +23,7 @@ PAPI_LIB = ${PAPI_PATH}/lib
 PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
 M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH} -lm5
+M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
 
 all: pre sp
 
@@ -62,15 +62,17 @@ profiling: sp.bc ${COMMON}/profile_helper_profiling.ll
 	${LLC} ${LLC_FLAGS} profiling/sp_profiling_opt.bc -o profiling/sp_profiling_opt.o
 	${FC} ${COMPILER_FLAGS} -fopenmp -o profiling/sp_profiling profiling/sp_profiling_opt.o
 
-m5_fs: sp.bc ${COMMON}/profile_helper_m5_fs.ll
+m5_fs: m5_fs_${REGION}
+m5_fs_${REGION}: sp.bc ${COMMON}/profile_helper_m5_fs.ll
 	mkdir -p m5_fs
 	mkdir -p m5_fs/${REGION}
 	${LLVM_LINK} -o m5_fs/${REGION}/sp_m5_fs_${REGION}.bc sp.bc ${COMMON}/profile_helper_m5_fs.ll
 	cd m5_fs/${REGION} && ${OPT} -passes=phase-bound sp_m5_fs_${REGION}.bc -o sp_m5_fs_${REGION}_opt.bc 2>> sp_m5_fs_${REGION}_opt.log
 	${LLC} ${LLC_FLAGS} m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.bc -o m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} ${M5_LINE} -fopenmp -o m5_fs/${REGION}/sp_m5_fs_${REGION} m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.o
+	${FC} ${COMPILER_FLAGS} -fopenmp -o m5_fs/${REGION}/sp_m5_fs_${REGION} m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.o ${M5_LINE}
 
-papi: sp.bc ${COMMON}/profile_helper_papi.ll
+papi: papi_${REGION}
+papi_${REGION}: sp.bc ${COMMON}/profile_helper_papi.ll
 	mkdir -p papi
 	mkdir -p papi/${REGION}
 	${LLVM_LINK} -o papi/${REGION}/sp_papi_${REGION}.bc sp.bc ${COMMON}/profile_helper_papi.ll

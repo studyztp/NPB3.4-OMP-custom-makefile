@@ -5,5 +5,8 @@
 *blk_par.h
 *setparams
 *.bak
-*/profiling
+*profiling
 *.json
+*clusters*
+*m5_fs*
+

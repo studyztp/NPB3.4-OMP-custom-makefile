@@ -1,4 +1,5 @@
 SIZE = B
+CLASS = B
 OMP_NUM_THREADS = 1
 
 build_profiling_all: pre BT/profiling/bt_profiling CG/profiling/cg_profiling DC/profiling/dc_profiling EP/profiling/ep_profiling FT/profiling/ft_profiling IS/profiling/is_profiling LU/profiling/lu_profiling MG/profiling/mg_profiling SP/profiling/sp_profiling
@@ -18,55 +19,55 @@ pre:
 	cd common; ${MAKE}
 
 BT/bt.bc:
-	cd BT; ${MAKE}
+	cd BT; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 BT/profiling/bt_profiling: BT/bt.bc
 	cd BT; ${MAKE} profiling
 
 CG/cg.bc:
-	cd CG; ${MAKE}
+	cd CG; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 CG/profiling/cg_profiling: CG/cg.bc
 	cd CG; ${MAKE} profiling
 
 DC/dc.bc:
-	cd DC; ${MAKE}
+	cd DC; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 DC/profiling/dc_profiling: DC/dc.bc
 	cd DC; ${MAKE} profiling
 
 EP/ep.bc:
-	cd EP; ${MAKE}
+	cd EP; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 EP/profiling/ep_profiling: EP/ep.bc
 	cd EP; ${MAKE} profiling
 
 FT/ft.bc:
-	cd FT; ${MAKE}
+	cd FT; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 FT/profiling/ft_profiling: FT/ft.bc
 	cd FT; ${MAKE} profiling
 
 IS/is.bc:
-	cd IS; ${MAKE}
+	cd IS; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 IS/profiling/is_profiling: IS/is.bc
 	cd IS; ${MAKE} profiling
 
 LU/lu.bc:
-	cd LU; ${MAKE}
+	cd LU; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 LU/profiling/lu_profiling: LU/lu.bc
 	cd LU; ${MAKE} profiling
 
 MG/mg.bc:
-	cd MG; ${MAKE}
+	cd MG; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 MG/profiling/mg_profiling: MG/mg.bc
 	cd MG; ${MAKE} profiling
 
 SP/sp.bc:
-	cd SP; ${MAKE}	
+	cd SP; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
 
 SP/profiling/sp_profiling: SP/sp.bc
 	cd SP; ${MAKE} profiling

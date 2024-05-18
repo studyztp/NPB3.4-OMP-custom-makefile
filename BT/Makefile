@@ -7,8 +7,8 @@ FLAGS = -O3 -fopenmp -lm ${COMPILER_FLAGS}
 LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
 LLC_FLAGS = -relocation-model=pic -filetype=obj
 
-COMMON = ../common
-SYS_DIR =../sys/
+COMMON = $(shell realpath ../common)
+SYS_DIR = $(shell realpath ../sys)
 
 PROGRAM = bt
 
@@ -22,8 +22,9 @@ PAPI_INCLUDE = ${PAPI_PATH}/include
 PAPI_LIB = ${PAPI_PATH}/lib
 PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
+
 M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH} -lm5
+M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
 
 all: pre bt
 
@@ -62,15 +63,17 @@ profiling: bt.bc ${COMMON}/profile_helper_profiling.ll
 	${LLC} ${LLC_FLAGS} profiling/bt_profiling_opt.bc -o profiling/bt_profiling_opt.o
 	${FC} ${COMPILER_FLAGS} -fopenmp -o profiling/bt_profiling profiling/bt_profiling_opt.o
 
-m5_fs: bt.bc ${COMMON}/profile_helper_m5_fs.ll
+m5_fs: m5_fs_${REGION}
+m5_fs_${REGION}: bt.bc ${COMMON}/profile_helper_m5_fs.ll
 	mkdir -p m5_fs
 	mkdir -p m5_fs/${REGION}
 	${LLVM_LINK} -o m5_fs/${REGION}/bt_m5_fs_${REGION}.bc bt.bc ${COMMON}/profile_helper_m5_fs.ll
 	cd m5_fs/${REGION} && ${OPT} -passes=phase-bound bt_m5_fs_${REGION}.bc -o bt_m5_fs_${REGION}_opt.bc 2>> bt_m5_fs_${REGION}_opt.log
 	${LLC} ${LLC_FLAGS} m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.bc -o m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} ${M5_LINE} -fopenmp -o m5_fs/${REGION}/bt_m5_fs_${REGION} m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.o
+	${FC} ${COMPILER_FLAGS} -fopenmp -o m5_fs/${REGION}/bt_m5_fs_${REGION} m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.o ${M5_LINE} 
 
-papi: bt.bc ${COMMON}/profile_helper_papi.ll
+papi: papi_${REGION}
+papi_${REGION}: bt.bc ${COMMON}/profile_helper_papi.ll
 	mkdir -p papi
 	mkdir -p papi/${REGION}
 	${LLVM_LINK} -o papi/${REGION}/bt_papi_${REGION}.bc bt.bc ${COMMON}/profile_helper_papi.ll

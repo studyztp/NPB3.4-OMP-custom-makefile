@@ -6,7 +6,7 @@
 #include "gem5/m5ops.h"
 #elif M5_FS
 #include "gem5/m5ops.h"
-#include "gem5/m5_mmap.h"
+#include "m5_mmap.h"
 #elif PAPI_NAIVE
 #include "papi.h"
 #elif PAPI

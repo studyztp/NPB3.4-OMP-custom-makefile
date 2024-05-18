@@ -12,8 +12,10 @@ PAPI_INCLUDE = ${PAPI_PATH}/include
 PAPI_LIB = ${PAPI_PATH}/lib
 PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
-M5_PATH = ./gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH} -lm5
+COMMON = $(shell realpath ../common)
+
+M5_PATH = ${COMMON}/gem5
+M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
 
 
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
@@ -61,8 +63,8 @@ profile_helper_profiling.ll: profile_helper.c
 					profile_helper.c -o profile_helper_profiling.ll
 
 profile_helper_m5_fs.ll: profile_helper.c
-	${CC} ${FLAGS} ${M5_LINE} -S -DM5_FS -emit-llvm \
-							profile_helper.c -o profile_helper_m5_fs.ll
+	${CC} ${FLAGS} -S -DM5_FS -emit-llvm \
+							profile_helper.c -o profile_helper_m5_fs.ll ${M5_LINE}
 
 profile_helper_papi.ll: profile_helper.c
 	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI -emit-llvm \
