@@ -9,4 +9,13 @@
 *.json
 *clusters*
 *m5_fs*
-
+BT/papi/
+CG/papi/
+EP/papi/
+FT/papi/
+IS/papi/
+LU/papi/
+MG/papi/
+SP/papi/
+UA/papi/
+DC/papi/
