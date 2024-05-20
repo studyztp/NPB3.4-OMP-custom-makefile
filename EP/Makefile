@@ -45,10 +45,10 @@ naive: ep.bc ${COMMON}/profile_helper_naive.ll
 	${FC} ${COMPILER_FLAGS} -fopenmp -o naive/ep_naive naive/ep_naive.o
 
 papi_naive: ep.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p naive
-	${LLVM_LINK} -o naive/ep_papi_naive.bc ep.bc ${COMMON}/profile_helper_papi_naive.ll
-	${LLC} ${LLC_FLAGS} naive/ep_papi_naive.bc -o naive/ep_papi_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/ep_papi_naive naive/ep_papi_naive.o
+	mkdir -p papi_naive
+	${LLVM_LINK} -o papi_naive/ep_papi_naive.bc ep.bc ${COMMON}/profile_helper_papi_naive.ll
+	${LLC} ${LLC_FLAGS} papi_naive/ep_papi_naive.bc -o papi_naive/ep_papi_naive.o
+	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi_naive/ep_papi_naive papi_naive/ep_papi_naive.o
 
 
 profiling: ep.bc ${COMMON}/profile_helper_profiling.ll
@@ -67,7 +67,7 @@ m5_fs_${REGION}: ep.bc ${COMMON}/profile_helper_m5_fs.ll
 	${LLC} ${LLC_FLAGS} m5_fs/${REGION}/ep_m5_fs_${REGION}_opt.bc -o m5_fs/${REGION}/ep_m5_fs_${REGION}_opt.o
 	${FC} ${COMPILER_FLAGS} -fopenmp -o m5_fs/${REGION}/ep_m5_fs_${REGION} m5_fs/${REGION}/ep_m5_fs_${REGION}_opt.o ${M5_LINE} 
 
-papi: papi/${REGION}
+papi: papi_${REGION}
 papi_${REGION}: ep.bc ${COMMON}/profile_helper_papi.ll
 	mkdir -p papi
 	mkdir -p papi/${REGION}

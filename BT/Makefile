@@ -50,11 +50,10 @@ naive: bt.bc ${COMMON}/profile_helper_naive.ll
 	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/bt_naive naive/bt_naive.o
 
 papi_naive: bt.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p naive
-	${LLVM_LINK} -o naive/bt_papi_naive.bc bt.bc ${COMMON}/profile_helper_papi_naive.ll
-	${LLC} ${LLC_FLAGS} naive/bt_papi_naive.bc -o naive/bt_papi_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/bt_papi_naive naive/bt_papi_naive.o
-
+	mkdir -p papi_naive
+	${LLVM_LINK} -o papi_naive/bt_papi_naive.bc bt.bc ${COMMON}/profile_helper_papi_naive.ll
+	${LLC} ${LLC_FLAGS} papi_naive/bt_papi_naive.bc -o papi_naive/bt_papi_naive.o
+	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi_naive/bt_papi_naive papi_naive/bt_papi_naive.o
 
 profiling: bt.bc ${COMMON}/profile_helper_profiling.ll
 	mkdir -p profiling

@@ -43,10 +43,10 @@ naive: cg.bc ${COMMON}/profile_helper_naive.ll
 	${FC} ${COMPILER_FLAGS} -fopenmp -o naive/cg_naive naive/cg_naive.o
 
 papi_naive: cg.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p naive
-	${LLVM_LINK} -o naive/cg_papi_naive.bc cg.bc ${COMMON}/profile_helper_papi_naive.ll
-	${LLC} ${LLC_FLAGS} naive/cg_papi_naive.bc -o naive/cg_papi_naive.o
-	${FC} ${COMPILER_FLAGS} -o naive/cg_papi_naive naive/cg_papi_naive.o -fopenmp ${PAPI_LINE}
+	mkdir -p papi_naive
+	${LLVM_LINK} -o papi_naive/cg_papi_naive.bc cg.bc ${COMMON}/profile_helper_papi_naive.ll
+	${LLC} ${LLC_FLAGS} papi_naive/cg_papi_naive.bc -o papi_naive/cg_papi_naive.o
+	${FC} ${COMPILER_FLAGS} -o papi_naive/cg_papi_naive papi_naive/cg_papi_naive.o -fopenmp ${PAPI_LINE}
 
 
 profiling: cg.bc ${COMMON}/profile_helper_profiling.ll
