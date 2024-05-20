@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #ifdef PROFILING
 #elif M5_SE
 #include "gem5/m5ops.h"
@@ -184,6 +185,8 @@ void end_marker() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("End marker\n");
+    printf("Exit now\n");
+    exit(0);
 #endif
 }
 
