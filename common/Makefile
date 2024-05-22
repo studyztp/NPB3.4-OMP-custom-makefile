@@ -21,7 +21,8 @@ M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	randi8_safe.ll randi8.ll timers.ll wtime.ll \
 	profile_helper_naive.ll profile_helper_profiling.ll \
-	profile_helper_m5_fs.ll profile_helper_papi.ll
+	profile_helper_m5_fs.ll profile_helper_papi.ll \
+	profile_helper_papi_naive.ll
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
