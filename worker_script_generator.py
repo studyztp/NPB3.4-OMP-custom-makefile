@@ -20,26 +20,38 @@ papi_cmds = [
 ]
 setup_env = f"export LD_LIBRARY_PATH={arm_lib_dir.as_posix()}:$LD_LIBRARY_PATH && export LD_LIBRARY_PATH={papi_lib_dir.as_posix()}:$LD_LIBRARY_PATH && export OMP_NUM_THREADS=1"
 
-with open(workdir/"clustering_data.json") as f:
-    data = json.load(f)
+# with open(workdir/"clustering_data.json") as f:
+#     data = json.load(f)
 
 runscript = ""
 
 runscript += f"{setup_env};\n"
 
-for bench in benchmarks:
-    bench_data = data[bench]
-    bench_dir = Path(workdir/bench.upper())
-    rep_data = bench_data[str(target_k)]["rep_rid"]
-    for rid in rep_data.values():
-        rid_dir = Path(bench_dir/f"papi/{rid}")
-        if Path(rid_dir/"data").exists():
-            shutil.rmtree(rid_dir/"data")
-        Path(rid_dir/"data").mkdir(parents=True, exist_ok=True)
+# for bench in benchmarks:
+#     bench_data = data[bench]
+#     bench_dir = Path(workdir/bench.upper())
+#     rep_data = bench_data[str(target_k)]["rep_rid"]
+#     for rid in rep_data.values():
+#         rid_dir = Path(bench_dir/f"papi/{rid}")
+#         if Path(rid_dir/"data").exists():
+#             shutil.rmtree(rid_dir/"data")
+#         Path(rid_dir/"data").mkdir(parents=True, exist_ok=True)
         
-        for papi_cmd in papi_cmds:
-            runscript += f"cd {rid_dir.as_posix()} && {papi_cmd} && ./{bench}_papi_{rid};\n"
+#         for papi_cmd in papi_cmds:
+#             runscript += f"cd {rid_dir.as_posix()} && {papi_cmd} && ./{bench}_papi_{rid};\n"
 
-with open(f"run_all_{target_k}_papi_point.sh", "w") as f:
+# with open(f"run_all_{target_k}_papi_point.sh", "w") as f:
+#     f.write(runscript)
+
+for bench in benchmarks:
+    bench_dir = Path(workdir/bench.upper())
+    papi_naive_dir = Path(bench_dir/"papi_naive")
+    if Path(papi_naive_dir/"data").exists():
+        shutil.rmtree(papi_naive_dir/"data")
+    Path(papi_naive_dir/"data").mkdir(exist_ok=False)
+    for papi_cmd in papi_cmds:
+        runscript += f"cd {papi_naive_dir.as_posix()} && {papi_cmd} && ./{bench}_papi_naive;\n"
+
+with open(f"run_all_naive_papi_point.sh", "w") as f:
     f.write(runscript)
 
