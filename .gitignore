@@ -9,6 +9,7 @@
 *.json
 *clusters*
 *m5_fs*
+*papi_naive*
 *dat.0*
 DC/ADC.view.sz.0
 DC/ADC.logf.0.0

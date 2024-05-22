@@ -40,7 +40,7 @@ naive: ft.bc ${COMMON}/profile_helper_naive.ll
 	${FC} ${COMPILER_FLAGS} -fopenmp -o naive/ft_naive naive/ft_naive.o
 
 papi_naive: ft.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p naive
+	mkdir -p papi_naive
 	${LLVM_LINK} -o papi_naive/ft_papi_naive.bc ft.bc ${COMMON}/profile_helper_papi_naive.ll
 	${LLC} ${LLC_FLAGS} papi_naive/ft_papi_naive.bc -o papi_naive/ft_papi_naive.o
 	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi_naive/ft_papi_naive papi_naive/ft_papi_naive.o
