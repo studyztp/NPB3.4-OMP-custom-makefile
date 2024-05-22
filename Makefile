@@ -72,6 +72,46 @@ SP/sp.bc:
 SP/profiling/sp_profiling: SP/sp.bc
 	cd SP; ${MAKE} profiling
 
+BT/papi_naive/bt_papi_naive: BT/bt.bc
+	cd BT; ${MAKE} papi_naive
+
+CG/papi_naive/cg_papi_naive: CG/cg.bc
+	cd CG; ${MAKE} papi_naive
+
+DC/papi_naive/dc_papi_naive: DC/dc.bc
+	cd DC; ${MAKE} papi_naive
+
+EP/papi_naive/ep_papi_naive: EP/ep.bc
+	cd EP; ${MAKE} papi_naive
+
+FT/papi_naive/ft_papi_naive: FT/ft.bc
+	cd FT; ${MAKE} papi_naive
+
+IS/papi_naive/is_papi_naive: IS/is.bc
+	cd IS; ${MAKE} papi_naive
+
+LU/papi_naive/lu_papi_naive: LU/lu.bc
+	cd LU; ${MAKE} papi_naive
+
+MG/papi_naive/mg_papi_naive: MG/mg.bc
+	cd MG; ${MAKE} papi_naive
+
+SP/papi_naive/sp_papi_naive: SP/sp.bc
+	cd SP; ${MAKE} papi_naive
+
+build_papi_naive_all: pre BT/papi_naive/bt_papi_naive CG/papi_naive/cg_papi_naive DC/papi_naive/dc_papi_naive EP/papi_naive/ep_papi_naive FT/papi_naive/ft_papi_naive IS/papi_naive/is_papi_naive LU/papi_naive/lu_papi_naive MG/papi_naive/mg_papi_naive SP/papi_naive/sp_papi_naive
+
+run_papi_naive_all: build_papi_naive_all
+	cd BT/papi_naive && ./bt_papi_naive
+	cd CG/papi_naive && ./cg_papi_naive
+	cd DC/papi_naive && ./dc_papi_naive
+	cd EP/papi_naive && ./ep_papi_naive
+	cd FT/papi_naive && ./ft_papi_naive
+	cd IS/papi_naive && ./is_papi_naive
+	cd LU/papi_naive && ./lu_papi_naive
+	cd MG/papi_naive && ./mg_papi_naive
+	cd SP/papi_naive && ./sp_papi_naive
+
 clean:
 	cd BT; ${MAKE} clean
 	cd CG; ${MAKE} clean
