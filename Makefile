@@ -124,6 +124,17 @@ clean:
 	cd SP; ${MAKE} clean
 	cd common; ${MAKE} clean
 
+clean_papi_m5_fs_all:
+	cd BT; rm -rf papi m5_fs
+	cd CG; rm -rf papi m5_fs
+	cd DC; rm -rf papi m5_fs
+	cd EP; rm -rf papi m5_fs
+	cd FT; rm -rf papi m5_fs
+	cd IS; rm -rf papi m5_fs
+	cd LU; rm -rf papi m5_fs
+	cd MG; rm -rf papi m5_fs
+	cd SP; rm -rf papi m5_fs
+
 
 clean_all:
 	cd BT; ${MAKE} clean_all
