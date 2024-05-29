@@ -48,15 +48,15 @@ for bench in benchmarks:
 with open(f"run_all_{target_k}_papi_point.sh", "w") as f:
     f.write(runscript)
 
-# for bench in benchmarks:
-#     bench_dir = Path(workdir/bench.upper())
-#     papi_naive_dir = Path(bench_dir/"papi_naive")
-#     if Path(papi_naive_dir/"data").exists():
-#         shutil.rmtree(papi_naive_dir/"data")
-#     Path(papi_naive_dir/"data").mkdir(exist_ok=False)
-#     for papi_cmd in papi_cmds:
-#         runscript += f"cd {papi_naive_dir.as_posix()} && {papi_cmd} && ./{bench}_papi_naive;\n"
+for bench in benchmarks:
+    bench_dir = Path(workdir/bench.upper())
+    papi_naive_dir = Path(bench_dir/"papi_naive")
+    if Path(papi_naive_dir/"data").exists():
+        shutil.rmtree(papi_naive_dir/"data")
+    Path(papi_naive_dir/"data").mkdir(exist_ok=False)
+    for papi_cmd in papi_cmds:
+        runscript += f"cd {papi_naive_dir.as_posix()} && {papi_cmd} && ./{bench}_papi_naive;\n"
 
-# with open(f"run_all_naive_papi_point.sh", "w") as f:
-#     f.write(runscript)
+with open(f"run_all_naive_papi_point.sh", "w") as f:
+    f.write(runscript)
 
