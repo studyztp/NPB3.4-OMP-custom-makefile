@@ -20,18 +20,18 @@ char filename[] = "profiler_output.txt";
 FILE *fptr = NULL;
 uint64_t is_profiling = 0;
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void write_single_data(char varName[], uint64_t var) {
     if(is_profiling != 0) {
-        is_profiling ++;
-        fprintf(fptr, "Region%lu %s: %ld\n", is_profiling-2, varName, var);
+        is_profiling++;
+        fprintf(fptr, "Region%lu %s: %ld\n", is_profiling-1, varName, var);
     }
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void write_array_data(char varName[], uint64_t* arr, uint32_t n) {
     if (is_profiling != 0) {
-        fprintf(fptr, "Region%lu %s: \n", is_profiling-2, varName);
+        fprintf(fptr, "Region%lu %s: \n", is_profiling-1, varName);
         for (uint32_t i = 0; i < n; i++) {
             fprintf(fptr, "%d:%ld ", i, arr[i]);
         }
@@ -39,24 +39,24 @@ void write_array_data(char varName[], uint64_t* arr, uint32_t n) {
     }
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void increment_array_element_at(uint64_t* arr, int index) {
     arr[index]++;
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void set_array_element_at(uint64_t* arr, int index, uint64_t val) {
     arr[index] = val;
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void increase_array_by(uint64_t* arr, int n, uint64_t inst) {
     for (int i = 0; i < n; i++) {
         arr[i] += inst;
     }
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void reset_array(uint64_t* arr, int n) {
     for (int i = 0; i < n; i++) {
         arr[i] = 0;
@@ -65,7 +65,7 @@ void reset_array(uint64_t* arr, int n) {
 
 #endif
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
 #ifdef PROFILING
     is_profiling = 1;
@@ -109,7 +109,7 @@ int retval = PAPI_library_init(PAPI_VER_CURRENT);
 #endif
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
 #ifdef PROFILING
     is_profiling = 0;
@@ -135,7 +135,7 @@ void roi_end_() {
 
 #ifndef PROFILING
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void warmup_marker() {
 #ifdef M5_SE
     printf("M5_SE Warmup marker\n");
@@ -148,7 +148,7 @@ void warmup_marker() {
 #endif
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void start_marker() {
 #ifdef M5_SE
     printf("M5_SE Start marker\n");
@@ -168,7 +168,7 @@ void start_marker() {
 #endif
 }
 
-__attribute__((profiler_helper))
+__attribute__((no_profile_instrument_function))
 void end_marker() {
 #ifdef M5_SE
     printf("M5_SE End marker\n");
