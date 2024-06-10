@@ -1,38 +1,19 @@
-FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
-CC = /scr/studyztp/compiler/llvm-dir/bin/clang
-OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
-LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
-COMPILER_FLAGS = --target=aarch64-unknown-linux-gnu -mcpu=neoverse-n1
-FLAGS = -O3 -fopenmp -lm ${COMPILER_FLAGS}
-LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
-LLC_FLAGS = -relocation-model=pic -filetype=obj
-
-COMMON = $(shell realpath ../common)
-SYS_DIR = $(shell realpath ../sys)
-
-PROGRAM = bt
-
-BENCHMARK=bt
-BENCHMARKU=BT
 BLK=
 BLKFAC=0
 
-PAPI_PATH = ${COMMON}/papi/install
-PAPI_INCLUDE = ${PAPI_PATH}/include
-PAPI_LIB = ${PAPI_PATH}/lib
-PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
+PROGRAM=bt
 
+FLAGS=${BASIC_FLAGS}
 
-M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
+CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
 
-all: pre bt
+all: pre bt.bc bt_O3.bc
 
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c
 	./setparams ${PROGRAM} ${SIZE}
 
-bt: bt.ll bt_data.ll initialize.ll exact_solution.ll \
+bt.bc: bt.ll bt_data.ll initialize.ll exact_solution.ll \
 	exact_rhs.ll set_constants.ll adi.ll rhs.ll \
 	x_solve$(BLK).ll y_solve$(BLK).ll solve_subs$(BLK).ll \
 	z_solve$(BLK).ll add.ll error.ll verify.ll work_lhs$(BLK).ll \
@@ -43,43 +24,8 @@ bt: bt.ll bt_data.ll initialize.ll exact_solution.ll \
 	z_solve$(BLK).ll add.ll error.ll verify.ll work_lhs$(BLK).ll \
 	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
-naive: bt.bc ${COMMON}/profile_helper_naive.ll
-	mkdir -p naive
-	${LLVM_LINK} -o naive/bt_naive.bc bt.bc ${COMMON}/profile_helper_naive.ll
-	${LLC} ${LLC_FLAGS} naive/bt_naive.bc -o naive/bt_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o naive/bt_naive naive/bt_naive.o
-
-papi_naive: bt.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p papi_naive
-	${LLVM_LINK} -o papi_naive/bt_papi_naive.bc bt.bc ${COMMON}/profile_helper_papi_naive.ll
-	${LLC} ${LLC_FLAGS} papi_naive/bt_papi_naive.bc -o papi_naive/bt_papi_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi_naive/bt_papi_naive papi_naive/bt_papi_naive.o
-
-profiling: bt.bc ${COMMON}/profile_helper_profiling.ll
-	mkdir -p profiling
-	${LLVM_LINK} -o profiling/bt_profiling.bc bt.bc ${COMMON}/profile_helper_profiling.ll
-	cd profiling && ${OPT} -passes=phase-analysis bt_profiling.bc -o bt_profiling_opt.bc 2>> bt_profiling_opt.log
-	${LLC} ${LLC_FLAGS} profiling/bt_profiling_opt.bc -o profiling/bt_profiling_opt.o
-	${FC} ${COMPILER_FLAGS} -fopenmp -o profiling/bt_profiling profiling/bt_profiling_opt.o
-
-m5_fs: m5_fs_${REGION}
-m5_fs_${REGION}: bt.bc ${COMMON}/profile_helper_m5_fs.ll
-	mkdir -p m5_fs
-	mkdir -p m5_fs/${REGION}
-	${LLVM_LINK} -o m5_fs/${REGION}/bt_m5_fs_${REGION}.bc bt.bc ${COMMON}/profile_helper_m5_fs.ll
-	cd m5_fs/${REGION} && ${OPT} -passes=phase-bound bt_m5_fs_${REGION}.bc -o bt_m5_fs_${REGION}_opt.bc 2>> bt_m5_fs_${REGION}_opt.log
-	${LLC} ${LLC_FLAGS} m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.bc -o m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} -fopenmp -o m5_fs/${REGION}/bt_m5_fs_${REGION} m5_fs/${REGION}/bt_m5_fs_${REGION}_opt.o ${M5_LINE} 
-
-papi: papi_${REGION}
-papi_${REGION}: bt.bc ${COMMON}/profile_helper_papi.ll
-	mkdir -p papi
-	mkdir -p papi/${REGION}
-	${LLVM_LINK} -o papi/${REGION}/bt_papi_${REGION}.bc bt.bc ${COMMON}/profile_helper_papi.ll
-	cd papi/${REGION} && ${OPT} -passes=phase-bound bt_papi_${REGION}.bc -o bt_papi_${REGION}_opt.bc 2>> bt_papi_${REGION}_opt.log
-	${LLC} ${LLC_FLAGS} papi/${REGION}/bt_papi_${REGION}_opt.bc -o papi/${REGION}/bt_papi_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi/${REGION}/bt_papi_${REGION} papi/${REGION}/bt_papi_${REGION}_opt.o
-
+bt_O3.bc: bt.bc
+	${OPT} ${OPT_FLAGS} bt.bc -o bt_O3_${CURRENT_DATE}.bc
 
 bt.ll: bt.f90 bt_data.ll blk_par.h
 	${FC} ${FLAGS} -S -emit-llvm bt.f90 -o bt.ll
@@ -129,15 +75,6 @@ error.ll: error.f90 bt_data.ll
 verify.ll: verify.f90 bt_data.ll
 	${FC} ${FLAGS} -S -emit-llvm verify.f90 -o verify.ll
 
-${COMMON}/print_results.ll: ${COMMON}/print_results.f90
-	${FC} ${FLAGS} -S -emit-llvm ${COMMON}/print_results.f90 -o ${COMMON}/print_results.ll
-
-${COMMON}/timers.ll: ${COMMON}/timers.f90
-	${FC} ${FLAGS} -S -emit-llvm ${COMMON}/timers.f90 -o ${COMMON}/timers.ll
-
-${COMMON}/wtime.ll: ${COMMON}/wtime.c
-	${CC} ${FLAGS} -S -emit-llvm ${COMMON}/wtime.c -o ${COMMON}/wtime.ll
-
 blk_par.h: FORCE
 	sed -e 's/= 0/= $(BLKFAC)/' blk_par0.h > blk_par.h_wk
 	@ if ! `diff blk_par.h_wk blk_par.h > /dev/null 2>&1`; then \
@@ -149,6 +86,18 @@ clean:
 	- rm -f npbparams.h core blk_par.h
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
+
+clean_naive:
+	- rm -rf naive
+
+clean_profiling:
+	- rm -rf profiling
+
+clean_m5_fs:
+	- rm -rf m5_fs
+
+clean_papi:
+	- rm -rf papi
 
 clean_all:
 	- rm -f *.o *~ *.mod mputil*

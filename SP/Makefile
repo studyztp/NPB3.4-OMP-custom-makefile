@@ -1,15 +1,3 @@
-FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
-CC = /scr/studyztp/compiler/llvm-dir/bin/clang
-OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
-LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
-COMPILER_FLAGS = --target=aarch64-unknown-linux-gnu -mcpu=neoverse-n1
-FLAGS = -O3 -fopenmp -lm ${COMPILER_FLAGS}
-LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
-LLC_FLAGS = -relocation-model=pic -filetype=obj
-
-COMMON = ../common
-SYS_DIR =../sys/
-
 PROGRAM = sp
 
 BENCHMARK=sp
@@ -17,21 +5,17 @@ BENCHMARKU=SP
 BLK=
 BLKFAC=0
 
-PAPI_PATH = ${COMMON}/papi/install
-PAPI_INCLUDE = ${PAPI_PATH}/include
-PAPI_LIB = ${PAPI_PATH}/lib
-PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
+FLAGS=${BASIC_FLAGS}
 
-M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
+CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
 
-all: pre sp
+all: pre sp.bc sp_O3.bc
 
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c
 	./setparams ${PROGRAM} ${SIZE}
 
-sp: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \
+sp.bc: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \
 	set_constants.ll adi.ll rhs.ll work_lhs${BLK}.ll \
 	x_solve${BLK}.ll ninvr.ll y_solve${BLK}.ll pinvr.ll \
 	z_solve${BLK}.ll tzetar.ll add.ll txinvr.ll error.ll verify.ll \
@@ -42,43 +26,8 @@ sp: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \
 	z_solve${BLK}.ll tzetar.ll add.ll txinvr.ll error.ll verify.ll \
 	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
-naive: sp.bc ${COMMON}/profile_helper_naive.ll
-	mkdir -p naive
-	${LLVM_LINK} -o naive/sp_naive.bc sp.bc ${COMMON}/profile_helper_naive.ll
-	${LLC} ${LLC_FLAGS} naive/sp_naive.bc -o naive/sp_naive.o
-	${FC} ${COMPILER_FLAGS} -fopenmp -o naive/sp_naive naive/sp_naive.o
-
-papi_naive: sp.bc ${COMMON}/profile_helper_papi_naive.ll
-	mkdir -p papi_naive
-	${LLVM_LINK} -o papi_naive/sp_papi_naive.bc sp.bc ${COMMON}/profile_helper_papi_naive.ll
-	${LLC} ${LLC_FLAGS} papi_naive/sp_papi_naive.bc -o papi_naive/sp_papi_naive.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi_naive/sp_papi_naive papi_naive/sp_papi_naive.o
-
-
-profiling: sp.bc ${COMMON}/profile_helper_profiling.ll
-	mkdir -p profiling
-	${LLVM_LINK} -o profiling/sp_profiling.bc sp.bc ${COMMON}/profile_helper_profiling.ll
-	cd profiling && ${OPT} -passes=phase-analysis sp_profiling.bc -o sp_profiling_opt.bc 2>> sp_profiling_opt.log
-	${LLC} ${LLC_FLAGS} profiling/sp_profiling_opt.bc -o profiling/sp_profiling_opt.o
-	${FC} ${COMPILER_FLAGS} -fopenmp -o profiling/sp_profiling profiling/sp_profiling_opt.o
-
-m5_fs: m5_fs_${REGION}
-m5_fs_${REGION}: sp.bc ${COMMON}/profile_helper_m5_fs.ll
-	mkdir -p m5_fs
-	mkdir -p m5_fs/${REGION}
-	${LLVM_LINK} -o m5_fs/${REGION}/sp_m5_fs_${REGION}.bc sp.bc ${COMMON}/profile_helper_m5_fs.ll
-	cd m5_fs/${REGION} && ${OPT} -passes=phase-bound sp_m5_fs_${REGION}.bc -o sp_m5_fs_${REGION}_opt.bc 2>> sp_m5_fs_${REGION}_opt.log
-	${LLC} ${LLC_FLAGS} m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.bc -o m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} -fopenmp -o m5_fs/${REGION}/sp_m5_fs_${REGION} m5_fs/${REGION}/sp_m5_fs_${REGION}_opt.o ${M5_LINE}
-
-papi: papi_${REGION}
-papi_${REGION}: sp.bc ${COMMON}/profile_helper_papi.ll
-	mkdir -p papi
-	mkdir -p papi/${REGION}
-	${LLVM_LINK} -o papi/${REGION}/sp_papi_${REGION}.bc sp.bc ${COMMON}/profile_helper_papi.ll
-	cd papi/${REGION} && ${OPT} -passes=phase-bound sp_papi_${REGION}.bc -o sp_papi_${REGION}_opt.bc 2>> sp_papi_${REGION}_opt.log
-	${LLC} ${LLC_FLAGS} papi/${REGION}/sp_papi_${REGION}_opt.bc -o papi/${REGION}/sp_papi_${REGION}_opt.o
-	${FC} ${COMPILER_FLAGS} ${PAPI_LINE} -fopenmp -o papi/${REGION}/sp_papi_${REGION} papi/${REGION}/sp_papi_${REGION}_opt.o
+sp_O3.bc: sp.bc
+	${OPT} ${OPT_FLAGS} sp.bc -o sp_O3_${CURRENT_DATE}.bc
 
 sp.ll: sp.f90 sp_data.ll blk_par.h
 	${FC} ${FLAGS} -S -emit-llvm sp.f90 -o sp.ll
@@ -148,6 +97,18 @@ clean:
 	- rm -f npbparams.h core blk_par.h
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
+
+clean_naive:
+	- rm -rf naive
+
+clean_profiling:
+	- rm -rf profiling
+
+clean_m5_fs:
+	- rm -rf m5_fs
+
+clean_papi:
+	- rm -rf papi
 
 clean_all:
 	- rm -f *.o *~ *.mod mputil*

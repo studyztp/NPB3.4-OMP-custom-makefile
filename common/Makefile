@@ -1,23 +1,3 @@
-FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
-CC = /scr/studyztp/compiler/llvm-dir/bin/clang
-OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
-LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
-COMPILER_FLAGS = --target=aarch64-unknown-linux-gnu -mcpu=neoverse-n1
-FLAGS = -O3 -fopenmp -lm ${COMPILER_FLAGS}
-LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
-LLC_FLAGS = -relocation-model=pic -filetype=obj
-
-PAPI_PATH = ./papi/install
-PAPI_INCLUDE = ${PAPI_PATH}/include
-PAPI_LIB = ${PAPI_PATH}/lib
-PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
-
-COMMON = $(shell realpath ../common)
-
-M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
-
-
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	randi8_safe.ll randi8.ll timers.ll wtime.ll \
 	profile_helper_naive.ll profile_helper_profiling.ll \

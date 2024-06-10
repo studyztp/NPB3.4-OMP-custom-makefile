@@ -1,149 +1,112 @@
-SIZE = B
-CLASS = B
-OMP_NUM_THREADS = 1
+FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
+CC = /scr/studyztp/compiler/llvm-dir/bin/clang
+OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
+LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
+HW_FLAGS = --target=aarch64-unknown-linux-gnu -mcpu=neoverse-n1
+LIB_FLAGS = -fopenmp -lm
+OPT_FLAGS = -O3 
+LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
+LLC_FLAGS = -relocation-model=pic -filetype=obj
 
-build_profiling_all: pre BT/profiling/bt_profiling CG/profiling/cg_profiling DC/profiling/dc_profiling EP/profiling/ep_profiling FT/profiling/ft_profiling IS/profiling/is_profiling LU/profiling/lu_profiling MG/profiling/mg_profiling SP/profiling/sp_profiling
+BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} 
 
-run_profiling_all: build_profiling_all
-	cd BT/profiling && ./bt_profiling
-	cd CG/profiling && ./cg_profiling
-	# cd DC/profiling && ./dc_profiling
-	cd EP/profiling && ./ep_profiling
-	cd FT/profiling && ./ft_profiling
-	cd IS/profiling && ./is_profiling
-	cd LU/profiling && ./lu_profiling
-	cd MG/profiling && ./mg_profiling
-	cd SP/profiling && ./sp_profiling
+COMMON = ${PWD}/common
+SYS_DIR = ${PWD}/sys
 
-pre: 
-	cd common; ${MAKE}
+PAPI_PATH = ${COMMON}/papi/install
+PAPI_INCLUDE = ${PAPI_PATH}/include
+PAPI_LIB = ${PAPI_PATH}/lib
+PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
-BT/bt.bc:
-	cd BT; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+M5_PATH = ${COMMON}/gem5
+M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
 
-BT/profiling/bt_profiling: BT/bt.bc
-	cd BT; ${MAKE} profiling
+PROGRAM_UPPER = $(shell echo ${PROGRAM} | tr '[:lower:]' '[:upper:]')
+PROGRAM_PATH = ${PWD}/${PROGRAM_UPPER}
 
-CG/cg.bc:
-	cd CG; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+ENV_VARS = FC='${FC}' CC='${CC}' OPT='${OPT}' LLVM_LINK='${LLVM_LINK}' \
+	HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' OPT_FLAGS='${OPT_FLAGS}' \
+	LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' BASIC_FLAGS='${BASIC_FLAGS}' \
+	COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' PAPI_LINE='${PAPI_LINE}' \
+	M5_LINE='${M5_LINE}'
 
-CG/profiling/cg_profiling: CG/cg.bc
-	cd CG; ${MAKE} profiling
+F_PROGRAMS = bt cg ep ft lu mg sp
 
-DC/dc.bc:
-	cd DC; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+ifeq ($(filter $(PROGRAM),$(F_PROGRAMS)), $(PROGRAM))
+COMPILER = ${FC}
+else
+COMPILER = ${CC}
+endif
 
-DC/profiling/dc_profiling: DC/dc.bc
-	cd DC; ${MAKE} profiling
+VERSION_STAMP = 
 
-EP/ep.bc:
-	cd EP; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+all: pre ${PROGRAM}
 
-EP/profiling/ep_profiling: EP/ep.bc
-	cd EP; ${MAKE} profiling
+pre:
+	cd ${COMMON} && make all ${ENV_VARS}
 
-FT/ft.bc:
-	cd FT; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+$(PROGRAM): pre ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc
+${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc:
+	cd ${PROGRAM_PATH} && make all ${ENV_VARS}
 
-FT/profiling/ft_profiling: FT/ft.bc
-	cd FT; ${MAKE} profiling
+get_version:
+	$(eval FILE := $(wildcard ${PROGRAM_PATH}/*${PROGRAM}_O3_*.bc))
+	$(eval VERSION_STAMP := $(subst ${PROGRAM_PATH}/$(PROGRAM)_O3_,,$(basename $(FILE))))
+	@echo PROGRAM_PATH=${PROGRAM_PATH}
+	@echo PROGRAM=${PROGRAM}
+	@echo FILE=${FILE}	
+	@echo ${VERSION_STAMP}
 
-IS/is.bc:
-	cd IS; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+naive: ${PROGRAM} naive_${PROGRAM}
+naive_${PROGRAM}: ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_naive.ll
+	cd ${PROGRAM_PATH} && mkdir -p naive
+	cd ${PROGRAM_PATH}/naive && ${LLVM_LINK} -o ${PROGRAM}_naive.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_naive.ll
+	cd ${PROGRAM_PATH}/naive && ${LLC} ${LLC_FLAGS} ${PROGRAM}_naive.bc -o ${PROGRAM}_naive.o
+	cd ${PROGRAM_PATH}/naive && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_naive.o -o ${PROGRAM}_naive_${VERSION_STAMP}
 
-IS/profiling/is_profiling: IS/is.bc
-	cd IS; ${MAKE} profiling
+papi_naive: ${PROGRAM} papi_naive_${PROGRAM}
+papi_naive_${PROGRAM}: ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi_naive.ll
+	cd ${PROGRAM_PATH} && mkdir -p papi_naive
+	cd ${PROGRAM_PATH}/papi_naive && ${LLVM_LINK} -o ${PROGRAM}_papi_naive.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi_naive.ll
+	cd ${PROGRAM_PATH}/papi_naive && ${LLC} ${LLC_FLAGS} ${PROGRAM}_papi_naive.bc -o ${PROGRAM}_papi_naive.o
+	cd ${PROGRAM_PATH}/papi_naive && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_papi_naive.o -o ${PROGRAM}_papi_naive_${VERSION_STAMP}
 
-LU/lu.bc:
-	cd LU; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
+profiling: ${PROGRAM} get_version profiling_${PROGRAM}
+profiling_${PROGRAM}: ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_profiling.ll
+	cd ${PROGRAM_PATH} && mkdir -p profiling
+	cd ${PROGRAM_PATH}/profiling && ${LLVM_LINK} -o ${PROGRAM}_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_profiling.ll
+	cd ${PROGRAM_PATH}/profiling && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_profiling.bc -o ${PROGRAM}_profiling_opt.bc
+	cd ${PROGRAM_PATH}/profiling && ${LLC} ${LLC_FLAGS} ${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_profiling.o
+	cd ${PROGRAM_PATH}/profiling && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_profiling.o -o ${PROGRAM}_profiling_${VERSION_STAMP}
 
-LU/profiling/lu_profiling: LU/lu.bc
-	cd LU; ${MAKE} profiling
+m5_fs: get_version m5_fs_${PROGRAM}_${REGION}
+m5_fs_${PROGRAM}_${REGION}: ${COMMON}/profile_helper_m5_fs.ll
+	cd ${PROGRAM_PATH} && mkdir -p m5_fs
+	cd ${PROGRAM_PATH}/m5_fs && mkdir -p ${REGION}
+	cd ${PROGRAM_PATH}/m5_fs/${REGION} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_m5_fs.ll
+	cd ${PROGRAM_PATH}/m5_fs/${REGION} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/profiling/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/clusters/${REGION}.txt \
+	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs.bc -o ${PROGRAM}_m5_fs_opt.bc
+	cd ${PROGRAM_PATH}/m5_fs/${REGION} && ${LLC} ${LLC_FLAGS} ${PROGRAM}_m5_fs_opt.bc -o ${PROGRAM}_m5_fs.o
+	cd ${PROGRAM_PATH}/m5_fs/${REGION} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_m5_fs.o -o ${PROGRAM}_m5_fs_${VERSION_STAMP} ${M5_LINE}
 
-MG/mg.bc:
-	cd MG; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
-
-MG/profiling/mg_profiling: MG/mg.bc
-	cd MG; ${MAKE} profiling
-
-SP/sp.bc:
-	cd SP; ${MAKE} CLASS=${CLASS} SIZE=${SIZE}
-
-SP/profiling/sp_profiling: SP/sp.bc
-	cd SP; ${MAKE} profiling
-
-BT/papi_naive/bt_papi_naive: BT/bt.bc
-	cd BT; ${MAKE} papi_naive
-
-CG/papi_naive/cg_papi_naive: CG/cg.bc
-	cd CG; ${MAKE} papi_naive
-
-DC/papi_naive/dc_papi_naive: DC/dc.bc
-	cd DC; ${MAKE} papi_naive
-
-EP/papi_naive/ep_papi_naive: EP/ep.bc
-	cd EP; ${MAKE} papi_naive
-
-FT/papi_naive/ft_papi_naive: FT/ft.bc
-	cd FT; ${MAKE} papi_naive
-
-IS/papi_naive/is_papi_naive: IS/is.bc
-	cd IS; ${MAKE} papi_naive
-
-LU/papi_naive/lu_papi_naive: LU/lu.bc
-	cd LU; ${MAKE} papi_naive
-
-MG/papi_naive/mg_papi_naive: MG/mg.bc
-	cd MG; ${MAKE} papi_naive
-
-SP/papi_naive/sp_papi_naive: SP/sp.bc
-	cd SP; ${MAKE} papi_naive
-
-build_papi_naive_all: pre BT/papi_naive/bt_papi_naive CG/papi_naive/cg_papi_naive DC/papi_naive/dc_papi_naive EP/papi_naive/ep_papi_naive FT/papi_naive/ft_papi_naive IS/papi_naive/is_papi_naive LU/papi_naive/lu_papi_naive MG/papi_naive/mg_papi_naive SP/papi_naive/sp_papi_naive
-
-run_papi_naive_all: build_papi_naive_all
-	cd BT/papi_naive && ./bt_papi_naive
-	cd CG/papi_naive && ./cg_papi_naive
-	cd DC/papi_naive && ./dc_papi_naive
-	cd EP/papi_naive && ./ep_papi_naive
-	cd FT/papi_naive && ./ft_papi_naive
-	cd IS/papi_naive && ./is_papi_naive
-	cd LU/papi_naive && ./lu_papi_naive
-	cd MG/papi_naive && ./mg_papi_naive
-	cd SP/papi_naive && ./sp_papi_naive
+papi: get_version papi_${PROGRAM}
+papi_${PROGRAM}: ${COMMON}/profile_helper_papi.ll
+	cd ${PROGRAM_PATH} && mkdir -p papi
+	cd ${PROGRAM_PATH}/papi && mkdir -p ${REGION}
+	cd ${PROGRAM_PATH}/papi/${REGION} && ${LLVM_LINK} -o ${PROGRAM}_papi.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi.ll
+	cd ${PROGRAM_PATH}/papi/${REGION} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/profiling/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/clusters/${REGION}.txt \
+	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi.bc -o ${PROGRAM}_papi_opt.bc
+	cd ${PROGRAM_PATH}/papi/${REGION} && ${LLC} ${LLC_FLAGS} ${PROGRAM}_papi_opt.bc -o ${PROGRAM}_papi.o
+	cd ${PROGRAM_PATH}/papi/${REGION} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_papi.o -o ${PROGRAM}_papi_${VERSION_STAMP}
 
 clean:
-	cd BT; ${MAKE} clean
-	cd CG; ${MAKE} clean
-	cd DC; ${MAKE} clean
-	cd EP; ${MAKE} clean
-	cd FT; ${MAKE} clean
-	cd IS; ${MAKE} clean
-	cd LU; ${MAKE} clean
-	cd MG; ${MAKE} clean
-	cd SP; ${MAKE} clean
-	cd common; ${MAKE} clean
-
-clean_papi_m5_fs_all:
-	cd BT; rm -rf papi m5_fs
-	cd CG; rm -rf papi m5_fs
-	cd DC; rm -rf papi m5_fs
-	cd EP; rm -rf papi m5_fs
-	cd FT; rm -rf papi m5_fs
-	cd IS; rm -rf papi m5_fs
-	cd LU; rm -rf papi m5_fs
-	cd MG; rm -rf papi m5_fs
-	cd SP; rm -rf papi m5_fs
-
+	cd ${COMMON} && make clean
+	cd ${PROGRAM_PATH} && make clean
 
 clean_all:
-	cd BT; ${MAKE} clean_all
-	cd CG; ${MAKE} clean_all
-	cd DC; ${MAKE} clean_all
-	cd EP; ${MAKE} clean_all
-	cd FT; ${MAKE} clean_all
-	cd IS; ${MAKE} clean_all
-	cd LU; ${MAKE} clean_all
-	cd MG; ${MAKE} clean_all
-	cd SP; ${MAKE} clean_all
-	cd common; ${MAKE} clean
+	cd ${COMMON} && make clean
+	cd ${PROGRAM_PATH} && make clean_all
