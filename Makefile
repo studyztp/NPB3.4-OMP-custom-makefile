@@ -119,6 +119,12 @@ cross_compile_profiling_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
+cross_compile_papi: get_version cross_compile_papi_${PROGRAM}_${TARGET_ARCH}
+cross_compile_papi_${PROGRAM}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/papi/${REGION} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/papi/${REGION}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/papi/${REGION}/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi --target=${TARGET_ARCH}-unknown-linux-gnu
+
 clean:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean

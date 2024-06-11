@@ -1,5 +1,5 @@
 PACKAGE_TARNAME = papi
-prefix = /home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/NPB3.4-OMP/common/papi/src/../../all_papi/aarch64
+prefix = /home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/NPB3.4-OMP/common/papi/src/../../all_papi/x86_64
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}/${PACKAGE_TARNAME}
@@ -11,13 +11,13 @@ LIBRARY = libpapi.a
 SHLIB   = libpapi.so.7.0.1.0
 PAPILIB = ../$(LIBRARY)
 TESTLIB = $(testlibdir)/libtestlib.a
-LDFLAGS =  
-CC	= /scr/studyztp/compiler/llvm-dir/bin/clang
+LDFLAGS =  -ldl
+CC	= gcc
 F77	= gfortran
 CC_R	= $(CC) -pthread
-CFLAGS	=  -g -DUSE_PTHREAD_MUTEXES  -DPAPI_NUM_COMP=3
+CFLAGS	=  -g -Wextra  -Wall -DPAPI_NUM_COMP=3
 OMPCFLGS = -fopenmp
-FFLAGS	=  -g -DUSE_PTHREAD_MUTEXES    -Dlinux -ffixed-line-length-132
+FFLAGS	=  -g -Wextra  -Wall   -Dlinux -ffixed-line-length-132
 TOPTFLAGS= -O1
 FTOPTFLAGS= -O1
 ENABLE_FORTRAN_TESTS=yes

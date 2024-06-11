@@ -2,7 +2,7 @@
 /* config.h.in.  Generated from configure.in by autoheader.  */
 
 /* cpu type */
-#define CPU arm
+#define CPU x86
 
 /* POSIX 1b clock */
 #define HAVE_CLOCK_GETTIME 1
@@ -14,7 +14,7 @@
 /* #undef HAVE_CLOCK_GETTIME_REALTIME_HR */
 
 /* POSIX 1b per-thread clock */
-/* #undef HAVE_CLOCK_GETTIME_THREAD */
+#define HAVE_CLOCK_GETTIME_THREAD CLOCK_THREAD_CPUTIME_ID
 
 /* Native access to a hardware cycle counter */
 /* #undef HAVE_CYCLE */
@@ -158,10 +158,10 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Use the perfctr virtual TSC for per-thread times */
-#define USE_PERFCTR_PTTIMER 1
+/* #undef USE_PERFCTR_PTTIMER */
 
 /* Use /proc for per-thread times */
-#define USE_PROC_PTTIMER 1
+/* #undef USE_PROC_PTTIMER */
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE

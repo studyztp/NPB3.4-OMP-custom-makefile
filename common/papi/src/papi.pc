@@ -1,4 +1,4 @@
-prefix=/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/NPB3.4-OMP/common/papi/src/../../all_papi/aarch64
+prefix=/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/NPB3.4-OMP/common/papi/src/../../all_papi/x86_64
 exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
