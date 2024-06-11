@@ -14,7 +14,7 @@
 /* #undef HAVE_CLOCK_GETTIME_REALTIME_HR */
 
 /* POSIX 1b per-thread clock */
-#define HAVE_CLOCK_GETTIME_THREAD CLOCK_THREAD_CPUTIME_ID
+/* #undef HAVE_CLOCK_GETTIME_THREAD */
 
 /* Native access to a hardware cycle counter */
 /* #undef HAVE_CYCLE */
@@ -158,10 +158,10 @@
 #define TIME_WITH_SYS_TIME 1
 
 /* Use the perfctr virtual TSC for per-thread times */
-/* #undef USE_PERFCTR_PTTIMER */
+#define USE_PERFCTR_PTTIMER 1
 
 /* Use /proc for per-thread times */
-/* #undef USE_PROC_PTTIMER */
+#define USE_PROC_PTTIMER 1
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE

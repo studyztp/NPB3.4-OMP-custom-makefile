@@ -11,7 +11,7 @@ CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
 all: pre lu.bc lu_O3.bc
 
 pre: ${SYS_DIR}/setparams.c
-	${CC} -o setparams ${SYS_DIR}/setparams.c
+	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 	./setparams ${PROGRAM} ${SIZE}
 
 lu.bc: lu.ll lu_data.ll read_input.ll \

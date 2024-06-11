@@ -12,7 +12,7 @@ CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
 all: pre sp.bc sp_O3.bc
 
 pre: ${SYS_DIR}/setparams.c
-	${CC} -o setparams ${SYS_DIR}/setparams.c
+	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 	./setparams ${PROGRAM} ${SIZE}
 
 sp.bc: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \

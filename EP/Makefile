@@ -9,7 +9,7 @@ CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
 all: pre ep.bc ep_O3.bc
 
 pre: ${SYS_DIR}/setparams.c
-	${CC} -o setparams ${SYS_DIR}/setparams.c
+	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 	./setparams ${PROGRAM} ${SIZE}
 
 ep.bc: ep.ll ep_data.ll verify.ll \

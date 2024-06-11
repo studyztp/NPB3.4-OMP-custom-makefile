@@ -1,12 +1,12 @@
 PACKAGE_TARNAME = papi
-prefix = /home/studyztp/test_ground/experiments/hardware-profiling/ori_NPB/NPB3.4.2/papi/src/../install
+prefix = /home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/NPB3.4-OMP/common/papi/src/../../all_papi/aarch64
 exec_prefix = ${prefix}
 datarootdir = ${prefix}/share
 datadir = ${datarootdir}/${PACKAGE_TARNAME}
 DATADIR = $(DESTDIR)$(datadir)
 INCLUDE = -I. -I${prefix}/include
-CC	= gcc
+CC	= /scr/studyztp/compiler/llvm-dir/bin/clang
 F77	= gfortran
 CC_R	= $(CC) -pthread
-CFLAGS	=  -g -Wextra -DUSE_PTHREAD_MUTEXES  -Wall -DPAPI_NUM_COMP=3 -O1
+CFLAGS	=  -g -DUSE_PTHREAD_MUTEXES  -DPAPI_NUM_COMP=3 -O1
 ENABLE_FORTRAN = yes
