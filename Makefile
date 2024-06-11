@@ -2,7 +2,7 @@ FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
 CC = /scr/studyztp/compiler/llvm-dir/bin/clang
 OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
 LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
-HW_FLAGS = --target=aarch64-unknown-linux-gnu -mcpu=neoverse-n1
+HW_FLAGS =
 LIB_FLAGS = -fopenmp -lm
 OPT_FLAGS = -O3 
 LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
