@@ -20,7 +20,7 @@ PAPI_LIB = ${PAPI_PATH}/lib
 PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
 M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH}/out -lm5
+M5_LINE = -I${M5_PATH} -L${M5_PATH}/all_outs/${TARGET_ARCH} -lm5
 
 PROGRAM_UPPER = $(shell echo ${PROGRAM} | tr '[:lower:]' '[:upper:]')
 PROGRAM_PATH = ${PWD}/${PROGRAM_UPPER}
