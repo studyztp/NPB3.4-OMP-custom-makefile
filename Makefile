@@ -1,16 +1,18 @@
+# compiler related paths
 FC = /scr/studyztp/compiler/llvm-dir/bin/flang-new
 CC = /scr/studyztp/compiler/llvm-dir/bin/clang
 OPT = /scr/studyztp/compiler/llvm-dir/bin/opt
+LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
 LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
+
+# compiler related flags
 HW_FLAGS =
 LIB_FLAGS = -fopenmp -lm
 OPT_FLAGS = -O3 
-LLC = /scr/studyztp/compiler/llvm-dir/bin/llc
 LLC_FLAGS = -relocation-model=pic -filetype=obj
-HOST_ARCH = $(shell uname -m)-unknown-linux-gnu
-
 BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} 
 
+# helper library paths
 COMMON = ${PWD}/common
 SYS_DIR = ${PWD}/sys
 
@@ -22,15 +24,11 @@ PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 M5_PATH = ${COMMON}/gem5
 M5_LINE = -I${M5_PATH} -L${M5_PATH}/all_outs/${TARGET_ARCH} -lm5
 
+# program related paths
 PROGRAM_UPPER = $(shell echo ${PROGRAM} | tr '[:lower:]' '[:upper:]')
 PROGRAM_PATH = ${PWD}/${PROGRAM_UPPER}
 
-ENV_VARS = FC='${FC}' CC='${CC}' OPT='${OPT}' LLVM_LINK='${LLVM_LINK}' \
-	HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' OPT_FLAGS='${OPT_FLAGS}' \
-	LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' BASIC_FLAGS='${BASIC_FLAGS}' \
-	COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' PAPI_LINE='${PAPI_LINE}' \
-	M5_LINE='${M5_LINE}' HOST_ARCH='${HOST_ARCH}'
-
+# compiler frontend selection
 F_PROGRAMS = bt cg ep ft lu mg sp
 
 ifeq ($(filter $(PROGRAM),$(F_PROGRAMS)), $(PROGRAM))
@@ -39,7 +37,19 @@ else
 COMPILER = ${CC}
 endif
 
-VERSION_STAMP = 
+# target architecture
+ifeq ($(TARGET_ARCH),)
+TARGET_ARCH = $(shell uname -m)
+endif
+
+VERSION_STAMP= 
+
+# environment variables for sub-makefiles
+ENV_VARS = FC='${FC}' CC='${CC}' OPT='${OPT}' LLVM_LINK='${LLVM_LINK}' \
+	HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' OPT_FLAGS='${OPT_FLAGS}' \
+	LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' BASIC_FLAGS='${BASIC_FLAGS}' \
+	COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' PAPI_LINE='${PAPI_LINE}' \
+	M5_LINE='${M5_LINE}'
 
 all: pre ${PROGRAM}
 
@@ -50,6 +60,7 @@ $(PROGRAM): pre ${PROGRAM_PATH}/${PROGRAM}.bc
 ${PROGRAM_PATH}/${PROGRAM}.bc:
 	cd ${PROGRAM_PATH} && make all ${ENV_VARS}
 
+# get version stamp
 get_version:
 	$(eval FILE := $(wildcard ${PROGRAM_PATH}/*${PROGRAM}_O3_*.bc))
 	$(eval VERSION_STAMP := $(subst ${PROGRAM_PATH}/$(PROGRAM)_O3_,,$(basename $(FILE))))
