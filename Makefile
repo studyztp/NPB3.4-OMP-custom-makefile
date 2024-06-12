@@ -97,19 +97,19 @@ papi_${PROGRAM}: ${COMMON}/profile_helper_papi.ll
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi.bc -o ${PROGRAM}_papi_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
-final_compile_naive: get_version cross_compile_naive_${PROGRAM}_${TARGET_ARCH}
+final_compile_naive: get_version final_compile_naive_${PROGRAM}_${TARGET_ARCH}
 final_compile_naive_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/naive && mkdir -p ${TARGET_ARCH} 
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_naive.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.naive --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_profiling: get_version cross_compile_profiling_${PROGRAM}_${TARGET_ARCH}
+final_compile_profiling: get_version final_compile_profiling_${PROGRAM}_${TARGET_ARCH}
 final_compile_profiling_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/profiling && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_papi: get_version cross_compile_papi_${PROGRAM}_${TARGET_ARCH}
+final_compile_papi: get_version final_compile_papi_${PROGRAM}_${TARGET_ARCH}
 final_compile_papi_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/papi/${REGION} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/papi/${REGION}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi.o --march=$(subst _,-,$(TARGET_ARCH))
