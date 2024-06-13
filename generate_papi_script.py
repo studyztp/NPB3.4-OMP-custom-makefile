@@ -59,8 +59,13 @@ for bench in benchmarks:
         arm_runscript += f"make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=aarch64;\n"
         x86_runscript += f"make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=x86_64;\n"
     for rid in rep_rid:
+        arm_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/aarch64 && rm -r data;\n"
+        arm_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/aarch64 && mkdir -p data;\n"
+        x86_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/x86_64 && rm -r data;\n"
+        x86_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/x86_64 && mkdir -p data;\n"
         for papi_cmd in azacca_papi_cmds:
             arm_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/aarch64 && {papi_cmd} && ./{bench}_aarch64_*.papi;\n"
+        for papi_cmd in challenger_papi_cmds:
             x86_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/x86_64 && {papi_cmd} && ./{bench}_x86_64_*.papi;\n"
 
 with open(f"build_all_base_papi.sh", "w") as f:
