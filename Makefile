@@ -97,8 +97,8 @@ m5_fs_${PROGRAM}_${REGION}: ${COMMON}/profile_helper_m5_fs.ll
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs.bc -o ${PROGRAM}_m5_fs_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
-papi: get_version papi_${PROGRAM}
-papi_${PROGRAM}: ${COMMON}/profile_helper_papi.ll
+papi: get_version papi_${PROGRAM}_${REGION}
+papi_${PROGRAM}_${REGION}: ${COMMON}/profile_helper_papi.ll
 	cd ${PROGRAM_PATH} && mkdir -p papi
 	cd ${PROGRAM_PATH}/papi && mkdir -p ${REGION}
 	cd ${PROGRAM_PATH}/papi/${REGION} && ${LLVM_LINK} -o ${PROGRAM}_papi.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi.ll
@@ -120,11 +120,17 @@ final_compile_profiling_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/profiling/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_papi: get_version final_compile_papi_${PROGRAM}_${TARGET_ARCH}
-final_compile_papi_${PROGRAM}_${TARGET_ARCH}:
+final_compile_papi: get_version final_compile_papi_${PROGRAM}_${REGION}_${TARGET_ARCH}
+final_compile_papi_${PROGRAM}_${REGION}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/papi/${REGION} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/papi/${REGION}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/papi/${REGION}/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi --target=${TARGET_ARCH}-unknown-linux-gnu
+
+final_compile_m5_fs: get_version final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}
+final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/m5_fs/${REGION} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 clean:
 	cd ${COMMON} && make clean
