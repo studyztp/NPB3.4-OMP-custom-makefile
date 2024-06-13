@@ -15,11 +15,11 @@ arm_lib_dir = Path(common_dir/"aarch64-unknown-linux-gnu")
 x86_lib_dir = Path(common_dir/"x86_64-unknown-linux-gnu")
 
 challenger_papi_cmds = [
-    "export PAPI_EVENTS='PAPI_TLB_IM,PAPI_TLB_DM,PAPI_L2_DCM,PAPI_L1_ICM, && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/0",
-    "export PAPI_EVENTS='PAPI_TOT_INS,PAPI_BR_MSP,PAPI_BR_TKN,PAPI_L2_ICM, && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/1",
-    "export PAPI_EVENTS='PAPI_L2_DCH,PAPI_TOT_CYC,PAPI_BR_INS,PAPI_FP_INS, && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/2",
-    "export PAPI_EVENTS='PAPI_L2_ICR,PAPI_L2_ICH,PAPI_L2_DCR,PAPI_L1_DCA, && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/3",
-    "export PAPI_EVENTS='PAPI_FP_OPS,PAPI_L2_ICH,PAPI_L2_DCR,PAPI_L1_DCA, && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/4"
+    "export PAPI_EVENTS='PAPI_TLB_IM,PAPI_TLB_DM,PAPI_L2_DCM,PAPI_L1_ICM' && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/0",
+    "export PAPI_EVENTS='PAPI_TOT_INS,PAPI_BR_MSP,PAPI_BR_TKN,PAPI_L2_ICM' && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/1",
+    "export PAPI_EVENTS='PAPI_L2_DCH,PAPI_TOT_CYC,PAPI_BR_INS,PAPI_FP_INS' && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/2",
+    "export PAPI_EVENTS='PAPI_L2_ICR,PAPI_L2_ICH,PAPI_L2_DCR,PAPI_L1_DCA' && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/3",
+    "export PAPI_EVENTS='PAPI_FP_OPS,PAPI_L2_ICH,PAPI_L2_DCR,PAPI_L1_DCA' && export PAPI_OUTPUT_DIRECTORY=${PWD}/data/4"
 ]
 
 azacca_papi_cmds = [
