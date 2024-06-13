@@ -8,6 +8,8 @@
 #elif M5_FS
 #include "gem5/m5ops.h"
 #include "m5_mmap.h"
+#include <errno.h>
+#include <sys/utsname.h>
 #elif PAPI_NAIVE
 #include "papi.h"
 #elif PAPI
@@ -75,13 +77,24 @@ void roi_begin_() {
     printf("M5_SE ROI started\n");
 #elif M5_FS
 
-#ifdef aarch64
-    m5op_addr = 0x10010000;
-#elif x86_64
-    m5op_addr = 0xFFFF0000;
-#else
-    m5op_addr = 0;
-#endif
+    struct utsname buffer;
+
+    errno = 0;
+    if (uname(&buffer) < 0) {
+        perror("uname");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("arch     = %s\n", buffer.machine);
+
+    if (strcmp(buffer.machine, "x86_64") == 0) {
+        m5op_addr = 0xFFFF0000;
+    } else if (strcmp(buffer.machine, "aarch64") == 0) {
+        m5op_addr = 0x10010000;
+    } else {
+        m5op_addr = 0x0;
+        printf("Unsupported architecture\n");
+    }
 
     map_m5_mem();
     printf("M5_FS ROI started\n");

@@ -4,12 +4,6 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	profile_helper_m5_fs.ll profile_helper_papi.ll \
 	profile_helper_papi_naive.ll
 
-M5_ADDR =
-ifdef {$(TARGET_ARCH), x86_64}
-M5_ADDR = -Dx86_64
-else ifeq {$(TARGET_ARCH), aarch64}
-M5_ADDR = -Daarch64
-endif
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -51,7 +45,7 @@ profile_helper_profiling.ll: profile_helper.c
 					profile_helper.c -o profile_helper_profiling.ll
 
 profile_helper_m5_fs.ll: profile_helper.c
-	${CC} ${FLAGS} -S -DM5_FS ${M5_ADDR} -emit-llvm \
+	${CC} ${FLAGS} -S -DM5_FS -emit-llvm \
 							profile_helper.c -o profile_helper_m5_fs.ll ${M5_INCLUDE}
 
 profile_helper_papi.ll: profile_helper.c
