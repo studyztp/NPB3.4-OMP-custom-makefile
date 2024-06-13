@@ -7,7 +7,7 @@ LLVM_LINK = /scr/studyztp/compiler/llvm-dir/bin/llvm-link
 
 # compiler related flags
 HW_FLAGS =
-LIB_FLAGS = -fopenmp -lm
+LIB_FLAGS = -fopenmp -lm 
 OPT_FLAGS = -O3 
 LLC_FLAGS = -relocation-model=pic -filetype=obj
 BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} 
@@ -22,7 +22,11 @@ PAPI_LIB = ${PAPI_PATH}/lib
 PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 
 M5_PATH = ${COMMON}/gem5
-M5_LINE = -I${M5_PATH} -L${M5_PATH}/all_outs/${TARGET_ARCH} -lm5
+M5_LIB = -L${M5_PATH}/all_outs/${TARGET_ARCH} -lm5
+M5_INCLUDE = -I${M5_PATH}
+M5_LINE = ${M5_INCLUDE} ${M5_LIB}
+
+HOST_ARCH = $(shell uname -m)-unknown-linux-gnu
 
 # program related paths
 PROGRAM_UPPER = $(shell echo ${PROGRAM} | tr '[:lower:]' '[:upper:]')
@@ -42,6 +46,10 @@ ifeq ($(TARGET_ARCH),)
 TARGET_ARCH = $(shell uname -m)
 endif
 
+ifeq ($(TARGET_ARCH), x86_64)
+M5_LINE = -fPIE ${M5_INCLUDE} ${M5_LIB}
+endif
+
 VERSION_STAMP= 
 
 # environment variables for sub-makefiles
@@ -49,7 +57,8 @@ ENV_VARS = FC='${FC}' CC='${CC}' OPT='${OPT}' LLVM_LINK='${LLVM_LINK}' \
 	HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' OPT_FLAGS='${OPT_FLAGS}' \
 	LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' BASIC_FLAGS='${BASIC_FLAGS}' \
 	COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' PAPI_LINE='${PAPI_LINE}' \
-	M5_LINE='${M5_LINE}'
+	M5_LINE='${M5_LINE}' M5_INCLUDE='${M5_INCLUDE}' M5_LIB='${M5_LIB}' \
+	HOST_ARCH='${HOST_ARCH}' TARGET_ARCH='${TARGET_ARCH}' \
 
 all: pre ${PROGRAM}
 
@@ -139,6 +148,4 @@ clean:
 clean_all:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean_all
-
-
 

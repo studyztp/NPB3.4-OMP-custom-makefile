@@ -74,7 +74,15 @@ void roi_begin_() {
 #elif M5_SE
     printf("M5_SE ROI started\n");
 #elif M5_FS
+
+#ifdef aarch64
     m5op_addr = 0x10010000;
+#elif x86_64
+    m5op_addr = 0xFFFF0000;
+#else
+    m5op_addr = 0;
+#endif
+
     map_m5_mem();
     printf("M5_FS ROI started\n");
 #elif NAIVE
