@@ -47,9 +47,9 @@ for bench in benchmarks:
     arm_runscript += f"cd {workdir} && make final_compile_papi_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=aarch64;\n"
     x86_runscript += f"cd {workdir} && make final_compile_papi_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=x86_64;\n"
     for papi_cmd in azacca_papi_cmds:
-        arm_runscript += f"cd {workdir}/{bench.upper()}/papi_profiling/${region_size}/aarch64 && {papi_cmd} && ./$(ls {bench}_aarch64_*.papi_profiling);\n"
+        arm_runscript += f"cd {workdir}/{bench.upper()}/papi_profiling/{region_size}/aarch64 && {papi_cmd} && ./$(ls {bench}_aarch64_*.papi_profiling);\n"
     for papi_cmd in challenger_papi_cmds:
-        x86_runscript += f"cd {workdir}/{bench.upper()}/papi_profiling/${region_size}/x86_64 && {papi_cmd} && ./$(ls {bench}_x86_64_*.papi_profiling);\n"
+        x86_runscript += f"cd {workdir}/{bench.upper()}/papi_profiling/{region_size}/x86_64 && {papi_cmd} && ./$(ls {bench}_x86_64_*.papi_profiling);\n"
 
 with output_build_profiling_script.open("w") as file:
     file.write(base_runscript)
