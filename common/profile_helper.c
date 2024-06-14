@@ -14,6 +14,8 @@
 #include "papi.h"
 #elif PAPI
 #include "papi.h"
+#elif PAPI_PROFILING
+#include "papi.h"
 #endif
 
 #ifdef PROFILING
@@ -64,6 +66,37 @@ void reset_array(uint64_t* arr, int n) {
         arr[i] = 0;
     }
 }
+#elif PAPI_PROFILING
+
+uint64_t region_id = 0;
+bool start_profiling = false;
+
+__attribute__((no_profile_instrument_function))
+void start_papi_region() {
+    if(start_profiling) {
+        char str[64];
+        sprintf(str, "%lu", region_id);
+        printf("Starting PAPI %s region\n", str);
+        int retval = PAPI_hl_region_begin(str);
+        if (retval != PAPI_OK) {
+            printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function))
+void end_papi_region() {
+    if(start_profiling) {
+        char str[64];
+        sprintf(str, "%lu", region_id);
+        printf("Ending PAPI %s region\n", str);
+        int retval = PAPI_hl_region_end(str);
+        if (retval != PAPI_OK) {
+            printf("PAPI_hl_region_end failed due to %d.\n", retval);
+        }
+        region_id++;
+    }
+}
 
 #endif
 
@@ -101,7 +134,7 @@ void roi_begin_() {
 #elif NAIVE
     printf("ROI started\n");
 #elif PAPI_NAIVE
-int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
         printf("PAPI_library_init failed due to %d.\n", retval);
     }
@@ -127,6 +160,20 @@ int retval = PAPI_library_init(PAPI_VER_CURRENT);
     }
     printf("ROI started\n");
     printf("PAPI initialized\n");
+
+#elif PAPI_PROFILING
+    start_profiling = true;
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI started\n");
+    printf("PAPI initialized\n");
+    start_papi_region();
 #endif
 }
 
@@ -149,6 +196,10 @@ void roi_end_() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("Ending PAPI roi region\n");
+#elif PAPI_PROFILING
+    end_papi_region();
+    printf("ROI ended\n");
+    start_profiling = false;
 #else
     printf("ROI ended\n");
 #endif

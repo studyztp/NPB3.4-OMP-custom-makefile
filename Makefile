@@ -41,6 +41,10 @@ else
 COMPILER = ${CC}
 endif
 
+ifeq ($(REGION_LENGTH),)
+REGION_LENGTH = 100000000
+endif
+
 # target architecture
 ifeq ($(TARGET_ARCH),)
 TARGET_ARCH = $(shell uname -m)
@@ -89,6 +93,15 @@ profiling_${PROGRAM}: ${COMMON}/profile_helper_profiling.ll
 	cd ${PROGRAM_PATH} && mkdir -p profiling
 	cd ${PROGRAM_PATH}/profiling && ${LLVM_LINK} -o ${PROGRAM}_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_profiling.ll
 	cd ${PROGRAM_PATH}/profiling && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_profiling.bc -o ${PROGRAM}_profiling_opt.bc \
+		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+
+papi_profiling: get_version papi_profiling_${PROGRAM}
+papi_profiling_${PROGRAM}: ${COMMON}/profile_helper_papi_profiling.ll
+	cd ${PROGRAM_PATH} && mkdir -p papi_profiling
+	cd ${PROGRAM_PATH}/papi_profiling && ${LLVM_LINK} -o ${PROGRAM}_papi_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi_profiling.ll
+	cd ${PROGRAM_PATH}/papi_profiling && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi_profiling.bc -o ${PROGRAM}_papi_profiling_opt.bc \
+		-phase-analysis-using-papi=true -phase-analysis-region-length=${REGION_LENGTH} \
 		2>> phase_analysis_log_${VERSION_STAMP}.log
 
 m5_fs: get_version m5_fs_${PROGRAM}_${REGION}
@@ -137,6 +150,12 @@ final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
+final_compile_papi_profiling: get_version final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}
+final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/papi_profiling && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/papi_profiling/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/papi_profiling/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+	
 clean:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean
