@@ -24,7 +24,7 @@ PAPI_LINE = -I${PAPI_INCLUDE} -L${PAPI_LIB} -lpapi -lpthread
 M5_PATH = ${COMMON}/gem5
 M5_LIB = -L${M5_PATH}/all_outs/${TARGET_ARCH} -lm5
 M5_INCLUDE = -I${M5_PATH}
-M5_LINE = ${M5_INCLUDE} ${M5_LIB}
+M5_LINE = -no-pie ${M5_INCLUDE} ${M5_LIB}
 
 HOST_ARCH = $(shell uname -m)-unknown-linux-gnu
 
@@ -44,10 +44,6 @@ endif
 # target architecture
 ifeq ($(TARGET_ARCH),)
 TARGET_ARCH = $(shell uname -m)
-endif
-
-ifeq ($(TARGET_ARCH), x86_64)
-M5_LINE = -fPIE ${M5_INCLUDE} ${M5_LIB}
 endif
 
 VERSION_STAMP= 
