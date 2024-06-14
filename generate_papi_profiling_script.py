@@ -42,6 +42,7 @@ arm_runscript += f"{arm_setup_env};\n"
 x86_runscript += f"{x86_setup_env};\n"
 
 for bench in benchmarks:
+    base_runscript += f"cd {workdir}/{bench.upper()} && rm -r papi_profiling;\n"
     base_runscript += f"make papi_profiling PROGRAM={bench} SIZE={size};\n"
     arm_runscript += f"make final_compile_papi_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=aarch64;\n"
     x86_runscript += f"make final_compile_papi_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=x86_64;\n"
@@ -58,4 +59,3 @@ with output_bash_aarch64_script.open("w") as file:
 
 with output_bash_x86_64_script.open("w") as file:
     file.write(x86_runscript)
-    
