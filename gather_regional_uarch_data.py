@@ -27,7 +27,7 @@ for bench in benchmarks:
     uarch_data[bench] = {}
     for batch in bench_papi_profiling_dir.iterdir():
         data_dir = Path(batch/"papi_hl_output/")
-        file_path = data_dir.iterdir()[0]
+        file_path = next(data_dir.iterdir())
         with open(file_path, 'r') as f:
             data = json.load(f)
         data = data["threads"]["0"]["regions"]
