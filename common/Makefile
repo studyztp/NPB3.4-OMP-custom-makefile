@@ -50,7 +50,7 @@ profile_helper_m5_fs.ll: profile_helper.c
 							profile_helper.c -o profile_helper_m5_fs.ll ${M5_INCLUDE}
 
 profile_helper_papi_profiling.ll: profile_helper.c
-	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI_PROFILING -emit-llvm \
+	${CC} ${FLAGS} ${PAPI_LINE} -S -DUSING_PAPI_PROFILING -emit-llvm \
 							profile_helper.c -o profile_helper_papi_profiling.ll
 
 profile_helper_papi.ll: profile_helper.c

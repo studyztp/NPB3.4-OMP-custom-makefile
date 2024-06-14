@@ -14,7 +14,7 @@
 #include "papi.h"
 #elif PAPI
 #include "papi.h"
-#elif PAPI_PROFILING
+#elif USING_PAPI_PROFILING
 #include "papi.h"
 #endif
 
@@ -66,7 +66,7 @@ void reset_array(uint64_t* arr, int n) {
         arr[i] = 0;
     }
 }
-#elif PAPI_PROFILING
+#elif USING_PAPI_PROFILING
 
 uint64_t region_id = 0;
 uint8_t start_profiling = 0;
@@ -161,7 +161,7 @@ void roi_begin_() {
     printf("ROI started\n");
     printf("PAPI initialized\n");
 
-#elif PAPI_PROFILING
+#elif USING_PAPI_PROFILING
     start_profiling = 1;
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -196,7 +196,7 @@ void roi_end_() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("Ending PAPI roi region\n");
-#elif PAPI_PROFILING
+#elif USING_PAPI_PROFILING
     end_papi_region();
     printf("ROI ended\n");
     start_profiling = 0;
