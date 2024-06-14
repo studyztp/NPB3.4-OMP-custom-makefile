@@ -136,26 +136,26 @@ final_compile_naive_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_naive.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.naive --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_profiling: get_version final_compile_profiling_${PROGRAM}_${TARGET_ARCH}
+final_compile_profiling: get_version final_compile_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
 final_compile_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_papi: get_version final_compile_papi_${PROGRAM}_${REGION}_${TARGET_ARCH}
+final_compile_papi: get_version final_compile_papi_${PROGRAM}_${REGION}_${TARGET_ARCH}_${REGION_LENGTH}
 final_compile_papi_${PROGRAM}_${REGION}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/papi/${REGION}/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/papi/${REGION}/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/papi/${REGION}/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi --target=${TARGET_ARCH}-unknown-linux-gnu
 
-final_compile_m5_fs: get_version final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}
-final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}:
+final_compile_m5_fs: get_version final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}_${REGION_LENGTH}
+final_compile_m5_fs_${PROGRAM}_${REGION}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/m5_fs/${REGION_LENGTH}/${REGION} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/m5_fs/${REGION}/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
-final_compile_papi_profiling: get_version final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}
-final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}:
+final_compile_papi_profiling: get_version final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
+final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/papi_profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
