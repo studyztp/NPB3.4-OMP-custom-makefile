@@ -43,8 +43,8 @@ with output_build_profiling_script.open("w") as base_script:
                 for bench in benchmarks:
                     base_script.write(f"make clean_all PROGRAM={bench};\n")
                     base_script.write(f"make profiling PROGRAM={bench} SIZE={size};\n")
-                    arm_script.write(f"make final_compile_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=aarch64;\n")
-                    x86_script.write(f"make final_compile_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=x86_64;\n")
+                    arm_script.write(f"cd {current_location} && make final_compile_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=aarch64;\n")
+                    x86_script.write(f"cd {current_location} && make final_compile_profiling PROGRAM={bench} SIZE={size} TARGET_ARCH=x86_64;\n")
                 for bench in benchmarks:
                     arm_script.write(f"cd {current_location}/{bench.upper()}/profiling/aarch64 && ./$(ls {bench}_aarch64_*.profiling);\n")
                     x86_script.write(f"cd {current_location}/{bench.upper()}/profiling/x86_64 && ./$(ls {bench}_x86_64_*.profiling);\n")

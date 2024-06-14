@@ -56,8 +56,8 @@ for bench in benchmarks:
     bench_dir = Path(workdir/bench.upper())
     for rid in rep_rid:
         base_runscript += f"make papi PROGRAM={bench} REGION={rid};\n"
-        arm_runscript += f"make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=aarch64;\n"
-        x86_runscript += f"make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=x86_64;\n"
+        arm_runscript += f"cd {workdir} && make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=aarch64;\n"
+        x86_runscript += f"cd {workdir} && make final_compile_papi PROGRAM={bench} REGION={rid} ARCH=x86_64;\n"
     for rid in rep_rid:
         arm_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/aarch64 && rm -r data;\n"
         arm_runscript += f"cd {bench_dir.as_posix()}/papi/{rid}/aarch64 && mkdir -p data;\n"
