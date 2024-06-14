@@ -16,7 +16,9 @@
 #include "papi.h"
 #elif PAPI_PROFILING
 #include "papi.h"
-#include <stdbool.h>
+#define bool int
+#define true 1
+#define false 0
 #endif
 
 #ifdef PROFILING
