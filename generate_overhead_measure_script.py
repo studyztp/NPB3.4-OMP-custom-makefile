@@ -12,7 +12,7 @@ x86_64_script = ""
 aarch64_script = ""
 
 # setup enviornment
-x86_64_script += "export OMP_NUM_THREADS=1;\n;" \
+x86_64_script += "export OMP_NUM_THREADS=1;\n" \
     f"export LD_LIBRARY_PATH={workdir.as_posix()}/common/x86_64-unknown-linux-gnu:" \
     f"{workdir.as_posix()}/common/all_papi/x86_64/lib:$LD_LIBRARY_PATH;\n"
 aarch64_script += "export OMP_NUM_THREADS=1;\n" \
