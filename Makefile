@@ -137,6 +137,12 @@ final_compile_naive_${PROGRAM}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_naive.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.naive --target=${TARGET_ARCH}-unknown-linux-gnu
 
+final_compile_papi_naive: get_version final_compile_papi_naive_${PROGRAM}_${TARGET_ARCH}
+final_compile_papi_naive_${PROGRAM}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/papi_naive && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/papi_naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_naive.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/papi_naive/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi_naive --target=${TARGET_ARCH}-unknown-linux-gnu
+
 final_compile_profiling: get_version final_compile_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
 final_compile_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
