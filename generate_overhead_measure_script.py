@@ -21,15 +21,14 @@ aarch64_script += "export OMP_NUM_THREADS=1;\n" \
 
 for bench in benchmarks:
     # measure naive time
-    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_naive/x86_64 &&  time ./{bench}_x86_64_*.papi_naive > time.log 2>> time.err;\n"
-    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_naive/aarch64 &&  time ./{bench}_aarch64_*.papi_naive > time.log 2>> time.err;\n"
+    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_naive/x86_64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_x86_64_*.papi_naive; " + "} 2>> log.txt;\n"
+    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_naive/aarch64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_aarch64_*.papi_naive; " + "} 2>> log.txt;\n"
     # measure profiling time with bbv
-    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/profiling/{region_length}/x86_64 &&  time ./{bench}_x86_64_*.profiling > time.log 2>> time.err;\n"
-    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/profiling/{region_length}/aarch64 &&  time ./{bench}_aarch64_*.profiling > time.log 2>> time.err;\n"
+    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/profiling/{region_length}/x86_64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_x86_64_*.profiling; " + "} 2>> log.txt;\n"
+    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/profiling/{region_length}/aarch64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_aarch64_*.profiling; " + "} 2>> log.txt;\n"
     # measure papi profiling time
-    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_profiling/x86_64 &&  time ./{bench}_x86_64_*.papi_profiling > time.log 2>> time.err;\n"
-    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_profiling/aarch64 &&  time ./{bench}_aarch64_*.papi_profiling > time.log 2>> time.err;\n"
-
+    x86_64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_profiling/{region_length}/x86_64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_x86_64_*.papi_profiling; " + "} 2>> log.txt;\n"
+    aarch64_script += f"cd {workdir.as_posix()}/{bench.upper()}/papi_profiling/{region_length}/aarch64 && TIMEFORMAT='%R %U %S'; " + "{ time ./" + f"{bench}_aarch64_*.papi_profiling; " + "} 2>> log.txt;\n"
 with open("measure_overhead_x86_64.sh", "w") as f:
     f.write(x86_64_script)
 
