@@ -115,7 +115,7 @@ m5_fs_${PROGRAM}_${REGION}: ${COMMON}/profile_helper_m5_fs.ll
 	cd ${PROGRAM_PATH}/m5_fs/${REGION_LENGTH}/${REGION} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_m5_fs.ll
 	cd ${PROGRAM_PATH}/m5_fs/${REGION_LENGTH}/${REGION} && ${OPT} -passes=phase-bound \
 	-phase-bound-bb-order-file=${PROGRAM_PATH}/profiling/${REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/clusters/${REGION}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${REGION_LENGTH}/regions/${REGION}.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs.bc -o ${PROGRAM}_m5_fs_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
@@ -127,7 +127,7 @@ papi_${PROGRAM}_${REGION}: ${COMMON}/profile_helper_papi.ll
 	cd ${PROGRAM_PATH}/papi/${REGION_LENGTH}/${REGION} && ${LLVM_LINK} -o ${PROGRAM}_papi.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/profile_helper_papi.ll
 	cd ${PROGRAM_PATH}/papi/${REGION_LENGTH}/${REGION} && ${OPT} -passes=phase-bound \
 	-phase-bound-bb-order-file=${PROGRAM_PATH}/profiling/${REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/clusters/${REGION}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${REGION_LENGTH}/regions/${REGION}.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi.bc -o ${PROGRAM}_papi_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
