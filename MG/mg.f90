@@ -79,8 +79,6 @@
 !$    integer  omp_get_max_threads
 !$    external omp_get_max_threads
 
-      call init_lock
-
 
       do i = T_init, T_last
          call timer_clear(i)

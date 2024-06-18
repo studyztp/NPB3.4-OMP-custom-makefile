@@ -71,7 +71,7 @@
 !$    integer  omp_get_max_threads
 !$    external omp_get_max_threads
 
-      call init_lock
+      
 
       data             dum /1.d0, 1.d0, 1.d0/
 

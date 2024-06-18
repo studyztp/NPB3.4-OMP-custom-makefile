@@ -70,7 +70,6 @@
 !      defaults from parameters
 !---------------------------------------------------------------------
 
-       call init_lock
        call check_timer_flag( timeron )
        if (timeron) then
          t_names(t_total) = 'total'

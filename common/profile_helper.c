@@ -19,33 +19,25 @@
 #include "papi.h"
 #endif
 
-omp_lock_t writelock;
-uint8_t lock_initialized = 0;
+uint64_t region = 0;
 
-__attribute__((no_profile_instrument_function))
-void get_lock() {
-    if (lock_initialized) {
-        if (omp_in_parallel()) {
-            omp_set_lock(&writelock);
-        }
-    }
+__attribute__((no_profile_instrument_function, noinline))
+void print_thread_num() {
+    // printf("region: %d\n", region++);
 }
 
-__attribute__((no_profile_instrument_function))
-void release_lock() {
-    if (lock_initialized) {
-        if (omp_in_parallel()) {
-            omp_unset_lock(&writelock);
+__attribute__((no_profile_instrument_function, noinline))
+uint8_t atomic_increase(uint64_t* counter, uint64_t inst, uint64_t threshold) {
+    #pragma omp atomic update compare
+        *counter += inst;
+        if (*counter >= threshold) {
+            // printf("Counter: %ld\n", *counter);
+            *counter = 0;
+            return 1;
+            // return omp_get_thread_num() == 0;
+        } else {
+            return 0;
         }
-    }
-}
-
-__attribute__((no_profile_instrument_function))
-void init_lock_() {
-    if (!lock_initialized) {
-        omp_init_lock(&writelock);
-        lock_initialized = 1;
-    }
 }
 
 #ifdef PROFILING
@@ -54,7 +46,7 @@ char filename[] = "profiler_output.txt";
 FILE *fptr = NULL;
 uint64_t is_profiling = 0;
 
-__attribute__((no_profile_instrument_function))
+__attribute__((no_profile_instrument_function, noinline))
 void write_single_data(char varName[], uint64_t var) {
     if(is_profiling != 0) {
         is_profiling++;
@@ -62,7 +54,7 @@ void write_single_data(char varName[], uint64_t var) {
     }
 }
 
-__attribute__((no_profile_instrument_function))
+__attribute__((no_profile_instrument_function, noinline))
 void write_array_data(char varName[], uint64_t* arr, uint32_t n) {
     if (is_profiling != 0) {
         fprintf(fptr, "Region%lu %s: \n", is_profiling-1, varName);
@@ -75,7 +67,7 @@ void write_array_data(char varName[], uint64_t* arr, uint32_t n) {
 
 __attribute__((no_profile_instrument_function))
 void increment_array_element_at(uint64_t* arr, int index) {
-    arr[index]++;
+   arr[index] += 1;
 }
 
 __attribute__((no_profile_instrument_function))
@@ -96,6 +88,7 @@ void reset_array(uint64_t* arr, int n) {
         arr[i] = 0;
     }
 }
+
 #elif USING_PAPI_PROFILING
 
 uint64_t region_id = 0;
@@ -209,8 +202,6 @@ void roi_begin_() {
 
 __attribute__((no_profile_instrument_function))
 void roi_end_() {
-    omp_destroy_lock(&writelock);
-    lock_initialized = 0;
 #ifdef PROFILING
     is_profiling = 0;
     fclose(fptr);

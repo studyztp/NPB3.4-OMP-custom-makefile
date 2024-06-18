@@ -50,7 +50,6 @@
 // forward declarations for roi functions
 void roi_begin_();
 void roi_end_();
-void init_lock_();
 
 
 /*****************************************************************/
@@ -873,9 +872,6 @@ void rank( int iteration )
 
 int main( int argc, char **argv )
 {
-
-    init_lock_();
-
     int             i, iteration, timer_on;
 
     double          timecounter;

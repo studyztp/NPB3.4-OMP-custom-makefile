@@ -68,7 +68,7 @@
       integer i
       character t_names(t_last)*8
 
-      call init_lock
+      
 
 !---------------------------------------------------------------------
 !     Setup info for timers
