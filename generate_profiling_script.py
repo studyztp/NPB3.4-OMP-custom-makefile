@@ -14,11 +14,11 @@ diff_script = Path("diff.sh")
 aarch64_environment_setup = f"export LD_LIBRARY_PATH={current_location}/common/" \
     + "aarch64-unknown-linux-gnu:" \
     + f"{current_location}/common/all_papi/aarch64/lib:$LD_LIBRARY_PATH;\n" \
-    + "export OMP_NUM_THREADS=1;"
+    + "export OMP_NUM_THREADS=2;"
 x86_64_environment_setup = f"export LD_LIBRARY_PATH={current_location}/common/" \
     + "x86_64-unknown-linux-gnu:" \
     + f"{current_location}/common/all_papi/x86_64/lib:$LD_LIBRARY_PATH;\n" \
-    + "export OMP_NUM_THREADS=1;"
+    + "export OMP_NUM_THREADS=2;"
 
 with output_build_profiling_script.open("w") as base_script:
     with output_bash_aarch64_script.open("w") as arm_script:

@@ -11,7 +11,7 @@ HW_FLAGS =
 LIB_FLAGS = -fopenmp -lm 
 OPT_FLAGS = -O3 
 LLC_FLAGS = -relocation-model=pic -filetype=obj
-BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} 
+BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} ${DEBUG_FLAGS} 
 
 # helper library paths
 COMMON = ${PWD}/common

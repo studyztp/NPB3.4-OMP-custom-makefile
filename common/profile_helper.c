@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <omp.h>
 #ifdef PROFILING
 #elif M5_SE
 #include "gem5/m5ops.h"
@@ -17,6 +18,27 @@
 #elif USING_PAPI_PROFILING
 #include "papi.h"
 #endif
+
+omp_lock_t writelock;
+uint8_t lock_initialized = 0;
+
+__attribute__((no_profile_instrument_function))
+void get_lock() {
+    if (!lock_initialized) {
+        omp_init_lock(&writelock);
+        lock_initialized = 1;
+    }
+    if (omp_in_parallel()) {
+        omp_set_lock(&writelock);
+    }
+}
+
+__attribute__((no_profile_instrument_function))
+void release_lock() {
+    if (omp_in_parallel()) {
+        omp_unset_lock(&writelock);
+     }
+}
 
 #ifdef PROFILING
 
@@ -179,6 +201,7 @@ void roi_begin_() {
 
 __attribute__((no_profile_instrument_function))
 void roi_end_() {
+    omp_destroy_lock(&writelock);
 #ifdef PROFILING
     is_profiling = 0;
     fclose(fptr);
