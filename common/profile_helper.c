@@ -24,20 +24,28 @@ uint8_t lock_initialized = 0;
 
 __attribute__((no_profile_instrument_function))
 void get_lock() {
-    if (!lock_initialized) {
-        omp_init_lock(&writelock);
-        lock_initialized = 1;
-    }
-    if (omp_in_parallel()) {
-        omp_set_lock(&writelock);
+    if (lock_initialized) {
+        if (omp_in_parallel()) {
+            omp_set_lock(&writelock);
+        }
     }
 }
 
 __attribute__((no_profile_instrument_function))
 void release_lock() {
-    if (omp_in_parallel()) {
-        omp_unset_lock(&writelock);
-     }
+    if (lock_initialized) {
+        if (omp_in_parallel()) {
+            omp_unset_lock(&writelock);
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function))
+void init_lock_() {
+    if (!lock_initialized) {
+        omp_init_lock(&writelock);
+        lock_initialized = 1;
+    }
 }
 
 #ifdef PROFILING
@@ -202,6 +210,7 @@ void roi_begin_() {
 __attribute__((no_profile_instrument_function))
 void roi_end_() {
     omp_destroy_lock(&writelock);
+    lock_initialized = 0;
 #ifdef PROFILING
     is_profiling = 0;
     fclose(fptr);

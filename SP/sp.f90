@@ -60,6 +60,8 @@
 !$     integer  omp_get_max_threads
 !$     external omp_get_max_threads
 
+      call init_lock
+
 !---------------------------------------------------------------------
 !      Read input file (if it exists), else take
 !      defaults from parameters

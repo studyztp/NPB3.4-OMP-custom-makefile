@@ -53,6 +53,7 @@
 
        include 'blk_par.h'
 
+
        integer i, niter, step, fstatus
        double precision navg, mflops, n3
 
@@ -69,6 +70,7 @@
 !      defaults from parameters
 !---------------------------------------------------------------------
 
+       call init_lock
        call check_timer_flag( timeron )
        if (timeron) then
          t_names(t_total) = 'total'

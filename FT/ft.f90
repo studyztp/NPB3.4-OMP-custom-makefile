@@ -327,6 +327,9 @@
 
 !$    integer  omp_get_max_threads
 !$    external omp_get_max_threads
+
+      call init_lock
+      
       debug = .FALSE.
 
       call check_timer_flag( timers_enabled )

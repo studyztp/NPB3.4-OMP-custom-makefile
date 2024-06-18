@@ -50,6 +50,7 @@
 // forward declarations for roi functions
 void roi_begin_();
 void roi_end_();
+void init_lock_();
 
 
 /*****************************************************************/
@@ -176,7 +177,6 @@ typedef  long INT_TYPE;
 #else
 typedef  int  INT_TYPE;
 #endif
-
 
 /********************/
 /* Some global info */
@@ -873,6 +873,8 @@ void rank( int iteration )
 
 int main( int argc, char **argv )
 {
+
+    init_lock_();
 
     int             i, iteration, timer_on;
 
