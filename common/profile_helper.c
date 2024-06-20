@@ -19,25 +19,42 @@
 #include "papi.h"
 #endif
 
-uint64_t region = 0;
+uint64_t** counters;
+int total_threads = 0;
+uint64_t current_count = 0;
+uint8_t met = 0;
+uint8_t ifInited = 0;
 
 __attribute__((no_profile_instrument_function, noinline))
 void print_thread_num() {
-    // printf("region: %d\n", region++);
+    printf("current count: %lu\n", current_count);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 uint8_t atomic_increase(uint64_t* counter, uint64_t inst, uint64_t threshold) {
-    #pragma omp atomic update compare
-        *counter += inst;
-        if (*counter >= threshold) {
-            // printf("Counter: %ld\n", *counter);
-            *counter = 0;
-            return 1;
-            // return omp_get_thread_num() == 0;
-        } else {
-            return 0;
+    if (ifInited) {
+        int tid = omp_get_thread_num();
+        if (met) {
+            if (tid == 0) {
+                current_count = 0;
+                for (int i = 0; i < total_threads; i++) {
+                    current_count += *counters[i];
+                    *counters[i] = 0;
+                }
+            }
+            #pragma omp barrier
+            // printf("current tid: %i\n", tid);
+            met = 0;
+            #pragma omp barrier
         }
+        *counters[tid] += inst;
+        if (tid == 0) {
+            if (*counters[0] >= threshold) {
+                met = 1;
+            }
+        }
+    }
+    return 0;
 }
 
 #ifdef PROFILING
@@ -125,6 +142,13 @@ void end_papi_region() {
 
 __attribute__((no_profile_instrument_function))
 void roi_begin_() {
+    total_threads = omp_get_max_threads();
+    counters = (uint64_t**)malloc(total_threads * sizeof(uint64_t*));
+    for (int i = 0; i < total_threads; i++) {
+        counters[i] = (uint64_t*)malloc(sizeof(uint64_t));
+        *counters[i] = 0;
+    }
+    ifInited = 1;
 #ifdef PROFILING
     is_profiling = 1;
     fptr = fopen(filename, "a");
@@ -202,6 +226,11 @@ void roi_begin_() {
 
 __attribute__((no_profile_instrument_function))
 void roi_end_() {
+    for (int i = 0; i < total_threads; i++) {
+        free(counters[i]);
+    }
+    free(counters);
+    ifInited = 0;
 #ifdef PROFILING
     is_profiling = 0;
     fclose(fptr);
