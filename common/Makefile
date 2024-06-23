@@ -1,10 +1,11 @@
+FLAGS=${BASIC_FLAGS}
+
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	randi8_safe.ll randi8.ll timers.ll wtime.ll \
 	profile_helper_naive.ll profile_helper_profiling.ll \
 	profile_helper_m5_fs.ll profile_helper_papi.ll \
 	profile_helper_papi_profiling.ll \
 	profile_helper_papi_naive.ll
-
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -33,17 +34,17 @@ timers.ll: timers.f90
 wtime.ll: wtime.c
 	${CC} ${FLAGS} -S -emit-llvm wtime.c -o wtime.ll
 
-profile_helper_naive.ll: profile_helper.c
-	${CC} ${FLAGS} -S -DNAIVE -emit-llvm \
-							profile_helper.c -o profile_helper_naive.ll
+profile_helper_naive.ll: cpp_profiler_helper.cpp
+	${CPP} ${FLAGS} -S -DNAIVE -emit-llvm \
+							cpp_profiler_helper.cpp -o profile_helper_naive.ll
 
 profile_helper_papi_naive.ll: profile_helper.c
 	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI_NAIVE -emit-llvm \
 							profile_helper.c -o profile_helper_papi_naive.ll
 
-profile_helper_profiling.ll: profile_helper.c
-	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \
-					profile_helper.c -o profile_helper_profiling.ll
+profile_helper_profiling.ll: cpp_profiler_helper.cpp
+	${CPP} ${FLAGS} -S -DPROFILING -emit-llvm \
+					cpp_profiler_helper.cpp -o profile_helper_profiling.ll
 
 profile_helper_m5_fs.ll: profile_helper.c
 	${CC} ${FLAGS} -S -DM5_FS -emit-llvm \

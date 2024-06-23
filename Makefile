@@ -2,14 +2,16 @@
 LLVM_BIN = /scr/studyztp/compiler/llvm-dir/bin
 FC = ${LLVM_BIN}/flang-new
 CC = ${LLVM_BIN}/clang
+CPP = ${LLVM_BIN}/clang++
 OPT = ${LLVM_BIN}/opt
 LLC = ${LLVM_BIN}/llc
 LLVM_LINK = ${LLVM_BIN}/llvm-link
 
 # compiler related flags
+DEBUG_FLAGS = -g 
 HW_FLAGS =
-LIB_FLAGS = -fopenmp -lm 
-OPT_FLAGS = -O3 
+LIB_FLAGS = -fopenmp -lm -lstdc++ 
+OPT_FLAGS = -O0
 LLC_FLAGS = -relocation-model=pic -filetype=obj
 BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} ${DEBUG_FLAGS} 
 
@@ -54,12 +56,12 @@ endif
 VERSION_STAMP= 
 
 # environment variables for sub-makefiles
-ENV_VARS = FC='${FC}' CC='${CC}' OPT='${OPT}' LLVM_LINK='${LLVM_LINK}' \
-	HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' OPT_FLAGS='${OPT_FLAGS}' \
-	LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' BASIC_FLAGS='${BASIC_FLAGS}' \
-	COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' PAPI_LINE='${PAPI_LINE}' \
-	M5_LINE='${M5_LINE}' M5_INCLUDE='${M5_INCLUDE}' M5_LIB='${M5_LIB}' \
-	HOST_ARCH='${HOST_ARCH}' TARGET_ARCH='${TARGET_ARCH}' \
+ENV_VARS = FC='${FC}' CC='${CC}' CPP='${CPP}' OPT='${OPT}' \
+	LLVM_LINK='${LLVM_LINK}' HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' \
+	OPT_FLAGS='${OPT_FLAGS}' LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' \
+	BASIC_FLAGS='${BASIC_FLAGS}' COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' \
+	PAPI_LINE='${PAPI_LINE}' M5_LINE='${M5_LINE}' M5_INCLUDE='${M5_INCLUDE}' \
+	M5_LIB='${M5_LIB}' HOST_ARCH='${HOST_ARCH}' TARGET_ARCH='${TARGET_ARCH}' 
 
 all: pre ${PROGRAM}
 
