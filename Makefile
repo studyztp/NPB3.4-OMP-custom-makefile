@@ -8,10 +8,10 @@ LLC = ${LLVM_BIN}/llc
 LLVM_LINK = ${LLVM_BIN}/llvm-link
 
 # compiler related flags
-DEBUG_FLAGS = -g 
+DEBUG_FLAGS =
 HW_FLAGS =
-LIB_FLAGS = -fopenmp -lm -lstdc++ 
-OPT_FLAGS = -O0
+LIB_FLAGS = -fopenmp -lm 
+OPT_FLAGS = -O3 
 LLC_FLAGS = -relocation-model=pic -filetype=obj
 BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} ${DEBUG_FLAGS} 
 
@@ -61,7 +61,8 @@ ENV_VARS = FC='${FC}' CC='${CC}' CPP='${CPP}' OPT='${OPT}' \
 	OPT_FLAGS='${OPT_FLAGS}' LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' \
 	BASIC_FLAGS='${BASIC_FLAGS}' COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' \
 	PAPI_LINE='${PAPI_LINE}' M5_LINE='${M5_LINE}' M5_INCLUDE='${M5_INCLUDE}' \
-	M5_LIB='${M5_LIB}' HOST_ARCH='${HOST_ARCH}' TARGET_ARCH='${TARGET_ARCH}' 
+	M5_LIB='${M5_LIB}' HOST_ARCH='${HOST_ARCH}' TARGET_ARCH='${TARGET_ARCH}' \
+	SIZE='${SIZE}'
 
 all: pre ${PROGRAM}
 
@@ -169,6 +170,62 @@ final_compile_papi_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${PAPI_LINE} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.papi_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
+cpp_atomic_profiling: get_version cpp_atomic_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
+cpp_atomic_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}: ${COMMON}/cpp_atomic_profiling.ll
+	cd ${PROGRAM_PATH} && mkdir -p cpp_atomic_profiling
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling && mkdir -p ${SIZE}
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling/${SIZE} && ${LLVM_LINK} -o ${PROGRAM}_cpp_atomic_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/cpp_atomic_profiling.ll
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling/${SIZE} && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_cpp_atomic_profiling.bc -o ${PROGRAM}_cpp_atomic_profiling_opt.bc \
+		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling/${SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling/${SIZE}/${REGION_LENGTH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_cpp_atomic_profiling_opt.bc -o ${PROGRAM}_cpp_atomic_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/cpp_atomic_profiling/${SIZE}/${REGION_LENGTH} && ${COMPILER} ${LIB_FLAGS} -lstdc++ ${PROGRAM}_cpp_atomic_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.cpp_atomic_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+
+cpp_parallel_profiling: get_version cpp_parallel_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
+cpp_parallel_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
+	cd ${PROGRAM_PATH} && mkdir -p cpp_parallel_profiling
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling && mkdir -p ${SIZE}
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling/${SIZE} && ${LLVM_LINK} -o ${PROGRAM}_cpp_parallel_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/cpp_parallel_profiling.ll
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling/${SIZE} && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_cpp_parallel_profiling.bc -o ${PROGRAM}_cpp_parallel_profiling_opt.bc \
+		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling/${SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling/${SIZE}/${REGION_LENGTH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_cpp_parallel_profiling_opt.bc -o ${PROGRAM}_cpp_parallel_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/cpp_parallel_profiling/${SIZE}/${REGION_LENGTH} && ${COMPILER} ${LIB_FLAGS} -lstdc++ ${PROGRAM}_cpp_parallel_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.cpp_parallel_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+
+c_atomic_profiling: get_version c_atomic_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
+c_atomic_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
+	cd ${PROGRAM_PATH} && mkdir -p c_atomic_profiling
+	cd ${PROGRAM_PATH}/c_atomic_profiling && mkdir -p ${SIZE}
+	cd ${PROGRAM_PATH}/c_atomic_profiling/${SIZE} && ${LLVM_LINK} -o ${PROGRAM}_c_atomic_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_atomic_profiling.ll
+	cd ${PROGRAM_PATH}/c_atomic_profiling/${SIZE} && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_c_atomic_profiling.bc -o ${PROGRAM}_c_atomic_profiling_opt.bc \
+		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+	cd ${PROGRAM_PATH}/c_atomic_profiling/${SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/c_atomic_profiling/${SIZE}/${REGION_LENGTH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_c_atomic_profiling_opt.bc -o ${PROGRAM}_c_atomic_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/c_atomic_profiling/${SIZE}/${REGION_LENGTH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_c_atomic_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_atomic_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+
+c_parallel_profiling: get_version c_parallel_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}
+c_parallel_profiling_${PROGRAM}_${TARGET_ARCH}_${REGION_LENGTH}:
+	cd ${PROGRAM_PATH} && mkdir -p c_parallel_profiling
+	cd ${PROGRAM_PATH}/c_parallel_profiling && mkdir -p ${SIZE}
+	cd ${PROGRAM_PATH}/c_parallel_profiling/${SIZE} && ${LLVM_LINK} -o ${PROGRAM}_c_parallel_profiling.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_parallel_profiling.ll
+	cd ${PROGRAM_PATH}/c_parallel_profiling/${SIZE} && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_c_parallel_profiling.bc -o ${PROGRAM}_c_parallel_profiling_opt.bc \
+		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+	cd ${PROGRAM_PATH}/c_parallel_profiling/${SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/c_parallel_profiling/${SIZE}/${REGION_LENGTH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_c_parallel_profiling_opt.bc -o ${PROGRAM}_c_parallel_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/c_parallel_profiling/${SIZE}/${REGION_LENGTH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_c_parallel_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_parallel_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+
+test_use_naive: get_version test_use_naive_${PROGRAM}_${TARGET_ARCH}
+test_use_naive_${PROGRAM}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH} && mkdir -p naive
+	cd ${PROGRAM_PATH}/naive && mkdir -p ${SIZE}
+	cd ${PROGRAM_PATH}/naive/${SIZE} && ${LLVM_LINK} -o ${PROGRAM}_naive.bc ${PROGRAM_PATH}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_atomic_profiling.ll
+	cd ${PROGRAM_PATH}/naive/${SIZE} && ${LLC} ${LLC_FLAGS} ${PROGRAM}_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_naive.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/naive/${SIZE} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.naive --target=${TARGET_ARCH}-unknown-linux-gnu
+
 clean:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean
@@ -176,4 +233,9 @@ clean:
 clean_all:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean_all
+
+clean_all_testing:
+	cd ${COMMON} && make clean
+	cd ${PROGRAM_PATH} && make clean_all 
+	cd ${PROGRAM_PATH} && rm -rf naive papi_naive profiling papi_profiling m5_fs papi cpp_atomic_profiling cpp_parallel_profiling c_atomic_profiling c_parallel_profiling
 
