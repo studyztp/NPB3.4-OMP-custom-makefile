@@ -9,9 +9,10 @@ def run_this(run_ball):
     dir = run_ball["dir"]
     stdout_path = run_ball["stdout"]
     stderr_path = run_ball["stderr"]
+    num_threads = env["OMP_NUM_THREADS"]
     with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
         process_code = subprocess.run(command, cwd=dir, env=env, stdout=stdout, stderr=stderr)
-    print("finished", command, process_code)
+    print("finished", command, f"{num_threads} threads", process_code)
     return process_code
 
 workdir = Path().cwd()
@@ -45,7 +46,7 @@ for benchmark in benchmarks:
     profiling_dir = Path(benchdir/f"{size}/c_profiling/{region_size}/{arch}")
     file = profiling_dir.glob("*.profiling")
     for f in file:
-        cmd = [f"./{f.name}"]
+        cmd = ["time", f"./{f.name}"]
     for thread in threads:
         run_env = must_env.copy()
         run_env["OMP_NUM_THREADS"] = str(thread)
