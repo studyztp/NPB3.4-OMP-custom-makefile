@@ -41,6 +41,7 @@ for benchmark in benchmarks:
     must_env["PROGRAM"] = benchmark
     if args.ifclean:
         subprocess.run(["make", "clean_all"], cwd=workdir.as_posix(), env=must_env)
+        subprocess.run(["make", "-B", "all"], cwd=workdir.as_posix(), env=must_env)
     for size in size_list:
         for region_size in region_size_list:
             must_env["REGION_LENGTH"] = str(region_size)
