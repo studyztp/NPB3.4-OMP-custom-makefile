@@ -7,13 +7,26 @@ RAND = randi8
 FLAGS=${BASIC_FLAGS}
 
 CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
+CURRENT_PATH = $(shell pwd)
 
+ALL_SIZE = A B C D E 
 
-all: pre ft.bc ft_O3.bc
+all: pre 
+	make clean_all_sizes;
+	for size in ${ALL_SIZE}; do \
+		make clean; \
+		./setparams ${PROGRAM} $$size; \
+		mkdir -p $$size; \
+		make ft.bc SIZE=$$size; \
+		cp ${CURRENT_PATH}/*.ll ${CURRENT_PATH}/$$size/; \
+		cp ${CURRENT_PATH}/*.bc ${CURRENT_PATH}/$$size/; \
+		cp npbparams.h ${CURRENT_PATH}/$$size/; \
+		${OPT} ${OPT_FLAGS} ${CURRENT_PATH}/$$size/ft.bc -o ${CURRENT_PATH}/$$size/ft_O3_${CURRENT_DATE}.bc; \
+	done
+	make clean;
 
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
-	./setparams ${PROGRAM} ${SIZE}
 
 ft.bc: ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll ft.ll ft_data.ll
 	${LLVM_LINK} -o ft.bc ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll ft.ll ft_data.ll
@@ -51,6 +64,13 @@ clean:
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
 
+clean_all_sizes:
+	for size in ${ALL_SIZE}; do \
+		rm -f ${CURRENT_PATH}/$$size/*.ll; \
+		rm -f ${CURRENT_PATH}/$$size/*.bc; \
+		rm -f ${CURRENT_PATH}/$$size/npbparams.h; \
+	done
+
 clean_naive:
 	- rm -rf naive
 
@@ -68,5 +88,7 @@ clean_all:
 	- rm -f ft npbparams.h core blk_par.h
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
-	- rm -rf naive profiling m5_fs papi papi_naive
+	for size in ${ALL_SIZE}; do \
+		rm -rf ${CURRENT_PATH}/$$size; \
+	done
 	

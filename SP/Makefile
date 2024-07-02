@@ -8,12 +8,26 @@ BLKFAC=0
 FLAGS=${BASIC_FLAGS}
 
 CURRENT_DATE=$(shell date +"%Y-%m-%d-%H-%M-%S")
+CURRENT_PATH = $(shell pwd)
 
-all: pre sp.bc sp_O3.bc
+ALL_SIZE = A B C D E 
+
+all: pre 
+	make clean_all_sizes;
+	for size in ${ALL_SIZE}; do \
+		make clean; \
+		./setparams ${PROGRAM} $$size; \
+		mkdir -p $$size; \
+		make sp.bc SIZE=$$size; \
+		cp ${CURRENT_PATH}/*.ll ${CURRENT_PATH}/$$size/; \
+		cp ${CURRENT_PATH}/*.bc ${CURRENT_PATH}/$$size/; \
+		cp npbparams.h ${CURRENT_PATH}/$$size/; \
+		${OPT} ${OPT_FLAGS} ${CURRENT_PATH}/$$size/sp.bc -o  ${CURRENT_PATH}/$$size/sp_O3_${CURRENT_DATE}.bc; \
+	done
+	make clean;
 
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
-	./setparams ${PROGRAM} ${SIZE}
 
 sp.bc: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \
 	set_constants.ll adi.ll rhs.ll work_lhs${BLK}.ll \
@@ -98,6 +112,13 @@ clean:
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
 
+clean_all_sizes:
+	for size in ${ALL_SIZE}; do \
+		rm -f ${CURRENT_PATH}/$$size/*.ll; \
+		rm -f ${CURRENT_PATH}/$$size/*.bc; \
+		rm -f ${CURRENT_PATH}/$$size/npbparams.h; \
+	done
+
 clean_naive:
 	- rm -rf naive
 
@@ -115,4 +136,6 @@ clean_all:
 	- rm -f npbparams.h core blk_par.h
 	- if [ -d rii_files ]; then rm -r rii_files; fi
 	- rm -f *.ll *.bc
-	- rm -rf naive profiling m5_fs papi_naive papi
+	for size in ${ALL_SIZE}; do \
+		rm -rf ${CURRENT_PATH}/$$size; \
+	done

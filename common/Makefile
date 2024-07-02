@@ -9,8 +9,8 @@ FLAGS=${BASIC_FLAGS}
 
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	randi8_safe.ll randi8.ll timers.ll wtime.ll \
-	cpp_atomic_profiling.ll cpp_parallel_profiling.ll \
-	c_atomic_profiling.ll c_parallel_profiling.ll
+	cpp_profiling.ll c_profiling.ll \
+	cpp_naive.ll c_naive.ll
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -39,45 +39,21 @@ timers.ll: timers.f90
 wtime.ll: wtime.c
 	${CC} ${FLAGS} -S -emit-llvm wtime.c -o wtime.ll
 
-# profile_helper_naive.ll: profile_helper.c
-# 	${CC} ${FLAGS} -S -DNAIVE -emit-llvm \
-# 							profile_helper.c -o profile_helper_naive.ll
+cpp_naive.ll: cpp_helper.cpp 
+	${CPP} ${FLAGS} -S -DNAIVE -emit-llvm \
+	cpp_helper.cpp -o cpp_naive.ll
 
-# profile_helper_papi_naive.ll: profile_helper.c
-# 	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI_NAIVE -emit-llvm \
-# 							profile_helper.c -o profile_helper_papi_naive.ll
+c_naive.ll: c_helper.c
+	${CC} ${FLAGS} -S -DNAIVE -emit-llvm \
+	c_helper.c -o c_naive.ll
 
-# profile_helper_profiling.ll: profile_helper.c
-# 	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \
-# 					profile_helper.c -o profile_helper_profiling.ll
+cpp_profiling.ll: cpp_helper.cpp 
+	${CPP} ${FLAGS} -S -DPROFILING -emit-llvm \
+	cpp_helper.cpp -o cpp_profiling.ll
 
-# profile_helper_m5_fs.ll: profile_helper.c
-# 	${CC} ${FLAGS} -S -DM5_FS -emit-llvm \
-# 							profile_helper.c -o profile_helper_m5_fs.ll ${M5_INCLUDE}
-
-# profile_helper_papi_profiling.ll: profile_helper.c
-# 	${CC} ${FLAGS} ${PAPI_LINE} -S -DUSING_PAPI_PROFILING -emit-llvm \
-# 							profile_helper.c -o profile_helper_papi_profiling.ll
-
-# profile_helper_papi.ll: profile_helper.c
-# 	${CC} ${FLAGS} ${PAPI_LINE} -S -DPAPI -emit-llvm \
-# 							profile_helper.c -o profile_helper_papi.ll
-
-cpp_atomic_profiling.ll: cpp_profiler_helper.cpp 
-	${CPP} ${FLAGS} -S -DATOMIC -emit-llvm \
-	cpp_profiler_helper.cpp -o cpp_atomic_profiling.ll
-
-cpp_parallel_profiling.ll: cpp_profiler_helper.cpp 
-	${CPP} ${FLAGS} -S -DPARALLEL -emit-llvm \
-	cpp_profiler_helper.cpp -o cpp_parallel_profiling.ll
-
-c_atomic_profiling.ll: c_profiler_helper.c 
-	${CC} ${FLAGS} -S -DATOMIC -emit-llvm \
-	c_profiler_helper.c -o c_atomic_profiling.ll
-
-c_parallel_profiling.ll: c_profiler_helper.c 
-	${CC} ${FLAGS} -S -DPARALLEL -emit-llvm \
-	c_profiler_helper.c -o c_parallel_profiling.ll
+c_profiling.ll: c_helper.c 
+	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \
+	c_helper.c -o c_profiling.ll
 
 clean:
 	rm -f *.ll
