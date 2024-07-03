@@ -110,6 +110,15 @@ cpp_profiling_${PROGRAM}_${SIZE}: ${COMMON}/cpp_profiling.ll
 		-phase-analysis-using-papi=false -phase-analysis-region-length=${REGION_LENGTH} \
 		2>> phase_analysis_log_${VERSION_STAMP}.log
 
+c_papi_profiling: get_version c_papi_profiling_${PROGRAM}_${SIZE}
+c_papi_profiling_${PROGRAM}_${SIZE}: ${COMMON}/c_papi_profiling.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_papi_profiling
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling/${REGION_LENGTH} && ${LLVM_LINK} -o ${PROGRAM}_papi_profiling.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_papi_profiling.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling/${REGION_LENGTH} && ${OPT} -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi_profiling.bc -o ${PROGRAM}_papi_profiling_opt.bc \
+		-phase-analysis-using-papi=true -phase-analysis-region-length=${REGION_LENGTH} \
+		2>> phase_analysis_log_${VERSION_STAMP}.log
+
 final_compile_naive: get_version final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/naive && mkdir -p ${TARGET_ARCH} 
@@ -127,6 +136,12 @@ final_compile_cpp_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/${SIZE}/cpp_profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/cpp_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/${SIZE}/cpp_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} -lstdc++ ${PROGRAM}_${TARGET_ARCH}_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.cpp_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
+
+final_compile_c_papi_profiling: get_version final_compile_c_papi_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}
+final_compile_c_papi_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_profiling_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_profiling/${REGION_LENGTH}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_profiling.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_profiling --target=${TARGET_ARCH}-unknown-linux-gnu
 
 clean:
 	cd ${COMMON} && make clean

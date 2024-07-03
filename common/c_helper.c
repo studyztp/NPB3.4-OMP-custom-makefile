@@ -15,7 +15,6 @@ atomic_ullong counter;
 omp_lock_t lock;
 BOOL wait = FALSE;
 BOOL ifStart = FALSE;
-unsigned long long threshold = 100000000;
 unsigned long long region = 0;
 unsigned long long totalIRInst = 0;
 
@@ -146,3 +145,100 @@ void roi_end_() {
 }
 
 #endif
+
+#ifdef USING_PAPI_PROFILING
+#include <papi.h>
+#include <stdatomic.h>
+atomic_ullong counter;
+
+#define BOOL uint8_t
+#define TRUE 1
+#define FALSE 0
+
+omp_lock_t lock;
+BOOL wait = FALSE;
+BOOL ifStart = FALSE;
+unsigned long long region = 0;
+unsigned long long totalIRInst = 0;
+
+__attribute__((no_profile_instrument_function, noinline))
+void start_papi_region() {
+    char str[64];
+    sprintf(str, "%llu", region);
+    printf("Starting PAPI %s region\n", str);
+    int retval = PAPI_hl_region_begin(str);
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void end_papi_region() {
+    char str[64];
+    sprintf(str, "%llu", region);
+    printf("Ending PAPI %s region\n", str);
+    int retval = PAPI_hl_region_end(str);
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
+    if (ifStart) {
+        if (wait) {
+            omp_set_lock(&lock);
+            omp_unset_lock(&lock);
+        }
+        atomic_fetch_add(&counter, bb_inst);
+        if (omp_get_thread_num() == 0) {
+            if (atomic_load(&counter) >= threshold) {
+                end_papi_region();
+                omp_set_lock(&lock);
+                wait = TRUE;
+                printf("Region: %llu\n", region);
+                totalIRInst += atomic_load(&counter);
+                printf("Total IR instructions: %llu\n", totalIRInst);
+                printf("Total IR instructions in region: %llu\n", atomic_load(&counter));
+                atomic_store(&counter, 0);
+                region ++;
+                wait = FALSE;
+                omp_unset_lock(&lock);
+                start_papi_region();
+            }
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    atomic_init(&counter, 0);
+    omp_init_lock(&lock);
+    ifStart = TRUE;
+
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI begin\n");
+    start_papi_region();
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_end_() {
+    end_papi_region();
+    ifStart = FALSE;
+    omp_destroy_lock(&lock);
+
+    printf("ROI end\n");
+    printf("Region: %llu\n", region);
+    printf("Total IR instructions: %llu\n", totalIRInst);
+}
+
+#endif
+
+
