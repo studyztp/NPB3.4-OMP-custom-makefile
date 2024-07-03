@@ -151,8 +151,3 @@ clean_all:
 	cd ${COMMON} && make clean
 	cd ${PROGRAM_PATH} && make clean_all
 
-clean_all_testing:
-	cd ${COMMON} && make clean
-	cd ${PROGRAM_PATH} && make clean_all 
-	cd ${PROGRAM_PATH} && rm -rf naive papi_naive profiling papi_profiling m5_fs papi cpp_atomic_profiling cpp_parallel_profiling c_atomic_profiling c_parallel_profiling
-

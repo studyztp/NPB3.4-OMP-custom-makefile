@@ -4,13 +4,13 @@
 #include <stdlib.h>
 #include <omp.h>
 
-#ifdef PROFILING
-#include <stdatomic.h>
-atomic_ullong counter;
-
 #define BOOL uint8_t
 #define TRUE 1
 #define FALSE 0
+
+#ifdef PROFILING
+#include <stdatomic.h>
+atomic_ullong counter;
 
 omp_lock_t lock;
 BOOL wait = FALSE;
@@ -151,10 +151,6 @@ void roi_end_() {
 #include <stdatomic.h>
 atomic_ullong counter;
 
-#define BOOL uint8_t
-#define TRUE 1
-#define FALSE 0
-
 omp_lock_t lock;
 BOOL wait = FALSE;
 BOOL ifStart = FALSE;
@@ -241,4 +237,183 @@ void roi_end_() {
 
 #endif
 
+#ifdef MEASURING
+#include <stdatomic.h>
+atomic_ullong warmUpCounter;
+atomic_ullong startCounter;
+atomic_ullong endCounter;
+
+unsigned long long warmUpThreshold;
+unsigned long long startThreshold;
+unsigned long long endThreshold;
+
+BOOL ifWarmUpNotMet = FALSE;
+BOOL ifStartNotMet = FALSE;
+BOOL ifEndNotMet = FALSE;
+
+#ifdef PAPI_MEASURING
+#include <papi.h>
+
+__attribute__((no_profile_instrument_function, noinline))
+void warmUpEvent() {
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void startEvent() {
+    int retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void endEvent() {
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    atomic_init(&warmUpCounter, 0);
+    atomic_init(&startCounter, 0);
+    atomic_init(&endCounter, 0);
+    
+    ifWarmUpNotMet = TRUE;
+    ifStartNotMet = TRUE;
+    ifEndNotMet = TRUE;
+
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI started\n");
+    printf("PAPI initialized\n");
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_end_() {
+    printf("ROI ended\n");
+}
+
+#endif
+
+#ifdef M5_FS_MEASURING
+#include "gem5/m5ops.h"
+#include "m5_mmap.h"
+#include <errno.h>
+#include <sys/utsname.h>
+
+__attribute__((no_profile_instrument_function, noinline))
+void warmUpEvent() {
+    printf("M5_FS Warmup marker\n");
+    m5_work_begin_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void startEvent() {
+    printf("M5_FS Start marker\n");
+    m5_work_begin_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void endEvent() {
+    printf("M5_FS End marker\n");
+    m5_work_end_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    atomic_init(&warmUpCounter, 0);
+    atomic_init(&startCounter, 0);
+    atomic_init(&endCounter, 0);
+    
+    ifWarmUpNotMet = TRUE;
+    ifStartNotMet = TRUE;
+    ifEndNotMet = TRUE;
+
+    struct utsname buffer;
+    errno = 0;
+    if (uname(&buffer) < 0) {
+        perror("uname");
+        exit(EXIT_FAILURE);
+    }
+
+    printf("arch     = %s\n", buffer.machine);
+
+    if (strcmp(buffer.machine, "x86_64") == 0) {
+        m5op_addr = 0xFFFF0000;
+    } else if (strcmp(buffer.machine, "aarch64") == 0) {
+        m5op_addr = 0x10010000;
+    } else {
+        m5op_addr = 0x0;
+        printf("Unsupported architecture\n");
+    }
+    map_m5_mem();
+    printf("M5_FS ADDR MOP initialized\n");
+    printf("M5_FS ROI started\n");
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_end_() {
+    unmap_m5_mem();
+    printf("M5_FS ROI ended\n");
+}
+#endif
+
+__attribute__((no_profile_instrument_function, noinline))
+void setupThresholds(unsigned long long warmUp, unsigned long long start, unsigned long long end) {
+    warmUpThreshold = warmUp;
+    startThreshold = start;
+    endThreshold = end;
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void warmUpHook() {
+    if (ifWarmUpNotMet) {
+        atomic_fetch_add(&warmUpCounter, 1);
+        if (omp_get_thread_num() == 0) {
+            if (atomic_load(&warmUpCounter) >= warmUpThreshold) {
+                ifWarmUpNotMet = FALSE;
+                printf("Warm up marker met\n");
+                warmUpEvent();
+            }
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void startHook() {
+    if (ifStartNotMet) {
+        atomic_fetch_add(&startCounter, 1);
+        if (omp_get_thread_num() == 0) {
+            if (atomic_load(&startCounter) >= startThreshold) {
+                ifStartNotMet = FALSE;
+                printf("Start marker met\n");
+                startEvent();
+            }
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void endHook() {
+    if (ifEndNotMet) {
+        atomic_fetch_add(&endCounter, 1);
+        if (omp_get_thread_num() == 0) {
+            if (atomic_load(&endCounter) >= endThreshold) {
+                ifEndNotMet = FALSE;
+                printf("End marker met\n");
+                endEvent();
+            }
+        }
+    }
+}
+
+#endif
 
