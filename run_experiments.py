@@ -22,7 +22,7 @@ def run_this(run_ball):
     num_threads = env["OMP_NUM_THREADS"]
     with open(stdout_path, "w") as stdout, open(stderr_path, "w") as stderr:
         process_code = subprocess.run(command, cwd=dir, env=env, stdout=stdout, stderr=stderr)
-    print("finished", command, f"{num_threads} threads", process_code)
+    print("finished", dir, command, f"{num_threads} threads", process_code)
     return process_code
 
 workdir = Path().cwd()
@@ -56,21 +56,23 @@ runs = []
 
 for benchmark in benchmarks:
     benchdir = Path(workdir/benchmark.upper())
-    for exp_type in exp_list:
-        if exp_type == "naive":
-            exp_dir = Path(benchdir/f"{size}/{exp_type}/{arch}")
-        else:
-            exp_dir = Path(benchdir/f"{size}/{exp_type}/{region_size}/{arch}")
-        file = exp_dir.glob(f"*.{exp_type}")
-        for f in file:
-            print(f)
-            cmd = ["time", f"./{f.name}"]
-        for thread in threads:
-            run_env = must_env.copy()
-            run_env["OMP_NUM_THREADS"] = str(thread)
-            stdout = Path(exp_dir/f"{benchmark}_{thread}.stdout")
-            stderr = Path(exp_dir/f"{benchmark}_{thread}.stderr")
-            runs.append({"cmd": cmd, "env": run_env, "dir": exp_dir, "stdout": stdout, "stderr": stderr})
+    for size in size_list:
+        for region_size in region_size_list:
+            for exp_type in exp_list:
+                if exp_type == "naive":
+                    exp_dir = Path(benchdir/f"{size}/{exp_type}/{arch}")
+                else:
+                    exp_dir = Path(benchdir/f"{size}/{exp_type}/{region_size}/{arch}")
+                file = exp_dir.glob(f"*.{exp_type}")
+                for f in file:
+                    print(f)
+                    cmd = ["time", f"./{f.name}"]
+                for thread in threads:
+                    run_env = must_env.copy()
+                    run_env["OMP_NUM_THREADS"] = str(thread)
+                    stdout = Path(exp_dir/f"{benchmark}_{thread}.stdout")
+                    stderr = Path(exp_dir/f"{benchmark}_{thread}.stderr")
+                    runs.append({"cmd": cmd, "env": run_env, "dir": exp_dir, "stdout": stdout, "stderr": stderr})
 
 with Pool(16) as p:
     p.map(run_this, runs)
