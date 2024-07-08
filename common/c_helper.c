@@ -32,20 +32,15 @@ void process_data() {
     fprintf(fptr, "Total IR instructions: %llu\n", totalIRInst);
     fprintf(fptr, "Total IR instructions in region: %llu\n", atomic_load(&counter));
     for (unsigned long long i = 0; i < num_threads; i += 1) {
-        fprintf(fptr, "Thread %llu BBV: [", i);
+        fprintf(fptr, "Thread %llu BBV and Timestamp: [", i);
         for (unsigned long long j = 0; j < total_num_bbs; j += 1) {
             unsigned long long index = i * (total_num_bbs + 64) + j;
-            fprintf(fptr, "%llu,", bbv[index]);
+            fprintf(fptr, "%llu:%llu,", bbv[index], timestamp[index]);
             bbv[index] = 0;
+            timestamp[index] = 0;
         }
         fprintf(fptr, "]\n");
     }
-    fprintf(fptr, "Timestamp: [");
-    for (unsigned long long i = 0; i < total_num_bbs; i += 1) {
-        fprintf(fptr, "%llu,", timestamp[i]);
-        timestamp[i] = 0;
-    }
-    fprintf(fptr, "]\n");
     region ++;
     atomic_store(&counter, 0);
 }
@@ -60,14 +55,13 @@ void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long
         unsigned long long thread_id = omp_get_thread_num();
         unsigned long long index = thread_id * (total_num_bbs + 64) + bb_id;
 
-        atomic_fetch_add(&counter, bb_inst);
+        unsigned long long cur_counter = atomic_fetch_add(&counter, bb_inst) + bb_inst;
 
         bbv[index] += 1;
+        timestamp[index] = cur_counter;
 
         if (omp_get_thread_num() == 0) {
-            unsigned long long cur_counter = atomic_load(&counter);
-            timestamp[bb_id] = cur_counter;
-            if (cur_counter >= threshold) {
+            if (atomic_load(&counter) >= threshold) {
                 omp_set_lock(&lock);
                 wait = TRUE;
                 process_data();
@@ -83,13 +77,13 @@ void init_arrays(unsigned long long num_bbs) {
     total_num_bbs = num_bbs;
     num_threads = omp_get_max_threads();
     bbv = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-    timestamp = (unsigned long long*)malloc((num_bbs * num_threads) * sizeof(unsigned long long));
+    timestamp = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
     if (bbv == NULL || timestamp == NULL) {
         printf("Failed to allocate memory for bbv and timestamp arrays\n");
         exit(1);
     }
     memset(bbv, 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-    memset(timestamp, 0, (num_bbs * num_threads) * sizeof(unsigned long long));
+    memset(timestamp, 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
 }
 
 __attribute__((no_profile_instrument_function))
@@ -334,8 +328,6 @@ void roi_begin_() {
     atomic_init(&endCounter, 0);
     
     ifWarmUpNotMet = TRUE;
-    ifStartNotMet = TRUE;
-    ifEndNotMet = TRUE;
 
     struct utsname buffer;
     errno = 0;
@@ -382,6 +374,7 @@ void warmUpHook() {
                 ifWarmUpNotMet = FALSE;
                 printf("Warm up marker met\n");
                 warmUpEvent();
+                ifStartNotMet = TRUE;
             }
         }
     }
@@ -396,6 +389,7 @@ void startHook() {
                 ifStartNotMet = FALSE;
                 printf("Start marker met\n");
                 startEvent();
+                ifEndNotMet = TRUE;
             }
         }
     }
