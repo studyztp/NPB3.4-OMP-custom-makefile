@@ -266,6 +266,8 @@ void endEvent() {
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
+    printf("PAPI ended\nNow exiting the program\n");
+    exit(0);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
@@ -275,8 +277,6 @@ void roi_begin_() {
     atomic_init(&endCounter, 0);
     
     ifWarmUpNotMet = TRUE;
-    ifStartNotMet = TRUE;
-    ifEndNotMet = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
