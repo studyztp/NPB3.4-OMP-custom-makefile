@@ -104,7 +104,7 @@ for benchmark in benchmarks:
                         r_2_count = r_1_count
                         r_1_fid = static_info[int(max_index)]["function_id"]
                         r_1_bid = int(max_index)
-                        r_1_count = max(timestamp)
+                        r_1_count = bb_count
 
             line = f.readline()
 
