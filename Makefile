@@ -143,6 +143,21 @@ c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs_measuring.bc -o ${PROGRAM}_m5_fs_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
+c_papi_naive: get_version c_papi_naive_${PROGRAM}_${SIZE}
+c_papi_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_papi_naive.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_papi_naive
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive && ${LLVM_LINK} -o ${PROGRAM}_papi_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_papi_naive.ll
+
+c_marker_overhead_measuring: get_version c_marker_overhead_measuring_${PROGRAM}_${SIZE}
+c_marker_overhead_measuring_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_overhead_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_overhead_measuring
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_overhead_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/c_profiling/{REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/marker_overhead_measuring_input.txt \
+	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_marker_overhead_measuring.bc -o ${PROGRAM}_marker_overhead_measuring_opt.bc \
+	2>> phase_bound_log_${VERSION_STAMP}.log
+
 final_compile_naive: get_version final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/naive && mkdir -p ${TARGET_ARCH} 
@@ -178,6 +193,18 @@ final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGT
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
+final_compile_c_papi_naive: get_version final_compile_c_papi_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_c_papi_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_naive.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_naive --target=${TARGET_ARCH}-unknown-linux-gnu
+
+final_compile_c_marker_overhead_measuring: get_version final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_overhead_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_overhead_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
 
 clean:
 	cd ${COMMON} && make clean

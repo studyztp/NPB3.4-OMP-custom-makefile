@@ -295,9 +295,8 @@ void roi_end_() {
     printf("ROI ended\n");
 }
 
-#endif
+#elif defined(M5_FS_MEASURING)
 
-#ifdef M5_FS_MEASURING
 #include "gem5/m5ops.h"
 #include "m5_mmap.h"
 #include <errno.h>
@@ -356,6 +355,57 @@ void roi_end_() {
     unmap_m5_mem();
     printf("M5_FS ROI ended\n");
 }
+
+#elif defined(BOUNDING_OVERHEAD_MEASURING)
+
+__attribute__((no_profile_instrument_function, noinline))
+void warmUpEvent() {
+    printf("Warm up event reached\n");
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void startEvent() {
+    printf("Start event reached\n");
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void endEvent() {
+    printf("End event reached\n");
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI started\n");
+    printf("PAPI initialized\n");
+
+    printf("PAPI region begin\n");
+
+    retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
+}
+
+void roi_end_() {
+    printf("PAPI region end\n");
+
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+    printf("PAPI ended\nNow exiting the program\n");
+    exit(0);
+}
+
 #endif
 
 __attribute__((no_profile_instrument_function, noinline))
@@ -368,14 +418,12 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpHook() {
     if (ifWarmUpNotMet) {
-        atomic_fetch_add(&warmUpCounter, 1);
-        if (omp_get_thread_num() == 0) {
-            if (atomic_load(&warmUpCounter) >= warmUpThreshold) {
-                ifWarmUpNotMet = FALSE;
-                printf("Warm up marker met\n");
-                warmUpEvent();
-                ifStartNotMet = TRUE;
-            }
+        unsigned long long curr_count = atomic_fetch_add(&warmUpCounter, 1);
+        if (curr_count + 1 == warmUpThreshold) {
+            ifWarmUpNotMet = FALSE;
+            printf("Warm up marker met\n");
+            warmUpEvent();
+            ifStartNotMet = TRUE;
         }
     }
 }
@@ -383,30 +431,83 @@ void warmUpHook() {
 __attribute__((no_profile_instrument_function, noinline))
 void startHook() {
     if (ifStartNotMet) {
-        atomic_fetch_add(&startCounter, 1);
+        unsigned long long curr_count = atomic_fetch_add(&startCounter, 1);
+#ifdef PAPI_MEASURING
         if (omp_get_thread_num() == 0) {
-            if (atomic_load(&startCounter) >= startThreshold) {
+            if (curr_count + 1 >= startThreshold) {
                 ifStartNotMet = FALSE;
                 printf("Start marker met\n");
                 startEvent();
                 ifEndNotMet = TRUE;
             }
         }
+#else
+        if (curr_count + 1 == startThreshold) {
+            ifStartNotMet = FALSE;
+            printf("Start marker met\n");
+            startEvent();
+            ifEndNotMet = TRUE;
+        }
+#endif
     }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void endHook() {
     if (ifEndNotMet) {
-        atomic_fetch_add(&endCounter, 1);
+        unsigned long long curr_count =  atomic_fetch_add(&endCounter, 1);
+#ifdef PAPI_MEASURING
         if (omp_get_thread_num() == 0) {
-            if (atomic_load(&endCounter) >= endThreshold) {
+            if (curr_count + 1 >= endThreshold) {
                 ifEndNotMet = FALSE;
                 printf("End marker met\n");
                 endEvent();
             }
         }
+#else
+        if (curr_count + 1 == endThreshold) {
+            ifEndNotMet = FALSE;
+            printf("End marker met\n");
+            endEvent();
+        }
+#endif
     }
+}
+
+#endif
+
+#ifdef PAPI_NAIVE
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI started\n");
+    printf("PAPI initialized\n");
+
+    printf("PAPI region begin\n");
+
+    retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
+}
+
+void roi_end_() {
+    printf("PAPI region end\n");
+
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+    printf("PAPI ended\nNow exiting the program\n");
+    exit(0);
 }
 
 #endif
