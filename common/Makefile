@@ -13,7 +13,9 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	cpp_naive.ll c_naive.ll \
 	c_papi_profiling.ll \
 	c_papi_measuring.ll \
-	c_m5_fs_measuring.ll
+	c_m5_fs_measuring.ll \
+	c_papi_naive.ll \
+	c_marker_overhead_measuring.ll
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -69,6 +71,14 @@ c_papi_measuring.ll: c_helper.c
 c_m5_fs_measuring.ll: c_helper.c 
 	${CC} ${FLAGS} -S -DMEASURING -DM5_FS_MEASURING -emit-llvm \
 	c_helper.c -o c_m5_fs_measuring.ll ${M5_LINE}
+
+c_papi_naive.ll: c_helper.c
+	${CC} ${FLAGS} -S -DPAPI_NAIVE -emit-llvm \
+	c_helper.c -o c_papi_naive.ll ${PAPI_LINE}
+
+c_marker_overhead_measuring.ll: c_helper.c
+	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -emit-llvm \
+	c_helper.c -o c_marker_overhead_measuring.ll ${PAPI_LINE}
 
 clean:
 	rm -f *.ll
