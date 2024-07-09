@@ -357,6 +357,7 @@ void roi_end_() {
 }
 
 #elif defined(MARKER_OVERHEAD_MEASURING)
+#include <papi.h>
 
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpEvent() {
@@ -477,6 +478,7 @@ void endHook() {
 #endif
 
 #ifdef PAPI_NAIVE
+#include <papi.h>
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
 
