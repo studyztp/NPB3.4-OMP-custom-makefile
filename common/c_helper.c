@@ -356,7 +356,7 @@ void roi_end_() {
     printf("M5_FS ROI ended\n");
 }
 
-#elif defined(BOUNDING_OVERHEAD_MEASURING)
+#elif defined(MARKER_OVERHEAD_MEASURING)
 
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpEvent() {
