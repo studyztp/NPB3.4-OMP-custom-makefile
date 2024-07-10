@@ -250,6 +250,14 @@ unsigned long long endThreshold;
 
 unsigned long long currentCount;
 
+unsigned long long warmUpCheckNum;
+unsigned long long startCheckNum;
+unsigned long long endCheckNum;
+
+unsigned long long warmUpCheckThreshold;
+unsigned long long startCheckThreshold;
+unsigned long long endCheckThreshold;
+
 BOOL ifWarmUpNotMet = FALSE;
 BOOL ifStartNotMet = FALSE;
 BOOL ifEndNotMet = FALSE;
@@ -450,6 +458,7 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
         warmUpThreshold = 1;
     }
     startThreshold = start;
+
     if (startThreshold == 0) {
         startThreshold = 1;
     }
@@ -461,6 +470,34 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
     printf("Warm up threshold: %llu\n", warmUpThreshold);
     printf("Start threshold: %llu\n", startThreshold);
     printf("End threshold: %llu\n", endThreshold);
+
+    warmUpCheckNum = warmUpThreshold / 10;
+    startCheckNum = startThreshold / 10;
+    endCheckNum = endThreshold / 10;
+
+    if (warmUpCheckNum == 0) {
+        warmUpCheckNum = 1;
+    }
+    if (startCheckNum == 0) {
+        startCheckNum = 1;
+    }
+    if (endCheckNum == 0) {
+        endCheckNum = 1;
+    }
+
+    printf("Warm up check num: %llu\n", warmUpCheckNum);
+    printf("Start check num: %llu\n", startCheckNum);
+    printf("End check num: %llu\n", endCheckNum);
+
+    unsigned long long safeThreshold = omp_get_max_threads() * 10;
+
+    warmUpCheckThreshold = warmUpThreshold > safeThreshold ? warmUpThreshold - safeThreshold : 0;
+    startCheckThreshold = startThreshold > safeThreshold ? startThreshold - safeThreshold : 0;
+    endCheckThreshold = endThreshold > safeThreshold ? endThreshold - safeThreshold : 0;
+
+    printf("Warm up check threshold: %llu\n", warmUpCheckThreshold);
+    printf("Start check threshold: %llu\n", startCheckThreshold);
+    printf("End check threshold: %llu\n", endCheckThreshold);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
@@ -469,7 +506,7 @@ void warmUpHook() {
         int thread_id = omp_get_thread_num();
         warmUpCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount > warmUpThreshold - 1000 || warmUpCounter[0]%1000 == 0) {
+            if (currentCount >= warmUpCheckThreshold || warmUpCounter[0]%warmUpCheckNum == 0) {
                 // printf("Current count: %llu\n", currentCount);
                 // printf("Warm up counter: %llu\n", warmUpCounter[0]
                 unsigned long long sum = warmUpCounter[0];
@@ -494,7 +531,7 @@ void startHook() {
         int thread_id = omp_get_thread_num();
         startCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount > startThreshold - 1000 || startCounter[0]%1000 == 0) {
+            if (currentCount >= startCheckThreshold || startCounter[0]%startCheckNum == 0) {
                 unsigned long long sum = startCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += startCounter[i*64];
@@ -517,7 +554,7 @@ void endHook() {
         int thread_id = omp_get_thread_num();
         endCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount > endThreshold - 1000 || endCounter[0]%1000 == 0) {
+            if (currentCount >= endCheckThreshold || endCounter[0]%endCheckNum == 0) {
                 unsigned long long sum = endCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += endCounter[i*64];
