@@ -234,13 +234,21 @@ void roi_end_() {
 
 #ifdef MEASURING
 #include <stdatomic.h>
-atomic_ullong warmUpCounter;
-atomic_ullong startCounter;
-atomic_ullong endCounter;
+// atomic_ullong warmUpCounter;
+// atomic_ullong startCounter;
+// atomic_ullong endCounter;
+
+unsigned long long* warmUpCounter;
+unsigned long long* startCounter;
+unsigned long long* endCounter;
+
+unsigned num_threads = 0;
 
 unsigned long long warmUpThreshold;
 unsigned long long startThreshold;
 unsigned long long endThreshold;
+
+unsigned long long currentCount;
 
 BOOL ifWarmUpNotMet = FALSE;
 BOOL ifStartNotMet = FALSE;
@@ -273,9 +281,13 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    atomic_init(&warmUpCounter, 0);
-    atomic_init(&startCounter, 0);
-    atomic_init(&endCounter, 0);
+    num_threads = omp_get_max_threads();
+    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -323,9 +335,13 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    atomic_init(&warmUpCounter, 0);
-    atomic_init(&startCounter, 0);
-    atomic_init(&endCounter, 0);
+    num_threads = omp_get_max_threads();
+    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -378,9 +394,17 @@ void endEvent() {
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
     
-    atomic_init(&warmUpCounter, 0);
-    atomic_init(&startCounter, 0);
-    atomic_init(&endCounter, 0);
+    // atomic_init(&warmUpCounter, 0);
+    // atomic_init(&startCounter, 0);
+    // atomic_init(&endCounter, 0);
+
+    num_threads = omp_get_max_threads();
+    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -411,6 +435,9 @@ void roi_end_() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("PAPI ended\nNow exiting the program\n");
+    free(warmUpCounter);
+    free(startCounter);
+    free(endCounter);
     exit(0);
 }
 
@@ -430,17 +457,33 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
     if (endThreshold == 0) {
         endThreshold = 1;
     }
+    currentCount = 0;
+    printf("Warm up threshold: %llu\n", warmUpThreshold);
+    printf("Start threshold: %llu\n", startThreshold);
+    printf("End threshold: %llu\n", endThreshold);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpHook() {
     if (ifWarmUpNotMet) {
-        unsigned long long curr_count = atomic_fetch_add(&warmUpCounter, 1);
-        if (curr_count + 1 == warmUpThreshold) {
-            ifWarmUpNotMet = FALSE;
-            printf("Warm up marker met\n");
-            warmUpEvent();
-            ifStartNotMet = TRUE;
+        int thread_id = omp_get_thread_num();
+        warmUpCounter[thread_id*64] += 1;
+        if (thread_id == 0) {
+            if (currentCount > warmUpThreshold - 1000 || warmUpCounter[0]%1000 == 0) {
+                // printf("Current count: %llu\n", currentCount);
+                // printf("Warm up counter: %llu\n", warmUpCounter[0]
+                unsigned long long sum = warmUpCounter[0];
+                for (int i = 1; i < num_threads; i++) {
+                    sum += warmUpCounter[i*64];
+                }
+                currentCount = sum;
+                if (sum >= warmUpThreshold) {
+                    ifWarmUpNotMet = FALSE;
+                    printf("Warm up marker met\n");
+                    warmUpEvent();
+                    ifStartNotMet = TRUE;
+                }
+            }
         }
     }
 }
@@ -448,46 +491,45 @@ void warmUpHook() {
 __attribute__((no_profile_instrument_function, noinline))
 void startHook() {
     if (ifStartNotMet) {
-        unsigned long long curr_count = atomic_fetch_add(&startCounter, 1);
-#ifdef PAPI_MEASURING
-        if (omp_get_thread_num() == 0) {
-            if (curr_count + 1 >= startThreshold) {
-                ifStartNotMet = FALSE;
-                printf("Start marker met\n");
-                startEvent();
-                ifEndNotMet = TRUE;
+        int thread_id = omp_get_thread_num();
+        startCounter[thread_id*64] += 1;
+        if (thread_id == 0) {
+            if (currentCount > startThreshold - 1000 || startCounter[0]%1000 == 0) {
+                unsigned long long sum = startCounter[0];
+                for (int i = 1; i < num_threads; i++) {
+                    sum += startCounter[i*64];
+                }
+                currentCount = sum;
+                if (sum >= startThreshold) {
+                    ifStartNotMet = FALSE;
+                    printf("Start marker met\n");
+                    startEvent();
+                    ifEndNotMet = TRUE;
+                }
             }
         }
-#else
-        if (curr_count + 1 == startThreshold) {
-            ifStartNotMet = FALSE;
-            printf("Start marker met\n");
-            startEvent();
-            ifEndNotMet = TRUE;
-        }
-#endif
     }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void endHook() {
     if (ifEndNotMet) {
-        unsigned long long curr_count =  atomic_fetch_add(&endCounter, 1);
-#ifdef PAPI_MEASURING
-        if (omp_get_thread_num() == 0) {
-            if (curr_count + 1 >= endThreshold) {
-                ifEndNotMet = FALSE;
-                printf("End marker met\n");
-                endEvent();
+        int thread_id = omp_get_thread_num();
+        endCounter[thread_id*64] += 1;
+        if (thread_id == 0) {
+            if (currentCount > endThreshold - 1000 || endCounter[0]%1000 == 0) {
+                unsigned long long sum = endCounter[0];
+                for (int i = 1; i < num_threads; i++) {
+                    sum += endCounter[i*64];
+                }
+                currentCount = sum;
+                if (sum >= endThreshold) {
+                    ifEndNotMet = FALSE;
+                    printf("End marker met\n");
+                    endEvent();
+                }
             }
         }
-#else
-        if (curr_count + 1 == endThreshold) {
-            ifEndNotMet = FALSE;
-            printf("End marker met\n");
-            endEvent();
-        }
-#endif
     }
 }
 
