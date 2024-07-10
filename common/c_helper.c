@@ -249,6 +249,7 @@ unsigned long long startThreshold;
 unsigned long long endThreshold;
 
 unsigned long long currentCount;
+unsigned long long checkedCount;
 
 unsigned long long warmUpCheckNum;
 unsigned long long startCheckNum;
@@ -467,13 +468,16 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
         endThreshold = 1;
     }
     currentCount = 0;
+    checkedCount = 0;
     printf("Warm up threshold: %llu\n", warmUpThreshold);
     printf("Start threshold: %llu\n", startThreshold);
     printf("End threshold: %llu\n", endThreshold);
 
-    warmUpCheckNum = warmUpThreshold / 10;
-    startCheckNum = startThreshold / 10;
-    endCheckNum = endThreshold / 10;
+    num_threads = omp_get_max_threads();
+
+    warmUpCheckNum = warmUpThreshold / (10 * num_threads);
+    startCheckNum = startThreshold / (10 * num_threads);
+    endCheckNum = endThreshold / (10 * num_threads);
 
     if (warmUpCheckNum == 0) {
         warmUpCheckNum = 1;
@@ -506,9 +510,10 @@ void warmUpHook() {
         int thread_id = omp_get_thread_num();
         warmUpCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= warmUpCheckThreshold || warmUpCounter[0]%warmUpCheckNum == 0) {
+            if (currentCount >= warmUpCheckThreshold || warmUpCounter[0]/warmUpCheckNum > checkedCount) {
                 // printf("Current count: %llu\n", currentCount);
                 // printf("Warm up counter: %llu\n", warmUpCounter[0]
+                checkedCount = warmUpCounter[0]/warmUpCheckNum;
                 unsigned long long sum = warmUpCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += warmUpCounter[i*64];
@@ -531,7 +536,8 @@ void startHook() {
         int thread_id = omp_get_thread_num();
         startCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= startCheckThreshold || startCounter[0]%startCheckNum == 0) {
+            if (currentCount >= startCheckThreshold || startCounter[0]/startCheckNum > checkedCount) {
+                checkedCount = startCounter[0]/startCheckNum;
                 unsigned long long sum = startCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += startCounter[i*64];
@@ -554,7 +560,8 @@ void endHook() {
         int thread_id = omp_get_thread_num();
         endCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= endCheckThreshold || endCounter[0]%endCheckNum == 0) {
+            if (currentCount >= endCheckThreshold || endCounter[0]/endCheckNum > checkedCount) {
+                checkedCount = endCounter[0]/endCheckNum;
                 unsigned long long sum = endCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += endCounter[i*64];
