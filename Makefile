@@ -153,7 +153,7 @@ c_marker_overhead_measuring_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_overhead_meas
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_overhead_measuring
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_overhead_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/c_profiling/{REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/c_profiling/${REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
 	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/marker_overhead_measuring_input.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_marker_overhead_measuring.bc -o ${PROGRAM}_marker_overhead_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log

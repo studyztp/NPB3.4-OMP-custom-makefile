@@ -4,12 +4,16 @@ import json
 import re
 
 # define basic variables
-input_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/multi-thread/Overhead/NPB3.4-OMP-custom-makefile")
+# input_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/multi-thread/Overhead/NPB3.4-OMP-custom-makefile")
 # output_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/multi-thread/NPB3.4-OMP")
-output_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/multi-thread/Overhead/NPB3.4-OMP-custom-makefile")
+# output_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/NPB_protocol/NPB3.4.2/multi-thread/Overhead/NPB3.4-OMP-custom-makefile")
+
+input_dir = Path().cwd()
+output_dir = Path().cwd()
 
 benchmarks = ['bt', 'cg', 'ep', 'ft', 'is', 'lu', 'mg', 'sp']   
-size = "C"
+# benchmarks = ["is"]
+size = "B"
 region_length = 1000_000_000
 arch = "aarch64"
 threads = 8
@@ -95,40 +99,38 @@ def construct_regional_marker_information(path):
                     region = int(line[1])
                     line = f.readline()
                     line = f.readline()
-                    region_IR_inst_count = int(line.split()[5]) 
+                    region_IR_inst_count = int(line.split()[5])
                     cur_sum_bbv = []
+                    cur_timestamp = []
                     for _ in range(threads):
                         line = f.readline()
                         line = line.split()
-                        bbv = line[3]
-                        bbv = bbv[:-1]
-                        bbv = bbv[1:]
-                        bbv = bbv.split(',')
-                        bbv = bbv[:-1]
-                        bbv = [int(x) for x in bbv]
+                        line = line[5]
+                        line = line.split(",")
+                        line = line[:-1]
+                        line[0] = line[0][1:]
+                        temp_bbv = []
+                        temp_timestamp = []
+                        for item in line:
+                            item = item.split(":")
+                            temp_bbv.append(int(item[0]))
+                            temp_timestamp.append(int(item[1]))
                         if len(cur_sum_bbv) == 0:
-                            cur_sum_bbv = bbv
+                            cur_sum_bbv = temp_bbv
+                            cur_timestamp = temp_timestamp
                         else:
-                            cur_sum_bbv = [x + y for x, y in zip(cur_sum_bbv, bbv)]
+                            cur_sum_bbv = [x + y for x, y in zip(cur_sum_bbv, temp_bbv)]
+                            cur_timestamp = [x if x > y else y for x, y in zip(cur_timestamp, temp_timestamp)]
                     if global_bbv is None:
                         global_bbv = cur_sum_bbv
                     else:
                         global_bbv = [x + y for x, y in zip(global_bbv, cur_sum_bbv)]
-                    line = f.readline()
-                    line = line.split()
-                    if line[0] == "Timestamp:":
-                        timestamp = line[1]
-                        timestamp = timestamp[:-1]
-                        timestamp = timestamp[1:]
-                        timestamp = timestamp.split(',')
-                        timestamp = timestamp[:-1]
-                        timestamp = [int(x) for x in timestamp]
-
-                        # TODO: modify here so we can consider the timestamp information
-                        # when selecting the marker basic blocks
-                        cur_bid = int(timestamp.index(max(timestamp)))
-                        cur_count = cur_sum_bbv[cur_bid]
-                        cur_fid = static_info[cur_bid]["function_id"]
+                        
+                    # TODO: modify here so we can consider the timestamp information
+                    # when selecting the marker basic blocks
+                    cur_bid = int(cur_timestamp.index(max(cur_timestamp)))
+                    cur_count = cur_sum_bbv[cur_bid]
+                    cur_fid = static_info[cur_bid]["function_id"]
 
                     all_info[region] = {
                             "warmupMarkerFunctionId" : r_2_fid,
@@ -154,8 +156,8 @@ def construct_regional_marker_information(path):
                     r_1_bid = cur_bid
                     # the count and bbv is local to the region
                     r_1_count = cur_count
-                    r_1_sum_bbv = cur_sum_bbv
-                    r_1_global_bbv = global_bbv
+                    r_1_sum_bbv = cur_sum_bbv.copy()
+                    r_1_global_bbv = global_bbv.copy()
 
             line = f.readline()
 
@@ -176,7 +178,7 @@ for benchmark in benchmarks:
 
     all_bench_info[benchmark][size][region_length] = bench_regional_marker_info
 
-with open(output_dir/f"region_info_{size}_{region_length}.json", "w") as f:
+with open(output_dir/f"region_info_{size}_{region_length}_{threads}.json", "w") as f:
     json.dump(all_bench_info, f, indent=4)
 
 # create info folder for each region

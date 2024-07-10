@@ -9,6 +9,8 @@ parser.add_argument("--region_size_list", nargs="+", type=int, default=[1000_000
 parser.add_argument("--arch", type=str, default="aarch64")
 parser.add_argument("--size_list", nargs="+", type=str, default=["B"])
 parser.add_argument("--exp_list", nargs="+", type=str, default=["naive"])
+parser.add_argument("--threads", nargs="+", type=int, default=[1, 8])
+parser.add_argument("--benchmarks", nargs="+", type=str, default=["bt", "cg", "ep", "ft", "is", "lu", "mg", "sp"])
 parser.add_argument("--ifclean", type=bool, default=False)
 
 args = parser.parse_args()
@@ -26,15 +28,18 @@ def run_this(run_ball):
     return process_code
 
 workdir = Path().cwd()
-benchmarks = ["bt", "cg", "ep", "ft", "is", "lu", "mg", "sp"]
-threads = [1, 2, 8]
+benchmarks = args.benchmarks
+threads = args.threads
 region_size_list = args.region_size_list
 arch = args.arch
 size_list = args.size_list
 exp_list = args.exp_list
 
 must_env = os.environ
-must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/aarch64-unknown-linux-gnu"
+must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/{arch}-unknown-linux-gnu"
+
+print(f"region_size_list: {region_size_list} arch: {arch} size_list: {size_list} exp_list: {exp_list}")
+print(f"threads: {threads} benchmarks: {benchmarks} workdir: {workdir}")
 
 # make all benchmarks
 for benchmark in benchmarks:

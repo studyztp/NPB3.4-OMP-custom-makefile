@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <omp.h>
 
+
 #define BOOL uint8_t
 #define TRUE 1
 #define FALSE 0
@@ -376,6 +377,12 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
+    
+    atomic_init(&warmUpCounter, 0);
+    atomic_init(&startCounter, 0);
+    atomic_init(&endCounter, 0);
+    
+    ifWarmUpNotMet = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -412,8 +419,17 @@ void roi_end_() {
 __attribute__((no_profile_instrument_function, noinline))
 void setupThresholds(unsigned long long warmUp, unsigned long long start, unsigned long long end) {
     warmUpThreshold = warmUp;
+    if (warmUpThreshold == 0) {
+        warmUpThreshold = 1;
+    }
     startThreshold = start;
+    if (startThreshold == 0) {
+        startThreshold = 1;
+    }
     endThreshold = end;
+    if (endThreshold == 0) {
+        endThreshold = 1;
+    }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
