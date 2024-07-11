@@ -249,15 +249,7 @@ unsigned long long startThreshold;
 unsigned long long endThreshold;
 
 unsigned long long currentCount;
-unsigned long long checkedCount;
-
-unsigned long long warmUpCheckNum;
-unsigned long long startCheckNum;
-unsigned long long endCheckNum;
-
-unsigned long long warmUpCheckThreshold;
-unsigned long long startCheckThreshold;
-unsigned long long endCheckThreshold;
+unsigned long long numTimeChecked;
 
 BOOL ifWarmUpNotMet = FALSE;
 BOOL ifStartNotMet = FALSE;
@@ -444,6 +436,7 @@ void roi_end_() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("PAPI ended\nNow exiting the program\n");
+    printf("number of times checked: %llu\n", numTimeChecked);
     free(warmUpCounter);
     free(startCounter);
     free(endCounter);
@@ -468,40 +461,10 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
         endThreshold = 1;
     }
     currentCount = 0;
-    checkedCount = 0;
+    numTimeChecked = 0;
     printf("Warm up threshold: %llu\n", warmUpThreshold);
     printf("Start threshold: %llu\n", startThreshold);
     printf("End threshold: %llu\n", endThreshold);
-
-    num_threads = omp_get_max_threads();
-
-    warmUpCheckNum = warmUpThreshold / (10 * num_threads);
-    startCheckNum = startThreshold / (10 * num_threads);
-    endCheckNum = endThreshold / (10 * num_threads);
-
-    if (warmUpCheckNum == 0) {
-        warmUpCheckNum = 1;
-    }
-    if (startCheckNum == 0) {
-        startCheckNum = 1;
-    }
-    if (endCheckNum == 0) {
-        endCheckNum = 1;
-    }
-
-    printf("Warm up check num: %llu\n", warmUpCheckNum);
-    printf("Start check num: %llu\n", startCheckNum);
-    printf("End check num: %llu\n", endCheckNum);
-
-    unsigned long long safeThreshold = omp_get_max_threads() * 10;
-
-    warmUpCheckThreshold = warmUpThreshold > safeThreshold ? warmUpThreshold - safeThreshold : 0;
-    startCheckThreshold = startThreshold > safeThreshold ? startThreshold - safeThreshold : 0;
-    endCheckThreshold = endThreshold > safeThreshold ? endThreshold - safeThreshold : 0;
-
-    printf("Warm up check threshold: %llu\n", warmUpCheckThreshold);
-    printf("Start check threshold: %llu\n", startCheckThreshold);
-    printf("End check threshold: %llu\n", endCheckThreshold);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
@@ -510,10 +473,10 @@ void warmUpHook() {
         int thread_id = omp_get_thread_num();
         warmUpCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= warmUpCheckThreshold || warmUpCounter[0]/warmUpCheckNum > checkedCount) {
+            currentCount += 1;
+            if (warmUpThreshold - currentCount <= 1000 || warmUpCounter[0]%10000000 == 0) {
                 // printf("Current count: %llu\n", currentCount);
                 // printf("Warm up counter: %llu\n", warmUpCounter[0]
-                checkedCount = warmUpCounter[0]/warmUpCheckNum;
                 unsigned long long sum = warmUpCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += warmUpCounter[i*64];
@@ -523,6 +486,7 @@ void warmUpHook() {
                     ifWarmUpNotMet = FALSE;
                     printf("Warm up marker met\n");
                     warmUpEvent();
+                    currentCount = 0;
                     ifStartNotMet = TRUE;
                 }
             }
@@ -536,8 +500,8 @@ void startHook() {
         int thread_id = omp_get_thread_num();
         startCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= startCheckThreshold || startCounter[0]/startCheckNum > checkedCount) {
-                checkedCount = startCounter[0]/startCheckNum;
+            currentCount += 1;
+            if (startThreshold - currentCount <= 1000 || startCounter[0]%10000000 == 0) {
                 unsigned long long sum = startCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += startCounter[i*64];
@@ -547,6 +511,7 @@ void startHook() {
                     ifStartNotMet = FALSE;
                     printf("Start marker met\n");
                     startEvent();
+                    currentCount = 0;
                     ifEndNotMet = TRUE;
                 }
             }
@@ -560,8 +525,9 @@ void endHook() {
         int thread_id = omp_get_thread_num();
         endCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            if (currentCount >= endCheckThreshold || endCounter[0]/endCheckNum > checkedCount) {
-                checkedCount = endCounter[0]/endCheckNum;
+            currentCount += 1;
+            if (endThreshold - currentCount <= 1000 || endCounter[0]%10000000 == 0) {
+                numTimeChecked += 1;
                 unsigned long long sum = endCounter[0];
                 for (int i = 1; i < num_threads; i++) {
                     sum += endCounter[i*64];
