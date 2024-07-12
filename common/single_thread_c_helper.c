@@ -2,32 +2,26 @@
 #include <string.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <omp.h>
-
 
 #define BOOL uint8_t
 #define TRUE 1
 #define FALSE 0
 
 #ifdef PROFILING
-#include <stdatomic.h>
-atomic_ullong counter;
-
+unsigned long long counter = 0;
 #define ARRAY_SIZE 1000
 
-omp_lock_t lock;
-BOOL wait = FALSE;
-BOOL ifStart = FALSE;
 unsigned long long region = 0;
-
 unsigned long long total_num_bbs = 0;
-unsigned long long num_threads = 0;
-unsigned long long* bbv;
-unsigned long long* timestamp;
-unsigned long long** bbv_array;
-unsigned long long** timestamp_array;
-unsigned long long* counter_array;
+
+unsigned long long *bbv;
+unsigned long long *timestamp;
+unsigned long long **bbv_array;
+unsigned long long **timestamp_array;
+unsigned long long *counter_array;
 unsigned long long current_array_size = ARRAY_SIZE;
+
+BOOL ifStart = FALSE;
 
 FILE *fptr = NULL;
 
@@ -42,14 +36,14 @@ void increaseArray() {
     }
     for (unsigned i = current_array_size - ARRAY_SIZE; i < current_array_size; i ++) 
     {
-        bbv_array[i] = (unsigned long long*)malloc(((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-        timestamp_array[i] = (unsigned long long*)malloc(((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        bbv_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
+        timestamp_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
             printf("Failed to allocate memory for bbv and timestamp arrays\n");
             exit(1);
         }
-        memset(bbv_array[i], 0, ((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-        memset(timestamp_array[i], 0, ((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        memset(bbv_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
+        memset(timestamp_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
     }
     counter_array = (unsigned long long*)realloc(counter_array, current_array_size * sizeof(unsigned long long));
     if (counter_array == NULL) {
@@ -60,39 +54,24 @@ void increaseArray() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void processData() {
-    counter_array[region] = atomic_load(&counter);
+    counter_array[region] = counter;
     region ++;
     bbv = bbv_array[region];
     timestamp = timestamp_array[region];
-    if (region + 100 >= current_array_size) {
+    if (region + 10 >= current_array_size) {
         increaseArray();
     }
-    atomic_store(&counter, 0);
+    counter = 0;
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void bbHook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long long threshold) {
     if (ifStart) {
-        if (wait) {
-            omp_set_lock(&lock);
-            omp_unset_lock(&lock);
-        }
-        unsigned long long thread_id = omp_get_thread_num();
-        unsigned long long index = thread_id * (total_num_bbs + 64) + bb_id;
-
-        unsigned long long cur_counter = atomic_fetch_add(&counter, bb_inst) + bb_inst;
-
-        bbv[index] += 1;
-        timestamp[index] = cur_counter;
-
-        if (cur_counter >= threshold) {
-            omp_set_lock(&lock);
-            if (atomic_load(&counter) >= threshold) {
-                wait = TRUE;
-                processData();
-                wait = FALSE;
-            }
-            omp_unset_lock(&lock);
+        counter += bb_inst;
+        bbv[bb_id] += 1;
+        timestamp[bb_id] = counter;
+        if (counter >= threshold) {
+            processData();
         }
     }
 }
@@ -100,32 +79,32 @@ void bbHook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long 
 __attribute__((no_profile_instrument_function, noinline))
 void initArrays(unsigned long long num_bbs) {
     total_num_bbs = num_bbs;
-    num_threads = omp_get_max_threads();
     bbv_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
     timestamp_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
     counter_array = (unsigned long long*)malloc(current_array_size * sizeof(unsigned long long));
     if (bbv_array == NULL || timestamp_array == NULL || counter_array == NULL) {
-        printf("Failed to allocate memory for bbv_array and timestamp_array arrays\n");
+        printf("Failed to allocate memory for bbv_array, timestamp_array and counter_array arrays\n");
         exit(1);
     }
-
-    for (int i = 0; i < current_array_size; i ++) {
-        bbv_array[i] = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-        timestamp_array[i] = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+    for (unsigned i = 0; i < current_array_size; i ++) 
+    {
+        bbv_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
+        timestamp_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
             printf("Failed to allocate memory for bbv and timestamp arrays\n");
             exit(1);
         }
-        memset(bbv_array[i], 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-        memset(timestamp_array[i], 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        memset(bbv_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
+        memset(timestamp_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
     }
-    bbv = bbv_array[0];
-    timestamp = timestamp_array[0];
+    bbv = bbv_array[region];
+    timestamp = timestamp_array[region];
 }
 
-__attribute__((no_profile_instrument_function))
+__attribute__((no_profile_instrument_function, noinline))
 void deleteArrays() {
-    for (unsigned long long i = 0; i < current_array_size; i ++) {
+    for (unsigned i = 0; i < current_array_size; i ++) 
+    {
         free(bbv_array[i]);
         free(timestamp_array[i]);
     }
@@ -134,24 +113,21 @@ void deleteArrays() {
     free(counter_array);
 }
 
-__attribute__((no_profile_instrument_function))
+__attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    atomic_init(&counter, 0);
-    omp_init_lock(&lock);
     ifStart = TRUE;
-    
+
     printf("ROI begin\n");
 }
 
-__attribute__((no_profile_instrument_function))
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     ifStart = FALSE;
-    omp_destroy_lock(&lock);
 
     processData();
 
     char outputfile[256];
-    sprintf(outputfile, "all_output_%d_threads.txt", omp_get_max_threads());
+    sprintf(outputfile, "all_output_1_threads.txt");
 
     fptr = fopen(outputfile, "w");
     if (fptr == NULL) {
@@ -166,15 +142,13 @@ void roi_end_() {
         totalIRInst += counter_array[i];
         fprintf(fptr, "Total IR instructions: %llu\n", totalIRInst);
         fprintf(fptr, "Total IR instructions in region: %llu\n", counter_array[i]);
-        for (unsigned long long  j = 0; j < num_threads; j ++) {
-            fprintf(fptr, "Thread %llu BBV and Timestamp: [", j);
-            unsigned long long index = j * (total_num_bbs + 64);
-            for (unsigned long long  k = 0; k < total_num_bbs; k ++) {
-                fprintf(fptr, "%llu:%llu,", bbv_array[i][index], timestamp_array[i][index]);
-                index ++;
-            }
-            fprintf(fptr, "]\n");
+        fprintf(fptr, "Thread 0 BBV and Timestamp: [");
+        unsigned long long index = 0;
+        for (unsigned long long  k = 0; k < total_num_bbs; k ++) {
+            fprintf(fptr, "%llu:%llu,", bbv_array[i][index], timestamp_array[i][index]);
+            index ++;
         }
+        fprintf(fptr, "]\n");
     }
 
     fclose(fptr);
@@ -188,27 +162,13 @@ void roi_end_() {
 
 #endif
 
-#ifdef NAIVE
-__attribute__((no_profile_instrument_function, noinline))
-void roi_begin_() {
-    printf("ROI begin\n");
-}
-
-__attribute__((no_profile_instrument_function, noinline))
-void roi_end_() {
-    printf("ROI end\n");
-}
-
-#endif
-
 #ifdef USING_PAPI_PROFILING
-#include <stdatomic.h>
 #include <papi.h>
-atomic_ullong counter;
 
-omp_lock_t lock;
-BOOL wait = FALSE;
+unsigned long long counter = 0;
+
 BOOL ifStart = FALSE;
+
 unsigned long long region = 0;
 unsigned long long totalIRInst = 0;
 
@@ -234,34 +194,20 @@ void endPapiRegion() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void bbHook(unsigned long long bb_inst, unsigned long long threshold) {
-    if (ifStart) {
-        if (wait) {
-            omp_set_lock(&lock);
-            omp_unset_lock(&lock);
-        }
-
-        unsigned long long curr_count = atomic_fetch_add(&counter, bb_inst);
-
-        if (omp_get_thread_num() == 0) {
-            if (curr_count + bb_inst >= threshold) {
-                endPapiRegion();
-                omp_set_lock(&lock);
-                wait = TRUE;
-                totalIRInst += atomic_load(&counter);
-                atomic_store(&counter, 0);
-                region ++;
-                wait = FALSE;
-                omp_unset_lock(&lock);
-                startPapiRegion();
-            }
+    if (ifStart) { 
+        counter += bb_inst;
+        if (counter >= threshold) {
+            endPapiRegion();
+            totalIRInst += counter;
+            counter = 0;
+            region ++;
+            startPapiRegion();
         }
     }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    atomic_init(&counter, 0);
-    omp_init_lock(&lock);
     ifStart = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
@@ -272,16 +218,18 @@ void roi_begin_() {
     if (retval != PAPI_OK) {
         printf("PAPI_set_domain failed due to %d.\n", retval);
     }
+
     printf("ROI begin\n");
+
     startPapiRegion();
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
-    endPapiRegion();
     ifStart = FALSE;
-    omp_destroy_lock(&lock);
-    
+
+    endPapiRegion();
+
     printf("ROI end\n");
     printf("Region: %llu\n", region);
     printf("Total IR instructions: %llu\n", totalIRInst);
@@ -291,11 +239,7 @@ void roi_end_() {
 
 #ifdef MEASURING
 
-unsigned long long* warmUpCounter;
-unsigned long long* startCounter;
-unsigned long long* endCounter;
-
-unsigned num_threads = 0;
+unsigned long long counter = 0;
 
 unsigned long long warmUpThreshold;
 unsigned long long startThreshold;
@@ -305,15 +249,17 @@ BOOL ifWarmUpNotMet = FALSE;
 BOOL ifStartNotMet = FALSE;
 BOOL ifEndNotMet = FALSE;
 
+
 #ifdef PAPI_MEASURING
 #include <papi.h>
-
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpEvent() {
+    printf("Papi Warmup marker\n");
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void startEvent() {
+    printf("Papi Start marker\n");
     int retval = PAPI_hl_region_begin("0");
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_begin failed due to %d.\n", retval);
@@ -326,20 +272,13 @@ void endEvent() {
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI ended\nNow exiting the program\n");
+    printf("Papi End marker\n");
+    printf("Now exiting the program\n");
     exit(0);
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    num_threads = omp_get_max_threads();
-    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    
     ifWarmUpNotMet = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
@@ -386,13 +325,6 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    num_threads = omp_get_max_threads();
-    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -430,6 +362,12 @@ void roi_end_() {
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpEvent() {
     printf("Warm up event reached\n");
+    printf("PAPI region begin\n");
+
+    int retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
@@ -444,14 +382,6 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-
-    num_threads = omp_get_max_threads();
-    warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -465,26 +395,15 @@ void roi_begin_() {
     }
     printf("ROI started\n");
     printf("PAPI initialized\n");
-
-    printf("PAPI region begin\n");
-
-    retval = PAPI_hl_region_begin("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
-    }
 }
 
 void roi_end_() {
-    printf("PAPI region end\n");
-
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI ended\nNow exiting the program\n");
-    free(warmUpCounter);
-    free(startCounter);
-    free(endCounter);
+    printf("PAPI region end\n");
+    printf("Now exiting the program\n");
     exit(0);
 }
 
@@ -513,19 +432,13 @@ void setupThresholds(unsigned long long warmUp, unsigned long long start, unsign
 __attribute__((no_profile_instrument_function, noinline))
 void warmUpHook() {
     if (ifWarmUpNotMet) {
-        int thread_id = omp_get_thread_num();
-        warmUpCounter[thread_id*64] += 1;
-        if (thread_id == 0) {
-            unsigned long long sum = warmUpCounter[0];
-            for (int i = 1; i < num_threads; i++) {
-                sum += warmUpCounter[i*64];
-            }
-            if (sum >= warmUpThreshold) {
-                ifWarmUpNotMet = FALSE;
-                printf("Warm up marker met\n");
-                warmUpEvent();
-                ifStartNotMet = TRUE;
-            }
+        counter ++;
+        if (counter == warmUpThreshold) {
+            ifWarmUpNotMet = FALSE;
+            printf("Warm up marker met\n");
+            warmUpEvent();
+            counter = 0;
+            ifStartNotMet = TRUE;
         }
     }
 }
@@ -533,19 +446,13 @@ void warmUpHook() {
 __attribute__((no_profile_instrument_function, noinline))
 void startHook() {
     if (ifStartNotMet) {
-        int thread_id = omp_get_thread_num();
-        startCounter[thread_id*64] += 1;
-        if (thread_id == 0) {
-            unsigned long long sum = startCounter[0];
-            for (int i = 1; i < num_threads; i++) {
-                sum += startCounter[i*64];
-            }
-            if (sum >= startThreshold) {
-                ifStartNotMet = FALSE;
-                printf("Start marker met\n");
-                startEvent();
-                ifEndNotMet = TRUE;
-            }
+        counter ++;
+        if (counter == startThreshold) {
+            ifStartNotMet = FALSE;
+            printf("Start marker met\n");
+            startEvent();
+            counter = 0;
+            ifEndNotMet = TRUE;
         }
     }
 }
@@ -553,59 +460,15 @@ void startHook() {
 __attribute__((no_profile_instrument_function, noinline))
 void endHook() {
     if (ifEndNotMet) {
-        int thread_id = omp_get_thread_num();
-        endCounter[thread_id*64] += 1;
-        if (thread_id == 0) {
-            unsigned long long sum = endCounter[0];
-
-            for (int i = 1; i < num_threads; i++) {
-                sum += endCounter[i*64];
-            }
-
-            if (sum >= endThreshold) {
-                ifEndNotMet = FALSE;
-                printf("End marker met\n");
-                endEvent();
-            }
+        counter ++;
+        if (counter == endThreshold) {
+            ifEndNotMet = FALSE;
+            printf("End marker met\n");
+            endEvent();
+            counter = 0;
         }
     }
 }
 
 #endif
 
-#ifdef PAPI_NAIVE
-#include <papi.h>
-__attribute__((no_profile_instrument_function, noinline))
-void roi_begin_() {
-
-    int retval = PAPI_library_init(PAPI_VER_CURRENT);
-    if (retval != PAPI_VER_CURRENT) {
-        printf("PAPI_library_init failed due to %d.\n", retval);
-    }
-    retval = PAPI_set_domain(PAPI_DOM_ALL);
-    if (retval != PAPI_OK) {
-        printf("PAPI_set_domain failed due to %d.\n", retval);
-    }
-    printf("ROI started\n");
-    printf("PAPI initialized\n");
-
-    printf("PAPI region begin\n");
-
-    retval = PAPI_hl_region_begin("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
-    }
-}
-
-void roi_end_() {
-    printf("PAPI region end\n");
-
-    int retval = PAPI_hl_region_end("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_end failed due to %d.\n", retval);
-    }
-    printf("PAPI ended\nNow exiting the program\n");
-    exit(0);
-}
-
-#endif
