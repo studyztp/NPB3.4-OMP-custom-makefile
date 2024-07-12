@@ -272,6 +272,7 @@ __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
     num_threads = omp_get_max_threads();
     counter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
+    memset(counter, 0, num_threads*64 * sizeof(unsigned long long));
     omp_init_lock(&lock);
     ifStart = TRUE;
 
