@@ -525,19 +525,17 @@ void endHook() {
         int thread_id = omp_get_thread_num();
         endCounter[thread_id*64] += 1;
         if (thread_id == 0) {
-            currentCount += 1;
-            if (endThreshold - currentCount <= 1000 || endCounter[0]%10000000 == 0) {
-                numTimeChecked += 1;
-                unsigned long long sum = endCounter[0];
-                for (int i = 1; i < num_threads; i++) {
-                    sum += endCounter[i*64];
-                }
-                currentCount = sum;
-                if (sum >= endThreshold) {
-                    ifEndNotMet = FALSE;
-                    printf("End marker met\n");
-                    endEvent();
-                }
+            numTimeChecked += 1;
+            unsigned long long sum = endCounter[0];
+
+            for (int i = 1; i < num_threads; i++) {
+                sum += endCounter[i*64];
+            }
+            currentCount = sum;
+            if (sum >= endThreshold) {
+                ifEndNotMet = FALSE;
+                printf("End marker met\n");
+                endEvent();
             }
         }
     }
