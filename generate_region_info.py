@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import json
+import math
 import re
 
 # define basic variables
@@ -69,6 +70,17 @@ def get_count_corresponding_to_previous_marker(previous_sum_bbv, bb_id, bb_count
         return bb_count
     else:
         return bb_count - previous_sum_bbv[bb_id]
+    
+def find_the_best_marker_bb_id(bbv, timestamp, threshold):
+    min_count = math.inf
+    min_bb_id = 0
+    for bbid in range(len(bbv)):
+        if timestamp[bbid] > threshold:
+            if bbv[bbid] < min_count:
+                min_count = bbv[bbid]
+                min_bb_id = bbid
+    return min_bb_id
+    
 
 def construct_regional_marker_information(path):
     all_info = {}
@@ -98,6 +110,7 @@ def construct_regional_marker_information(path):
                 if line[0] == "Region:":
                     region = int(line[1])
                     line = f.readline()
+                    total_IR_inst_count = int(line.split()[3])
                     line = f.readline()
                     region_IR_inst_count = int(line.split()[5])
                     cur_sum_bbv = []
@@ -128,8 +141,11 @@ def construct_regional_marker_information(path):
                         
                     # TODO: modify here so we can consider the timestamp information
                     # when selecting the marker basic blocks
-                    cur_bid = int(cur_timestamp.index(max(cur_timestamp)))
+                    max_bid = int(cur_timestamp.index(max(cur_timestamp)))
+                    max_count = cur_sum_bbv[max_bid]
+                    cur_bid = find_the_best_marker_bb_id(cur_sum_bbv, cur_timestamp, region_IR_inst_count - 100_000_000)
                     cur_count = cur_sum_bbv[cur_bid]
+                    gap = cur_timestamp[max_bid] - cur_timestamp[cur_bid]
                     cur_fid = static_info[cur_bid]["function_id"]
 
                     all_info[region] = {
@@ -143,7 +159,11 @@ def construct_regional_marker_information(path):
                             "endMarkerFunctionId" : cur_fid,
                             "endMarkerBBId" : int(cur_bid),
                             "endMarkerCount" : cur_count,
-                            "endMarkerGlobalCount": get_global_count(global_bbv, cur_bid)
+                            "endMarkerGlobalCount": get_global_count(global_bbv, cur_bid),
+                            "gap": gap,
+                            "regionalIRInstCount": region_IR_inst_count,
+                            "totalIRInstCount": total_IR_inst_count
+
                     }
 
                     r_2_fid = r_1_fid
