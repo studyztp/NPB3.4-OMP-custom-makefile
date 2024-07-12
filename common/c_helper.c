@@ -85,11 +85,13 @@ void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long
         bbv[index] += 1;
         timestamp[index] = cur_counter;
 
-        if (cur_counter == threshold) {
+        if (cur_counter >= threshold) {
             omp_set_lock(&lock);
-            wait = TRUE;
-            process_data();
-            wait = FALSE;
+            if (atomic_load(&counter) >= threshold) {
+                wait = TRUE;
+                process_data();
+                wait = FALSE;
+            }
             omp_unset_lock(&lock);
         }
     }
@@ -201,8 +203,8 @@ void roi_end_() {
 
 #ifdef USING_PAPI_PROFILING
 #include <papi.h>
-#include <stdatomic.h>
-atomic_ullong counter;
+unsigned long long* counter;
+unsigned long long num_threads = 0;
 
 omp_lock_t lock;
 BOOL wait = FALSE;
@@ -239,17 +241,20 @@ void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
             omp_set_lock(&lock);
             omp_unset_lock(&lock);
         }
-        atomic_fetch_add(&counter, bb_inst);
-        if (omp_get_thread_num() == 0) {
-            if (atomic_load(&counter) >= threshold) {
+        int thread_id = omp_get_thread_num();
+        counter[thread_id*64] += bb_inst;
+
+        if (thread_id == 0) {
+            unsigned long long sum = counter[0];
+            for (int i = 1; i < num_threads; i++) {
+                sum += counter[i*64];
+            }
+            if (sum >= threshold) {
                 end_papi_region();
                 omp_set_lock(&lock);
                 wait = TRUE;
-                printf("Region: %llu\n", region);
-                totalIRInst += atomic_load(&counter);
-                printf("Total IR instructions: %llu\n", totalIRInst);
-                printf("Total IR instructions in region: %llu\n", atomic_load(&counter));
-                atomic_store(&counter, 0);
+                totalIRInst += sum;
+                memset(counter, 0, num_threads*64 * sizeof(unsigned long long));
                 region ++;
                 wait = FALSE;
                 omp_unset_lock(&lock);
@@ -261,7 +266,8 @@ void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    atomic_init(&counter, 0);
+    num_threads = omp_get_max_threads();
+    counter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     omp_init_lock(&lock);
     ifStart = TRUE;
 
@@ -282,6 +288,7 @@ void roi_end_() {
     end_papi_region();
     ifStart = FALSE;
     omp_destroy_lock(&lock);
+    free(counter);
 
     printf("ROI end\n");
     printf("Region: %llu\n", region);
