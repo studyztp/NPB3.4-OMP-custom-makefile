@@ -13,36 +13,60 @@
 #include <stdatomic.h>
 atomic_ullong counter;
 
+#define ARRAY_SIZE 1000
+
 omp_lock_t lock;
 BOOL wait = FALSE;
 BOOL ifStart = FALSE;
 unsigned long long region = 0;
-unsigned long long totalIRInst = 0;
 
 unsigned long long total_num_bbs = 0;
 unsigned long long num_threads = 0;
 unsigned long long* bbv;
 unsigned long long* timestamp;
+unsigned long long** bbv_array;
+unsigned long long** timestamp_array;
+unsigned long long* counter_array;
+unsigned long long current_array_size = ARRAY_SIZE;
 
 FILE *fptr = NULL;
 
 __attribute__((no_profile_instrument_function, noinline))
-void process_data() {
-    totalIRInst += atomic_load(&counter);
-    fprintf(fptr, "Region: %llu\n", region);
-    fprintf(fptr, "Total IR instructions: %llu\n", totalIRInst);
-    fprintf(fptr, "Total IR instructions in region: %llu\n", atomic_load(&counter));
-    for (unsigned long long i = 0; i < num_threads; i += 1) {
-        fprintf(fptr, "Thread %llu BBV and Timestamp: [", i);
-        for (unsigned long long j = 0; j < total_num_bbs; j += 1) {
-            unsigned long long index = i * (total_num_bbs + 64) + j;
-            fprintf(fptr, "%llu:%llu,", bbv[index], timestamp[index]);
-            bbv[index] = 0;
-            timestamp[index] = 0;
-        }
-        fprintf(fptr, "]\n");
+void increase_array() {
+    current_array_size += ARRAY_SIZE;
+    bbv_array = (unsigned long long**)realloc(bbv_array, current_array_size * sizeof(unsigned long long*));
+    timestamp_array = (unsigned long long**)realloc(timestamp_array, current_array_size * sizeof(unsigned long long*));
+    if (bbv_array == NULL || timestamp_array == NULL) {
+        printf("Failed to allocate memory for bbv_array and timestamp_array arrays\n");
+        exit(1);
     }
+    for (unsigned i = current_array_size - ARRAY_SIZE; i < current_array_size; i ++) 
+    {
+        bbv_array[i] = (unsigned long long*)malloc(((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        timestamp_array[i] = (unsigned long long*)malloc(((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
+            printf("Failed to allocate memory for bbv and timestamp arrays\n");
+            exit(1);
+        }
+        memset(bbv_array[i], 0, ((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        memset(timestamp_array[i], 0, ((total_num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+    }
+    counter_array = (unsigned long long*)realloc(counter_array, current_array_size * sizeof(unsigned long long));
+    if (counter_array == NULL) {
+        printf("Failed to allocate memory for counter_array\n");
+        exit(1);
+    }
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void process_data() {
+    counter_array[region] = atomic_load(&counter);
     region ++;
+    bbv = bbv_array[region];
+    timestamp = timestamp_array[region];
+    if (region + 100 >= current_array_size) {
+        increase_array();
+    }
     atomic_store(&counter, 0);
 }
 
@@ -61,14 +85,12 @@ void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long
         bbv[index] += 1;
         timestamp[index] = cur_counter;
 
-        if (omp_get_thread_num() == 0) {
-            if (atomic_load(&counter) >= threshold) {
-                omp_set_lock(&lock);
-                wait = TRUE;
-                process_data();
-                wait = FALSE;
-                omp_unset_lock(&lock);
-            }
+        if (cur_counter == threshold) {
+            omp_set_lock(&lock);
+            wait = TRUE;
+            process_data();
+            wait = FALSE;
+            omp_unset_lock(&lock);
         }
     }
 }
@@ -77,20 +99,37 @@ __attribute__((no_profile_instrument_function, noinline))
 void init_arrays(unsigned long long num_bbs) {
     total_num_bbs = num_bbs;
     num_threads = omp_get_max_threads();
-    bbv = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-    timestamp = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-    if (bbv == NULL || timestamp == NULL) {
-        printf("Failed to allocate memory for bbv and timestamp arrays\n");
+    bbv_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
+    timestamp_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
+    counter_array = (unsigned long long*)malloc(current_array_size * sizeof(unsigned long long));
+    if (bbv_array == NULL || timestamp_array == NULL || counter_array == NULL) {
+        printf("Failed to allocate memory for bbv_array and timestamp_array arrays\n");
         exit(1);
     }
-    memset(bbv, 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
-    memset(timestamp, 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+
+    for (int i = 0; i < current_array_size; i ++) {
+        bbv_array[i] = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        timestamp_array[i] = (unsigned long long*)malloc(((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
+            printf("Failed to allocate memory for bbv and timestamp arrays\n");
+            exit(1);
+        }
+        memset(bbv_array[i], 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+        memset(timestamp_array[i], 0, ((num_bbs + 64) * num_threads) * sizeof(unsigned long long));
+    }
+    bbv = bbv_array[0];
+    timestamp = timestamp_array[0];
 }
 
 __attribute__((no_profile_instrument_function))
 void delete_arrays() {
-    free(bbv);
-    free(timestamp);
+    for (unsigned long long i = 0; i < current_array_size; i ++) {
+        free(bbv_array[i]);
+        free(timestamp_array[i]);
+    }
+    free(bbv_array);
+    free(timestamp_array);
+    free(counter_array);
 }
 
 __attribute__((no_profile_instrument_function))
@@ -98,15 +137,7 @@ void roi_begin_(uint8_t num_threads_) {
     atomic_init(&counter, 0);
     omp_init_lock(&lock);
     ifStart = TRUE;
-    char outputfile[256];
-    sprintf(outputfile, "all_output_%d_threads.txt", omp_get_max_threads());
-
-    fptr = fopen(outputfile, "w");
-    if (fptr == NULL) {
-        printf("Failed to open file\n");
-        exit(1);
-    }
-
+    
     printf("ROI begin\n");
 }
 
@@ -116,6 +147,33 @@ void roi_end_() {
     omp_destroy_lock(&lock);
 
     process_data();
+
+    char outputfile[256];
+    sprintf(outputfile, "all_output_%d_threads.txt", omp_get_max_threads());
+
+    fptr = fopen(outputfile, "w");
+    if (fptr == NULL) {
+        printf("Failed to open file\n");
+        exit(1);
+    }
+
+    unsigned long long totalIRInst = 0;
+
+    for (unsigned long long i = 0; i < region; i ++) {
+        fprintf(fptr, "Region: %llu\n", i);
+        totalIRInst += counter_array[i];
+        fprintf(fptr, "Total IR instructions: %llu\n", totalIRInst);
+        fprintf(fptr, "Total IR instructions in region: %llu\n", counter_array[i]);
+        for (unsigned long long  j = 0; j < num_threads; j ++) {
+            fprintf(fptr, "Thread %llu BBV and Timestamp: [", j);
+            unsigned long long index = j * (total_num_bbs + 64);
+            for (unsigned long long  k = 0; k < total_num_bbs; k ++) {
+                fprintf(fptr, "%llu:%llu,", bbv_array[i][index], timestamp_array[i][index]);
+                index ++;
+            }
+            fprintf(fptr, "]\n");
+        }
+    }
 
     fclose(fptr);
 
