@@ -236,11 +236,11 @@ void roi_end_() {
 #include <stdatomic.h>
 // atomic_ullong warmUpCounter;
 // atomic_ullong startCounter;
-atomic_ullong endCounter;
+// atomic_ullong endCounter;
 
 unsigned long long* warmUpCounter;
 unsigned long long* startCounter;
-// unsigned long long* endCounter;
+unsigned long long* endCounter;
 
 unsigned num_threads = 0;
 
@@ -285,11 +285,10 @@ void roi_begin_() {
     num_threads = omp_get_max_threads();
     warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    // endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    atomic_init(&endCounter, 0);
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
     memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    // memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -340,12 +339,10 @@ void roi_begin_() {
     num_threads = omp_get_max_threads();
     warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    // endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    atomic_init(&endCounter, 0);
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
     memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    // memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
-
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -405,11 +402,10 @@ void roi_begin_() {
     num_threads = omp_get_max_threads();
     warmUpCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     startCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    // endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
-    atomic_init(&endCounter, 0);
+    endCounter = (unsigned long long*)malloc(num_threads*64 * sizeof(unsigned long long));
     memset(warmUpCounter, 0, num_threads*64 * sizeof(unsigned long long));
     memset(startCounter, 0, num_threads*64 * sizeof(unsigned long long));
-    // memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
+    memset(endCounter, 0, num_threads*64 * sizeof(unsigned long long));
     
     ifWarmUpNotMet = TRUE;
 
@@ -443,7 +439,7 @@ void roi_end_() {
     printf("number of times checked: %llu\n", numTimeChecked);
     free(warmUpCounter);
     free(startCounter);
-    // free(endCounter);
+    free(endCounter);
     exit(0);
 }
 
@@ -526,11 +522,21 @@ void startHook() {
 __attribute__((no_profile_instrument_function, noinline))
 void endHook() {
     if (ifEndNotMet) {
-        unsigned long long currentCount = atomic_fetch_add(&endCounter, 1);
-        if (currentCount + 1 == endThreshold) {
-            ifEndNotMet = FALSE;
-            printf("End marker met\n");
-            endEvent();
+        int thread_id = omp_get_thread_num();
+        endCounter[thread_id*64] += 1;
+        if (thread_id == 0) {
+            numTimeChecked += 1;
+            unsigned long long sum = endCounter[0];
+
+            for (int i = 1; i < num_threads; i++) {
+                sum += endCounter[i*64];
+            }
+            currentCount = sum;
+            if (sum >= endThreshold) {
+                ifEndNotMet = FALSE;
+                printf("End marker met\n");
+                endEvent();
+            }
         }
     }
 }
@@ -573,4 +579,3 @@ void roi_end_() {
 }
 
 #endif
-
