@@ -253,6 +253,10 @@ void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
                 end_papi_region();
                 omp_set_lock(&lock);
                 wait = TRUE;
+                sum = counter[0];
+                for (int i = 1; i < num_threads; i++) {
+                    sum += counter[i*64];
+                }
                 totalIRInst += sum;
                 memset(counter, 0, num_threads*64 * sizeof(unsigned long long));
                 region ++;
