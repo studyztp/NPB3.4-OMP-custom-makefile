@@ -16,8 +16,9 @@ benchmarks = ['bt', 'cg', 'ep', 'ft', 'is', 'lu', 'mg', 'sp']
 # benchmarks = ["is"]
 size = "B"
 region_length = 1000_000_000
+# arch = "x86_64"
 arch = "aarch64"
-threads = 8
+threads = 1
 
 all_bench_info = {}
 # define basic vairables end
@@ -143,7 +144,7 @@ def construct_regional_marker_information(path):
                     # when selecting the marker basic blocks
                     max_bid = int(cur_timestamp.index(max(cur_timestamp)))
                     max_count = cur_sum_bbv[max_bid]
-                    cur_bid = find_the_best_marker_bb_id(cur_sum_bbv, cur_timestamp, region_IR_inst_count - 100_000_000)
+                    cur_bid = find_the_best_marker_bb_id(cur_sum_bbv, cur_timestamp, region_IR_inst_count - 50_000_000)
                     cur_count = cur_sum_bbv[cur_bid]
                     gap = cur_timestamp[max_bid] - cur_timestamp[cur_bid]
                     cur_fid = static_info[cur_bid]["function_id"]
@@ -189,7 +190,7 @@ def construct_regional_marker_information(path):
 
 
 for benchmark in benchmarks:
-    bench_dir = Path(input_dir/f"{benchmark.upper()}/{size}/c_profiling/{region_length}")
+    bench_dir = Path(input_dir/f"{benchmark.upper()}/{size}/single_thread_c_profiling/{region_length}")
     bench_regional_marker_info = construct_regional_marker_information(bench_dir)
     if benchmark not in all_bench_info:
         all_bench_info[benchmark] = {}
@@ -203,32 +204,31 @@ with open(output_dir/f"region_info_{size}_{region_length}_{threads}.json", "w") 
 
 # create info folder for each region
 
-# for benchmark in benchmarks:
-#     input_bench_dir = Path(input_dir/f"{benchmark.upper()}/{size}")
-#     output_bench_dir = Path(output_dir/f"{benchmark.upper()}/{size}")
-#     region_info_dir = Path(output_bench_dir/"region_info")
-#     if region_info_dir.exists():
-#         shutil.rmtree(region_info_dir)
-#     region_info_dir.mkdir(exist_ok=False)
-#     region_info_size_dir = Path(region_info_dir/f"{region_length}")
-#     region_info_size_dir.mkdir(exist_ok=False)
-#     for rid, rdata in all_bench_info[benchmark][size][region_length].items():
-#         if rid == 'bb_info_filename':
-#             continue
-#         r_dir = Path(region_info_size_dir/f"{rid}")
-#         r_dir.mkdir(exist_ok=True)
-#         with open(r_dir/f"{rid}_marker_info.txt", "w") as f:
-#             f.write(f"{rdata['warmupMarkerFunctionId']}\n")
-#             f.write(f"{rdata['warmupMarkerBBId']}\n")
-#             f.write(f"{rdata['warmupMarkerCount']}\n")
-#             f.write(f"{rdata['startMarkerFunctionId']}\n")
-#             f.write(f"{rdata['startMarkerBBId']}\n")
-#             f.write(f"{rdata['startMarkerCount']}\n")
-#             f.write(f"{rdata['endMarkerFunctionId']}\n")
-#             f.write(f"{rdata['endMarkerBBId']}\n")
-#             f.write(f"{rdata['endMarkerCount']}\n")
-#         shutil.copy(Path(input_bench_dir/f"c_profiling/{region_length}/{all_bench_info[benchmark][size][region_length]['bb_info_filename']}"), r_dir/all_bench_info[benchmark][size][region_length]['bb_info_filename'])
+for benchmark in benchmarks:
+    input_bench_dir = Path(input_dir/f"{benchmark.upper()}/{size}")
+    output_bench_dir = Path(output_dir/f"{benchmark.upper()}/{size}")
+    region_info_dir = Path(output_bench_dir/"region_info")
+    region_info_dir.mkdir(exist_ok=True)
+    region_info_thread_dir = Path(region_info_dir/f"{threads}")
+    region_info_thread_dir.mkdir(exist_ok=True)
+    region_info_thread_size_dir = Path(region_info_thread_dir/f"{region_length}")
+    if region_info_thread_size_dir.exists():
+        shutil.rmtree(region_info_thread_size_dir)
+    region_info_thread_size_dir.mkdir(exist_ok=True)
+    for rid, rdata in all_bench_info[benchmark][size][region_length].items():
+        if rid == 'bb_info_filename':
+            continue
+        r_dir = Path(region_info_thread_size_dir/f"{rid}")
+        r_dir.mkdir(exist_ok=True)
+        with open(r_dir/f"{rid}_marker_info.txt", "w") as f:
+            f.write(f"{rdata['warmupMarkerFunctionId']}\n")
+            f.write(f"{rdata['warmupMarkerBBId']}\n")
+            f.write(f"{rdata['warmupMarkerCount']}\n")
+            f.write(f"{rdata['startMarkerFunctionId']}\n")
+            f.write(f"{rdata['startMarkerBBId']}\n")
+            f.write(f"{rdata['startMarkerCount']}\n")
+            f.write(f"{rdata['endMarkerFunctionId']}\n")
+            f.write(f"{rdata['endMarkerBBId']}\n")
+            f.write(f"{rdata['endMarkerCount']}\n")
+        shutil.copy(Path(input_bench_dir/f"single_thread_c_profiling/{region_length}/{all_bench_info[benchmark][size][region_length]['bb_info_filename']}"), r_dir/all_bench_info[benchmark][size][region_length]['bb_info_filename'])
     
-
-
-

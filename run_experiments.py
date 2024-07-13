@@ -11,6 +11,7 @@ parser.add_argument("--size_list", nargs="+", type=str, default=["B"])
 parser.add_argument("--exp_list", nargs="+", type=str, default=["naive"])
 parser.add_argument("--threads", nargs="+", type=int, default=[1, 8])
 parser.add_argument("--benchmarks", nargs="+", type=str, default=["bt", "cg", "ep", "ft", "is", "lu", "mg", "sp"])
+parser.add_argument("--work_limit", type=int, default=16)
 parser.add_argument("--ifclean", type=bool, default=False)
 
 args = parser.parse_args()
@@ -34,12 +35,14 @@ region_size_list = args.region_size_list
 arch = args.arch
 size_list = args.size_list
 exp_list = args.exp_list
+work_limit = args.work_limit
 
 must_env = os.environ
 must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/{arch}-unknown-linux-gnu"
+must_env["LD_LIBRARY_PATH"] += f":{workdir.as_posix()}/common/all_papi/{arch}/lib"
 
 print(f"region_size_list: {region_size_list} arch: {arch} size_list: {size_list} exp_list: {exp_list}")
-print(f"threads: {threads} benchmarks: {benchmarks} workdir: {workdir}")
+print(f"threads: {threads} benchmarks: {benchmarks} workdir: {workdir} work_limit: {work_limit}")
 
 # make all benchmarks
 for benchmark in benchmarks:
@@ -71,7 +74,7 @@ for benchmark in benchmarks:
                 file = exp_dir.glob(f"*.{exp_type}")
                 for f in file:
                     print(f)
-                    cmd = ["time", f"./{f.name}"]
+                    cmd = [f"./{f.name}"]
                 for thread in threads:
                     run_env = must_env.copy()
                     run_env["OMP_NUM_THREADS"] = str(thread)
@@ -79,6 +82,6 @@ for benchmark in benchmarks:
                     stderr = Path(exp_dir/f"{benchmark}_{thread}.stderr")
                     runs.append({"cmd": cmd, "env": run_env, "dir": exp_dir, "stdout": stdout, "stderr": stderr})
 
-with Pool(16) as p:
+with Pool(work_limit) as p:
     p.map(run_this, runs)
 

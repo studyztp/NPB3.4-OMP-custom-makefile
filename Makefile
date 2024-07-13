@@ -29,6 +29,11 @@ ifeq ($(SIZE),)
 SIZE = B
 endif
 
+# default thread size is 1
+ifeq ($(THREAD_SIZE),)
+THREAD_SIZE = 1
+endif
+
 PAPI_PATH = ${COMMON}/all_papi/${TARGET_ARCH}
 PAPI_INCLUDE = ${PAPI_PATH}/include
 PAPI_LIB = ${PAPI_PATH}/lib
@@ -108,24 +113,26 @@ single_thread_c_papi_profiling_${PROGRAM}_${SIZE}: ${COMMON}/single_thread_c_pap
 single_thread_c_papi_measuring: get_version single_thread_c_papi_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 single_thread_c_papi_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/single_thread_c_papi_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p single_thread_c_papi_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring && mkdir -p ${REGION_LENGTH}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_papi_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_papi_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring && mkdir -p ${THREAD_SIZE}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_papi_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_papi_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi_measuring.bc -o ${PROGRAM}_papi_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
 single_thread_c_m5_fs_measuring: get_version single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/single_thread_c_m5_fs_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p single_thread_c_m5_fs_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring && mkdir -p ${REGION_LENGTH}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_m5_fs_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring && mkdir -p ${THREAD_SIZE}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_m5_fs_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs_measuring.bc -o ${PROGRAM}_m5_fs_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
@@ -153,15 +160,15 @@ final_compile_single_thread_c_papi_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_$
 
 final_compile_single_thread_c_papi_measuring: get_version final_compile_single_thread_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_single_thread_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
 
 final_compile_single_thread_c_m5_fs_measuring: get_version final_compile_single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 final_compile_single_thread_c_marker_overhead_measuring: get_version final_compile_single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
@@ -199,24 +206,26 @@ c_papi_profiling_${PROGRAM}_${SIZE}: ${COMMON}/c_papi_profiling.ll
 c_papi_measuring: get_version c_papi_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 c_papi_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_papi_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_papi_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring && mkdir -p ${REGION_LENGTH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_papi_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_papi_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring && mkdir -p ${THREAD_SIZE}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_papi_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_papi_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_papi_measuring.bc -o ${PROGRAM}_papi_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
 c_m5_fs_measuring: get_version c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_m5_fs_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_m5_fs_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring && mkdir -p ${REGION_LENGTH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring && mkdir -p ${THREAD_SIZE}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs_measuring.bc -o ${PROGRAM}_m5_fs_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
@@ -250,15 +259,15 @@ final_compile_c_papi_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH
 
 final_compile_c_papi_measuring: get_version final_compile_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
 
 final_compile_c_m5_fs_measuring: get_version final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_m5_fs_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 final_compile_c_marker_overhead_measuring: get_version final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
