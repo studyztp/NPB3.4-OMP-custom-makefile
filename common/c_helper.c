@@ -11,7 +11,7 @@
 
 #define ARRAY_SIZE 1000
 
-unsigned long long calculate_nsec_difference(timespec start, timespec end) {
+unsigned long long calculate_nsec_difference(struct timespec start, struct timespec end) {
     long long nsec_diff = end.tv_nsec - start.tv_nsec;
     long long sec_diff = end.tv_sec - start.tv_sec;
     return sec_diff * 1000000000LL + nsec_diff;
@@ -328,9 +328,9 @@ void roi_end_() {
 #ifdef MEASURING
 #include <stdatomic.h>
 
-atomic_ullong* warmup_counter;
-atomic_ullong* start_counter;
-atomic_ullong* end_counter;
+atomic_ullong warmup_counter;
+atomic_ullong start_counter;
+atomic_ullong end_counter;
 
 unsigned num_threads = 0;
 
@@ -498,8 +498,8 @@ void roi_end_() {
 #endif // MARKER_OVERHEAD_MEASURING
 
 __attribute__((no_profile_instrument_function))
-void setup_threshold(unsigned long long warmup, unsigned long long start, unsigned long long end) {
-    warmup_threshold = warmup;
+void setup_threshold(unsigned long long warm_up, unsigned long long start, unsigned long long end) {
+    warmup_threshold = warm_up;
     start_threshold = start;
     end_threshold = end;
     if (warmup_threshold == 0) {
@@ -533,7 +533,7 @@ void warmup_hook() {
 }
 
 __attribute__((no_profile_instrument_function))
-void start_event() {
+void start_hook() {
     if (if_start_not_met) {
         unsigned long long curr_count = atomic_fetch_add(&start_counter, 1) + 1;
         if (curr_count == start_threshold) {
@@ -545,7 +545,7 @@ void start_event() {
 }
 
 __attribute__((no_profile_instrument_function))
-void end_event() {
+void end_hook() {
     if (if_end_not_met) {
         unsigned long long curr_count = atomic_fetch_add(&end_counter, 1) + 1;
         if (curr_count == end_threshold) {
@@ -584,8 +584,6 @@ void roi_begin_() {
 }
 
 void roi_end_() {
-    long long time_taken = calculate_nsec_difference(tv0, tv1);
-    printf("Time taken: %lld\n", time_taken);
     printf("PAPI region end\n");
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {
