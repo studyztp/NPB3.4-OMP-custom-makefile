@@ -139,10 +139,11 @@ single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 single_thread_c_marker_overhead_measuring: get_version single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}
 single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}: ${COMMON}/single_thread_c_marker_overhead_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p single_thread_c_marker_overhead_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_marker_overhead_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/c_profiling/${REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/marker_overhead_measuring_input.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring && mkdir -p ${OVERHEAD_MEASURING_OUTPUT_NAME}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/single_thread_c_marker_overhead_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${OVERHEAD_MEASURING_BB_ORDER_FILE} \
+	-phase-bound-input-file=${OVERHEAD_MEASURING_INPUT_FILE} \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_marker_overhead_measuring.bc -o ${PROGRAM}_marker_overhead_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
@@ -172,9 +173,9 @@ final_compile_single_thread_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_
 
 final_compile_single_thread_c_marker_overhead_measuring: get_version final_compile_single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_single_thread_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_overhead_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_marker_overhead_measuring --target=${TARGET_ARCH}-unknown-linux-gnu	
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_overhead_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/single_thread_c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.single_thread_c_marker_overhead_measuring --target=${TARGET_ARCH}-unknown-linux-gnu	
 
 c_profiling: get_version c_profiling_${PROGRAM}_${SIZE}
 c_profiling_${PROGRAM}_${SIZE}: ${COMMON}/c_profiling.ll
@@ -232,10 +233,11 @@ c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_
 c_marker_overhead_measuring: get_version c_marker_overhead_measuring_${PROGRAM}_${SIZE}
 c_marker_overhead_measuring_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_overhead_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_overhead_measuring
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_overhead_measuring.ll
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && ${OPT} -passes=phase-bound \
-	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/c_profiling/${REGION_LENGTH}/basic_block_info_output_${VERSION_STAMP}.txt \
-	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/marker_overhead_measuring_input.txt \
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && mkdir -p ${OVERHEAD_MEASURING_OUTPUT_NAME}
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && ${LLVM_LINK} -o ${PROGRAM}_marker_overhead_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_overhead_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${OVERHEAD_MEASURING_BB_ORDER_FILE} \
+	-phase-bound-input-file=${OVERHEAD_MEASURING_INPUT_FILE} \
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_marker_overhead_measuring.bc -o ${PROGRAM}_marker_overhead_measuring_opt.bc \
 	2>> phase_bound_log_${VERSION_STAMP}.log
 
@@ -271,10 +273,9 @@ final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGT
 
 final_compile_c_marker_overhead_measuring: get_version final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_overhead_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_overhead_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
-
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_overhead_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${OVERHEAD_MEASURING_OUTPUT_NAME}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_marker_overhead_measuring.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_overhead_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
 
 naive: get_version naive_${PROGRAM}_${SIZE}
 naive_${PROGRAM}_${SIZE}: ${COMMON}/c_naive.ll
