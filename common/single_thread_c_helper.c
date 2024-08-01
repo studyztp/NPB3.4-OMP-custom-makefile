@@ -6,105 +6,100 @@
 #define BOOL uint8_t
 #define TRUE 1
 #define FALSE 0
+#define ARRAY_SIZE 1000
 
 #ifdef PROFILING
 unsigned long long counter = 0;
-#define ARRAY_SIZE 1000
 
 unsigned long long region = 0;
 unsigned long long total_num_bbs = 0;
 
-unsigned long long *bbv;
-unsigned long long *timestamp;
-unsigned long long **bbv_array;
-unsigned long long **timestamp_array;
-unsigned long long *counter_array;
+unsigned long long* bbv;
+unsigned long long* timestamp;
+unsigned long long** bbv_array;
+unsigned long long** timestamp_array;
+unsigned long long* counter_array;
 unsigned long long current_array_size = ARRAY_SIZE;
 
-BOOL ifStart = FALSE;
+BOOL if_start = FALSE;
 
-FILE *fptr = NULL;
-
-__attribute__((no_profile_instrument_function, noinline))
-void increaseArray() {
+__attribute__((no_profile_instrument_function))
+void increase_array() {
     current_array_size += ARRAY_SIZE;
     bbv_array = (unsigned long long**)realloc(bbv_array, current_array_size * sizeof(unsigned long long*));
     timestamp_array = (unsigned long long**)realloc(timestamp_array, current_array_size * sizeof(unsigned long long*));
     if (bbv_array == NULL || timestamp_array == NULL) {
-        printf("Failed to allocate memory for bbv_array and timestamp_array arrays\n");
+        printf("Error: realloc failed\n");
         exit(1);
     }
-    for (unsigned i = current_array_size - ARRAY_SIZE; i < current_array_size; i ++) 
-    {
+    for (unsigned long long i = current_array_size - ARRAY_SIZE; i < current_array_size; i++) {
         bbv_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         timestamp_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
-            printf("Failed to allocate memory for bbv and timestamp arrays\n");
+            printf("Error: malloc failed\n");
             exit(1);
         }
-        memset(bbv_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
-        memset(timestamp_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
+        memset(bbv_array[i], 0, total_num_bbs * sizeof(unsigned long long));
+        memset(timestamp_array[i], 0, total_num_bbs * sizeof(unsigned long long));
     }
     counter_array = (unsigned long long*)realloc(counter_array, current_array_size * sizeof(unsigned long long));
     if (counter_array == NULL) {
-        printf("Failed to allocate memory for counter_array\n");
+        printf("Error: realloc failed\n");
         exit(1);
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void processData() {
+__attribute__((no_profile_instrument_function))
+void process_data() {
     counter_array[region] = counter;
     region ++;
     bbv = bbv_array[region];
     timestamp = timestamp_array[region];
-    if (region + 10 >= current_array_size) {
-        increaseArray();
+    if (region + 100 >= current_array_size) {
+        increase_array();
     }
     counter = 0;
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void bbHook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long long threshold) {
-    if (ifStart) {
+__attribute__((no_profile_instrument_function))
+void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long long threshold) {
+    if (if_start) {
         counter += bb_inst;
-        bbv[bb_id] += 1;
+        bbv[bb_id] += bb_inst;
         timestamp[bb_id] = counter;
-        if (counter >= threshold) {
-            processData();
+        if (counter > threshold) {
+            process_data();
         }
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void initArrays(unsigned long long num_bbs) {
+__attribute__((no_profile_instrument_function))
+void init_array(unsigned long long num_bbs) {
     total_num_bbs = num_bbs;
     bbv_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
     timestamp_array = (unsigned long long**)malloc(current_array_size * sizeof(unsigned long long*));
     counter_array = (unsigned long long*)malloc(current_array_size * sizeof(unsigned long long));
     if (bbv_array == NULL || timestamp_array == NULL || counter_array == NULL) {
-        printf("Failed to allocate memory for bbv_array, timestamp_array and counter_array arrays\n");
+        printf("Error: malloc failed\n");
         exit(1);
     }
-    for (unsigned i = 0; i < current_array_size; i ++) 
-    {
+    for (unsigned long long i = 0; i < current_array_size; i++) {
         bbv_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         timestamp_array[i] = (unsigned long long*)malloc((total_num_bbs) * sizeof(unsigned long long));
         if (bbv_array[i] == NULL || timestamp_array[i] == NULL) {
-            printf("Failed to allocate memory for bbv and timestamp arrays\n");
+            printf("Error: malloc failed\n");
             exit(1);
         }
-        memset(bbv_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
-        memset(timestamp_array[i], 0, ((total_num_bbs) * sizeof(unsigned long long)));
+        memset(bbv_array[i], 0, total_num_bbs * sizeof(unsigned long long));
+        memset(timestamp_array[i], 0, total_num_bbs * sizeof(unsigned long long));
     }
     bbv = bbv_array[region];
     timestamp = timestamp_array[region];
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void deleteArrays() {
-    for (unsigned i = 0; i < current_array_size; i ++) 
-    {
+__attribute__((no_profile_instrument_function))
+void delete_array() {
+    for (unsigned long long i = 0; i < current_array_size; i++) {
         free(bbv_array[i]);
         free(timestamp_array[i]);
     }
@@ -113,67 +108,63 @@ void deleteArrays() {
     free(counter_array);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
-    ifStart = TRUE;
+    if_start = TRUE;
 
     printf("ROI begin\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
-    ifStart = FALSE;
+    if_start = FALSE;
 
-    processData();
+    process_data();
 
     char outputfile[256];
-    sprintf(outputfile, "all_output_1_threads.txt");
-
-    fptr = fopen(outputfile, "w");
+    sprintf(outputfile, "output.txt");
+    FILE* fptr = fopen(outputfile, "w");
     if (fptr == NULL) {
-        printf("Failed to open file\n");
+        printf("Error: cannot open file\n");
         exit(1);
     }
 
-    unsigned long long totalIRInst = 0;
+    unsigned long long total_IR_inst = 0;
 
     for (unsigned long long i = 0; i < region; i ++) {
-        fprintf(fptr, "Region: %llu\n", i);
-        totalIRInst += counter_array[i];
-        fprintf(fptr, "Total IR instructions: %llu\n", totalIRInst);
+        fprintf(fptr, "Region %llu\n", i);
+        total_IR_inst += counter_array[i];
+        fprintf(fptr, "Total IR instructions: %llu\n", total_IR_inst);
         fprintf(fptr, "Total IR instructions in region: %llu\n", counter_array[i]);
         fprintf(fptr, "Thread 0 BBV and Timestamp: [");
-        unsigned long long index = 0;
-        for (unsigned long long  k = 0; k < total_num_bbs; k ++) {
-            fprintf(fptr, "%llu:%llu,", bbv_array[i][index], timestamp_array[i][index]);
-            index ++;
+        for (unsigned long long k = 0; k < total_num_bbs; k ++) {
+            fprintf(fptr, "%llu:%llu", bbv_array[i][k], timestamp_array[i][k]);
         }
         fprintf(fptr, "]\n");
     }
 
     fclose(fptr);
 
-    deleteArrays();
+    delete_array();
 
     printf("ROI end\n");
     printf("Region: %llu\n", region);
-    printf("Total IR instructions: %llu\n", totalIRInst);
+    printf("Total IR instructions: %llu\n", total_IR_inst);
 }
 
-#endif
+#endif // PROFILING
 
 #ifdef USING_PAPI_PROFILING
 #include <papi.h>
 
 unsigned long long counter = 0;
-
-BOOL ifStart = FALSE;
-
 unsigned long long region = 0;
-unsigned long long totalIRInst = 0;
+unsigned long long total_IR_inst = 0;
+
+BOOL if_start = FALSE;
 
 __attribute__((no_profile_instrument_function, noinline))
-void startPapiRegion() {
+void start_papi_region() {
     char str[64];
     sprintf(str, "%llu", region);
     int retval = PAPI_hl_region_begin(str);
@@ -183,7 +174,7 @@ void startPapiRegion() {
 }
 
 __attribute__((no_profile_instrument_function, noinline))
-void endPapiRegion() {
+void end_papi_region() {
     char str[64];
     sprintf(str, "%llu", region);
     int retval = PAPI_hl_region_end(str);
@@ -193,22 +184,22 @@ void endPapiRegion() {
 }
 
 __attribute__((no_profile_instrument_function, noinline))
-void bbHook(unsigned long long bb_inst, unsigned long long threshold) {
-    if (ifStart) { 
+void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
+    if (if_start) { 
         counter += bb_inst;
         if (counter >= threshold) {
-            endPapiRegion();
-            totalIRInst += counter;
+            end_papi_region();
+            total_IR_inst += counter;
             counter = 0;
             region ++;
-            startPapiRegion();
+            start_papi_region();
         }
     }
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    ifStart = TRUE;
+    if_start = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -221,44 +212,44 @@ void roi_begin_() {
 
     printf("ROI begin\n");
 
-    startPapiRegion();
+    start_papi_region();
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
-    ifStart = FALSE;
+    if_start = FALSE;
 
-    endPapiRegion();
+    end_papi_region();
 
     printf("ROI end\n");
     printf("Region: %llu\n", region);
-    printf("Total IR instructions: %llu\n", totalIRInst);
+    printf("Total IR instructions: %llu\n", total_IR_inst);
 }
 
-#endif
+#endif // USING_PAPI_PROFILING
 
 #ifdef MEASURING
 
 unsigned long long counter = 0;
 
-unsigned long long warmUpThreshold;
-unsigned long long startThreshold;
-unsigned long long endThreshold;
+unsigned long long warmup_threshold;
+unsigned long long start_threshold;
+unsigned long long end_threshold;
 
-BOOL ifWarmUpNotMet = FALSE;
-BOOL ifStartNotMet = FALSE;
-BOOL ifEndNotMet = FALSE;
-
+BOOL if_start_not_met = FALSE;
+BOOL if_warmup_not_met = FALSE;
+BOOL if_end_not_met = FALSE;
 
 #ifdef PAPI_MEASURING
 #include <papi.h>
-__attribute__((no_profile_instrument_function, noinline))
-void warmUpEvent() {
-    printf("Papi Warmup marker\n");
+
+__attribute__((no_profile_instrument_function))
+void warmup_event() {
+    printf("PAPI warmup event\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void startEvent() {
+__attribute__((no_profile_instrument_function))
+void start_event() {
     printf("Papi Start marker\n");
     int retval = PAPI_hl_region_begin("0");
     if (retval != PAPI_OK) {
@@ -267,7 +258,7 @@ void startEvent() {
 }
 
 __attribute__((no_profile_instrument_function, noinline))
-void endEvent() {
+void end_event() {
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
@@ -279,7 +270,7 @@ void endEvent() {
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
-    ifWarmUpNotMet = TRUE;
+    if_warmup_not_met = TRUE;
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -298,35 +289,28 @@ void roi_end_() {
     printf("ROI ended\n");
 }
 
-#elif defined(M5_FS_MEASURING)
+#elif defined(M5_FS_MEASURING) // PAPI_MEASURING
 
 #include "gem5/m5ops.h"
 #include "m5_mmap.h"
 #include <errno.h>
 #include <sys/utsname.h>
 
-__attribute__((no_profile_instrument_function, noinline))
-void warmUpEvent() {
+__attribute__((no_profile_instrument_function))
+void warmup_event() {
     printf("M5_FS Warmup marker\n");
     m5_work_begin_addr(0, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void startEvent() {
+__attribute__((no_profile_instrument_function))
+void start_event() {
     printf("M5_FS Start marker\n");
     m5_work_begin_addr(0, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void endEvent() {
-    printf("M5_FS End marker\n");
-    m5_work_end_addr(0, 0);
-}
-
-__attribute__((no_profile_instrument_function, noinline))
-void roi_begin_() {
-    
-    ifWarmUpNotMet = TRUE;
+__attribute__((no_profile_instrument_function))
+void end_event() {
+    if_warmup_not_met = TRUE;
 
     struct utsname buffer;
     errno = 0;
@@ -350,40 +334,37 @@ void roi_begin_() {
     printf("M5_FS ROI started\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     unmap_m5_mem();
     printf("M5_FS ROI ended\n");
 }
 
-#elif defined(MARKER_OVERHEAD_MEASURING)
+#elif defined(MARKER_OVERHEAD_MEASURING) // M5_FS_MEASURING
+
 #include <papi.h>
 
-__attribute__((no_profile_instrument_function, noinline))
-void warmUpEvent() {
-    printf("Warm up event reached\n");
-    printf("PAPI region begin\n");
-
-    int retval = PAPI_hl_region_begin("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
-    }
+__attribute__((no_profile_instrument_function))
+void warmup_event() {
+    printf("Warmup marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void startEvent() {
-    printf("Start event reached\n");
+__attribute__((no_profile_instrument_function))
+void start_event() {
+    printf("Start marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void endEvent() {
-    printf("End event reached\n");
+__attribute__((no_profile_instrument_function))
+void end_event() {
+    printf("End marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
-    
-    ifWarmUpNotMet = TRUE;
+
+    if_warmup_not_met = TRUE;
+
+    printf("ROI started\n");
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
     if (retval != PAPI_VER_CURRENT) {
@@ -395,80 +376,90 @@ void roi_begin_() {
     }
     printf("ROI started\n");
     printf("PAPI initialized\n");
+
+    printf("PAPI region begin\n");
+
+    retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
 }
 
 void roi_end_() {
+    printf("PAPI region end\n");
+    
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI region end\n");
-    printf("Now exiting the program\n");
+    printf("PAPI ended\nNow exiting the program\n");
     exit(0);
 }
 
-#endif
+#endif // MARKER_OVERHEAD_MEASURING
 
-__attribute__((no_profile_instrument_function, noinline))
-void setupThresholds(unsigned long long warmUp, unsigned long long start, unsigned long long end) {
-    warmUpThreshold = warmUp;
-    if (warmUpThreshold == 0) {
-        warmUpThreshold = 1;
-    }
-    startThreshold = start;
+__attribute__((no_profile_instrument_function))
+void setup_threshold(unsigned long long warmup, unsigned long long start, unsigned long long end) {
 
-    if (startThreshold == 0) {
-        startThreshold = 1;
+    warmup_threshold = warmup;
+    start_threshold = start;
+    end_threshold = end;
+
+    if (warmup_threshold == 0) {
+        warmup_threshold = 1;
     }
-    endThreshold = end;
-    if (endThreshold == 0) {
-        endThreshold = 1;
+
+    if (start_threshold == 0) {
+        start_threshold = 1;
     }
-    printf("Warm up threshold: %llu\n", warmUpThreshold);
-    printf("Start threshold: %llu\n", startThreshold);
-    printf("End threshold: %llu\n", endThreshold);
+
+    if (end_threshold == 0) {
+        end_threshold = 1;
+    }
+
+    printf("Warmup threshold: %llu\n", warmup_threshold);
+    printf("Start threshold: %llu\n", start_threshold);
+    printf("End threshold: %llu\n", end_threshold);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void warmUpHook() {
-    if (ifWarmUpNotMet) {
+__attribute__((no_profile_instrument_function))
+void warmup_hook() {
+    if (if_warmup_not_met) {
         counter ++;
-        if (counter == warmUpThreshold) {
-            ifWarmUpNotMet = FALSE;
+        if (counter == warmup_threshold) {
+            if_warmup_not_met = FALSE;
             printf("Warm up marker met\n");
-            warmUpEvent();
+            warmup_event();
             counter = 0;
-            ifStartNotMet = TRUE;
+            if_start_not_met = TRUE;
         }
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void startHook() {
-    if (ifStartNotMet) {
+__attribute__((no_profile_instrument_function))
+void start_hook() {
+    if (if_start_not_met) {
         counter ++;
-        if (counter == startThreshold) {
-            ifStartNotMet = FALSE;
+        if (counter == start_threshold) {
+            if_start_not_met = FALSE;
             printf("Start marker met\n");
-            startEvent();
+            start_event();
             counter = 0;
-            ifEndNotMet = TRUE;
+            if_end_not_met = TRUE;
         }
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
-void endHook() {
-    if (ifEndNotMet) {
+__attribute__((no_profile_instrument_function))
+void end_hook() {
+    if (if_end_not_met) {
         counter ++;
-        if (counter == endThreshold) {
-            ifEndNotMet = FALSE;
+        if (counter == end_threshold) {
+            if_end_not_met = FALSE;
             printf("End marker met\n");
-            endEvent();
-            counter = 0;
+            end_event();
         }
     }
 }
 
-#endif
-
+#endif // MEASURING
