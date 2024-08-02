@@ -136,7 +136,7 @@ if args.if_run:
             run_env["PAPI_EVENT"] = " ".join(papi_event[0])
             runs.append(
                 {
-                    "cmd": ["taskset", "--cpu-list", cpu_list, filename],
+                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
                     "env": run_env.copy(),
                     "dir": run_dir.as_posix(),
                     "stdout": run_dir/"stdout.log",

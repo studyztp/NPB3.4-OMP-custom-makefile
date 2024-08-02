@@ -277,7 +277,7 @@ if args.if_run:
                             shutil.copy(Path(exp_dir/filename), Path(run_dir/filename))
                             runs.append(
                                 {
-                                    "cmd": ["taskset", "--cpu-list", cpu_list, filename],
+                                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
                                     "env": run_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(run_dir/f"{thread}_{index}.stdout"),
