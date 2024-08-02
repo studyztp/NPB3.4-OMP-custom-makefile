@@ -187,6 +187,15 @@ if args.if_make_final:
                     }
                 )
                 # final_compile_single_thread_c_papi_prof
+                process_this(
+                    {
+                        "cmd": ["make", "final_compile_single_thread_c_papi_profiling"],
+                        "env": region_size_env,
+                        "dir": workdir.as_posix(),
+                        "stdout": Path(workdir/f"{bench.upper()}/final_compile_single_thread_c_papi_profiling_{size}_{region_size}.log").as_posix(),
+                        "stderr": Path(workdir/f"{bench.upper()}/final_compile_single_thread_c_papi_profiling_{size}_{region_size}.err").as_posix()
+                    }
+                )
 
 if args.if_run:
     runs = []
