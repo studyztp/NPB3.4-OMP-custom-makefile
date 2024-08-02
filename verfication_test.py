@@ -260,8 +260,10 @@ if args.if_run:
                             )
                             if thread == 1:
                                 exp_name = "single_thread_c_profiling"
+                                cpu_list = "0"
                             else:
                                 exp_name = "c_profiling"
+                                cpu_list = f"0-{thread-1}"
                             exp_dir = Path(workdir/f"{bench.upper()}/{size}/{exp_name}/{region_size}/{arch}")
                             file = exp_dir.glob(f"*.{exp_name}")
                             filename = None
@@ -275,7 +277,7 @@ if args.if_run:
                             shutil.copy(Path(exp_dir/filename), Path(run_dir/filename))
                             runs.append(
                                 {
-                                    "cmd": [f"./{filename}"],
+                                    "cmd": ["taskset", "--cpu-list", cpu_list, filename],
                                     "env": run_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(run_dir/f"{thread}_{index}.stdout"),

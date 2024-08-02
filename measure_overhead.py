@@ -119,8 +119,10 @@ if args.if_run:
     for bench in benchmarks:
         if threads == 1:
             bench_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_marker_overhead_measuring")
+            cpu_list = "0"
         else:
             bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring")
+            cpu_list = f"0-{threads-1}"
         for i in range(num_markers):
             run_dir = Path(bench_dir/f"{region_size}_{threads}_{i}/{arch}")
             if threads == 1:
@@ -134,7 +136,7 @@ if args.if_run:
             run_env["PAPI_EVENT"] = " ".join(papi_event[0])
             runs.append(
                 {
-                    "cmd": [f"./{filename}"],
+                    "cmd": ["taskset", "--cpu-list", cpu_list, filename],
                     "env": run_env.copy(),
                     "dir": run_dir.as_posix(),
                     "stdout": run_dir/"stdout.log",
