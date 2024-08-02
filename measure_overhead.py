@@ -107,7 +107,7 @@ if args.if_make_final:
 if args.if_run:
     runs = []
 
-    papi_evnet = None
+    papi_event = None
 
     if args.machine_name == "saphir":
         papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCA'],]
@@ -133,7 +133,8 @@ if args.if_run:
                     filename = f.name
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
-            run_env["PAPI_EVENTS"] = " ".join(papi_event[0])
+            run_env["PAPI_EVENTS"] = ",".join(papi_event[0])
+            print(f"PAPI_EVENTS: {run_env['PAPI_EVENTS']}")
             runs.append(
                 {
                     "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
