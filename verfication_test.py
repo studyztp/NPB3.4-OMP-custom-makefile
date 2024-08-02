@@ -237,7 +237,7 @@ if args.if_run:
                         for region_size in region_size_list:
                             # c_papi_profiling
                             if thread == 1:
-                                exp_name = "singe_thread_c_papi_profiling"
+                                exp_name = "single_thread_c_papi_profiling"
                             else:
                                 exp_name = "c_papi_profiling"
                             exp_dir = Path(workdir/f"{bench.upper()}/{size}/{exp_name}/{region_size}/{arch}")
