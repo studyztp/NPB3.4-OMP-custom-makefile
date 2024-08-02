@@ -68,6 +68,7 @@ if args.if_make_base:
         for i in range(num_markers):
             bench_marker_dir = Path(overhead_marker_info_dir/f"{bench}-overhead-test-marker-info-dir")
             marker_file = Path(bench_marker_dir/f"{bench}_{i}_info.txt")
+            print(marker_file.as_posix())
             found_files = bench_marker_dir.glob(f"basic_block_info_output_*")
             for f in found_files:
                 basic_block_info_file = Path(bench_marker_dir/f.name)
@@ -112,7 +113,7 @@ if args.if_run:
     for bench in benchmarks:
         bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring")
         for i in range(num_markers):
-            run_dir = Path(bench/f"{region_size}_{threads}_{i}/{arch}")
+            run_dir = Path(bench_dir/f"{region_size}_{threads}_{i}/{arch}")
             for f in run_dir.glob("*.c_marker_overhead_measuring"):
                 filename = f.name
             run_env = must_env.copy()
