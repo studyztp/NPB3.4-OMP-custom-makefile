@@ -76,7 +76,10 @@ if args.if_make_base:
             marker_env["OVERHEAD_MEASURING_BB_ORDER_FILE"] = basic_block_info_file.as_posix()
             marker_env["OVERHEAD_MEASURING_INPUT_FILE"] = marker_file.as_posix()
             marker_env["OVERHEAD_MEASURING_OUTPUT_NAME"] = f"{region_size}_{threads}_{i}"
-            subprocess.run(["make", "c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+            if threads == 1:
+                subprocess.run(["make", "single_thread_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+            else:    
+                subprocess.run(["make", "c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
 
 if args.if_make_final:
     for bench in benchmarks:
@@ -96,7 +99,10 @@ if args.if_make_final:
             marker_env["OVERHEAD_MEASURING_BB_ORDER_FILE"] = basic_block_info_file.as_posix()
             marker_env["OVERHEAD_MEASURING_INPUT_FILE"] = marker_file.as_posix()
             marker_env["OVERHEAD_MEASURING_OUTPUT_NAME"] = f"{region_size}_{threads}_{i}"
-            subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+            if threads == 1:
+                subprocess.run(["make", "final_compile_single_thread_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+            else:
+                subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
 
 if args.if_run:
     runs = []
@@ -111,11 +117,18 @@ if args.if_run:
         papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR'],]
 
     for bench in benchmarks:
-        bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring")
+        if threads == 1:
+            bench_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_marker_overhead_measuring")
+        else:
+            bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring")
         for i in range(num_markers):
             run_dir = Path(bench_dir/f"{region_size}_{threads}_{i}/{arch}")
-            for f in run_dir.glob("*.c_marker_overhead_measuring"):
-                filename = f.name
+            if threads == 1:
+                for f in run_dir.glob("*.single_thread_c_marker_overhead_measuring"):
+                    filename = f.name
+            else:
+                for f in run_dir.glob("*.c_marker_overhead_measuring"):
+                    filename = f.name
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
             run_env["PAPI_EVENT"] = " ".join(papi_event[0])
