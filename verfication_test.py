@@ -205,6 +205,10 @@ if args.if_run:
         for size in size_list:
             for thread in threads:
                 must_env["OMP_NUM_THREADS"] = str(thread)
+                if thread == 1:
+                    cpu_list = "0"
+                else:
+                    cpu_list = f"0-{thread-1}"
                 # c_papi_naive
                 # c_papi_profiling
                 for index in range(num_runs):
@@ -223,7 +227,7 @@ if args.if_run:
                         run_env["PAPI_OUTPUT_DIRECTORY"] = Path(exp_dir/f"papi_output_{thread}_{index}").as_posix()
                         runs.append(
                             {
-                                "cmd": [f"./{filename}"],
+                                "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
                                 "env": run_env.copy(),
                                 "dir": exp_dir.as_posix(),
                                 "stdout": Path(exp_dir/f"{thread}_{index}.stdout"),
@@ -251,7 +255,7 @@ if args.if_run:
                             run_env["PAPI_OUTPUT_DIRECTORY"] = Path(exp_dir/f"papi_output_{thread}_{index}").as_posix()
                             runs.append(
                                 {
-                                    "cmd": [f"./{filename}"],
+                                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
                                     "env": run_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(exp_dir/f"{thread}_{index}.stdout"),
@@ -260,10 +264,8 @@ if args.if_run:
                             )
                             if thread == 1:
                                 exp_name = "single_thread_c_profiling"
-                                cpu_list = "0"
                             else:
                                 exp_name = "c_profiling"
-                                cpu_list = f"0-{thread-1}"
                             exp_dir = Path(workdir/f"{bench.upper()}/{size}/{exp_name}/{region_size}/{arch}")
                             file = exp_dir.glob(f"*.{exp_name}")
                             filename = None
