@@ -133,7 +133,7 @@ if args.if_run:
                     filename = f.name
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
-            run_env["PAPI_EVENT"] = " ".join(papi_event[0])
+            run_env["PAPI_EVENTS"] = " ".join(papi_event[0])
             runs.append(
                 {
                     "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
