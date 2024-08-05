@@ -11,6 +11,7 @@
 
 #define ARRAY_SIZE 1000
 
+__attribute__((no_profile_instrument_function))
 unsigned long long calculate_nsec_difference(struct timespec start, struct timespec end) {
     long long nsec_diff = end.tv_nsec - start.tv_nsec;
     long long sec_diff = end.tv_sec - start.tv_sec;
@@ -36,7 +37,7 @@ unsigned long long** timestamp_array;
 unsigned long long* counter_array;
 unsigned long long current_array_size = ARRAY_SIZE;
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void increase_array() {
     current_array_size += ARRAY_SIZE;
     bbv_array = (unsigned long long**) realloc(bbv_array, current_array_size * sizeof(unsigned long long*));
@@ -62,7 +63,7 @@ void increase_array() {
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void process_data() {
     counter_array[region] = atomic_load(&counter);
     region ++;
@@ -74,7 +75,7 @@ void process_data() {
     atomic_store(&counter, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long long threshold) {
     if(if_start) {
         if (wait) {
@@ -101,7 +102,7 @@ void bb_hook(unsigned long long bb_inst, unsigned long long bb_id, unsigned long
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void init_array(unsigned long long num_bbs) {
     total_num_bbs = num_bbs;
     num_threads = omp_get_max_threads();
@@ -127,7 +128,7 @@ void init_array(unsigned long long num_bbs) {
     timestamp = timestamp_array[0];
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void delete_arrays() {
     for (unsigned long long i = 0; i < current_array_size; i++) {
         free(bbv_array[i]);
@@ -138,7 +139,7 @@ void delete_arrays() {
     free(counter_array);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     atomic_init(&counter, 0);
     omp_init_lock(&lock);
@@ -147,7 +148,7 @@ void roi_begin_() {
     printf("ROI begin\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     if_start = FALSE;
     omp_destroy_lock(&lock);
@@ -194,12 +195,12 @@ void roi_end_() {
 #endif // PROFILING
 
 #ifdef NAIVE
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     printf("ROI begin\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     printf("ROI end\n");
 }
@@ -222,7 +223,7 @@ unsigned long long* counter_array;
 unsigned long long current_array_size = ARRAY_SIZE;
 struct timespec start, end;
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void increase_array() {
     current_array_size += ARRAY_SIZE;
     timestamp_array = (unsigned long long*) realloc(timestamp_array, current_array_size * sizeof(unsigned long long));
@@ -233,12 +234,12 @@ void increase_array() {
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void start_papi_region() {
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void end_papi_region() {
     clock_gettime(CLOCK_MONOTONIC, &end);
     unsigned long long nsec_diff = calculate_nsec_difference(start, end);
@@ -252,7 +253,7 @@ void end_papi_region() {
     atomic_store(&counter, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
     if (if_start) {
         if (wait) {
@@ -274,7 +275,7 @@ void bb_hook(unsigned long long bb_inst, unsigned long long threshold) {
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     atomic_init(&counter, 0);
     omp_init_lock(&lock);
@@ -290,7 +291,7 @@ void roi_begin_() {
     start_papi_region();
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     end_papi_region();
     if_start = FALSE;
@@ -349,15 +350,15 @@ struct timespec start, end;
 #include <papi.h>
 
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void warmup_event() {}
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void start_event() {
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void end_event() {
     clock_gettime(CLOCK_MONOTONIC, &end);
 
@@ -368,7 +369,7 @@ void end_event() {
     exit(0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     num_threads = omp_get_max_threads();
 
@@ -377,7 +378,7 @@ void roi_begin_() {
     printf("ROI begin\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     printf("ROI end\n");
 }
@@ -389,25 +390,25 @@ void roi_end_() {
 #include <errno.h>
 #include <sys/utsname.h>
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void warmup_event() {
     printf("M5_FS Warmup marker\n");
     m5_work_begin_addr(0, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void start_event() {
     printf("M5_FS Start marker\n");
     m5_work_begin_addr(0, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void end_event() {
     printf("M5_FS End marker\n");
     m5_work_end_addr(0, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     num_threads = omp_get_max_threads();
 
@@ -435,7 +436,7 @@ void roi_begin_() {
     printf("M5_FS ROI started\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_end_() {
     printf("M5_FS ROI ended\n");
     unmap_m5_mem();
@@ -445,22 +446,22 @@ void roi_end_() {
 
 #include <papi.h>
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void warmup_event() {
     printf("Warmup marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void start_event() {
     printf("Start marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void end_event() {
     printf("End marker\n");
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void roi_begin_() {
     num_threads = omp_get_max_threads();
 
@@ -498,7 +499,7 @@ void roi_end_() {
 
 #endif // MARKER_OVERHEAD_MEASURING
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void setup_threshold(unsigned long long warm_up, unsigned long long start, unsigned long long end) {
     warmup_threshold = warm_up;
     start_threshold = start;
@@ -521,7 +522,7 @@ void setup_threshold(unsigned long long warm_up, unsigned long long start, unsig
     atomic_init(&end_counter, 0);
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void warmup_hook() {
     if (if_warmup_not_met) {
         unsigned long long curr_count = atomic_fetch_add(&warmup_counter, 1) + 1;
@@ -533,7 +534,7 @@ void warmup_hook() {
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void start_hook() {
     if (if_start_not_met) {
         unsigned long long curr_count = atomic_fetch_add(&start_counter, 1) + 1;
@@ -545,7 +546,7 @@ void start_hook() {
     }
 }
 
-__attribute__((no_profile_instrument_function, noinline))
+__attribute__((no_profile_instrument_function))
 void end_hook() {
     if (if_end_not_met) {
         unsigned long long curr_count = atomic_fetch_add(&end_counter, 1) + 1;
@@ -562,7 +563,7 @@ void end_hook() {
 #ifdef PAPI_NAIVE
 #include <papi.h>
 
-__attribute__((no_profile_instrument_function, noinline, noinline))
+__attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
 
     int retval = PAPI_library_init(PAPI_VER_CURRENT);
