@@ -125,9 +125,12 @@ if args.if_make_final:
 if args.if_run:
     runs = []
 
+    num_runs = 3
+
     for bench in benchmarks:
         bench_rep_rids = rep_rids[bench]
         for rid in bench_rep_rids:
+            filename = None
             if threads == 1:
                 region_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_papi_measuring/{threads}/{region_size}/{rid}/{arch}")
                 cpu_list = "0"
@@ -138,19 +141,24 @@ if args.if_run:
                 cpu_list = f"0-{threads-1}"
                 for file in region_dir.glob("*.c_papi_measuring"):
                     filename = file.name
+            if filename is None:
+                print(f"Cannot find the executable for {bench} {threads} threads {region_size} region size {rid} region id")
+                print(region_dir.as_posix())
+                continue
 
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
 
-            runs.append(
-                {
-                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
-                    "env": run_env.copy(),
-                    "dir": region_dir.as_posix(),
-                    "stdout": region_dir/"stdout.log",
-                    "stderr": region_dir/"stderr.log"
-                }
-            )
+            for run_id in range(num_runs):
+                runs.append(
+                    {
+                        "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
+                        "env": run_env.copy(),
+                        "dir": region_dir.as_posix(),
+                        "stdout": region_dir/f"run_{run_id}_stdout.log",
+                        "stderr": region_dir/f"run_{run_id}_stderr.log"
+                    }
+                )
 
     with Pool(pool_size) as p:
         p.map(process_this, runs)
