@@ -51,6 +51,8 @@ arch = args.arch
 size = args.size
 pool_size = args.pool_size
 
+num_runs = 3
+
 workdir = Path().cwd()
 
 with open("/home/studyztp/test_ground/experiments/hardware-profiling/nugget-paper/30_cluster_rep_rid.json", "r") as f:
@@ -117,26 +119,27 @@ if args.if_run:
 
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
+            
+            for i in range(num_runs):
+                runs.append(
+                    {
+                        "cmd": ["taskset", "--cpu-list", cpu_list, f"./{start_filename}"],
+                        "env": run_env.copy(),
+                        "dir": region_dir.as_posix(),
+                        "stdout": region_dir/f"start_{i}_stdout.log",
+                        "stderr": region_dir/f"start_{i}_stderr.log"
+                    }
+                )
 
-            runs.append(
-                {
-                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{start_filename}"],
-                    "env": run_env.copy(),
-                    "dir": region_dir.as_posix(),
-                    "stdout": region_dir/f"start_stdout.log",
-                    "stderr": region_dir/f"start_stderr.log"
-                }
-            )
-
-            runs.append(
-                {
-                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{end_filename}"],
-                    "env": run_env.copy(),
-                    "dir": region_dir.as_posix(),
-                    "stdout": region_dir/f"end_stdout.log",
-                    "stderr": region_dir/f"end_stderr.log"
-                }
-            )
+                runs.append(
+                    {
+                        "cmd": ["taskset", "--cpu-list", cpu_list, f"./{end_filename}"],
+                        "env": run_env.copy(),
+                        "dir": region_dir.as_posix(),
+                        "stdout": region_dir/f"end_{i}_stdout.log",
+                        "stderr": region_dir/f"end_{i}_stderr.log"
+                    }
+                )
 
     with Pool(pool_size) as p:
         p.map(process_this, runs)
