@@ -451,14 +451,41 @@ void warmup_event() {
     printf("Warmup marker\n");
 }
 
+#ifdef START_MARKER
+
+__attribute__((no_profile_instrument_function))
+void start_event() {
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    long long time_taken = calculate_nsec_difference(start, end);
+    printf("Time taken: %lld\n", time_taken);
+    printf("Now exiting the program\n");
+
+    printf("Start marker\n");
+
+    exit(0);
+}
+
+#elif defined(END_MARKER) // START_MARKER
+
 __attribute__((no_profile_instrument_function))
 void start_event() {
     printf("Start marker\n");
 }
 
+#endif // END_MARKER
+
 __attribute__((no_profile_instrument_function))
 void end_event() {
+    clock_gettime(CLOCK_MONOTONIC, &end);
+
+    long long time_taken = calculate_nsec_difference(start, end);
+    printf("Time taken: %lld\n", time_taken);
+    printf("Now exiting the program\n");
+
     printf("End marker\n");
+
+    exit(0);
 }
 
 __attribute__((no_profile_instrument_function))
@@ -467,33 +494,19 @@ void roi_begin_() {
 
     if_warmup_not_met = TRUE;
 
-    int retval = PAPI_library_init(PAPI_VER_CURRENT);
-    if (retval != PAPI_VER_CURRENT) {
-        printf("PAPI_library_init failed due to %d.\n", retval);
-    }
-    retval = PAPI_set_domain(PAPI_DOM_ALL);
-    if (retval != PAPI_OK) {
-        printf("PAPI_set_domain failed due to %d.\n", retval);
-    }
-    printf("ROI started\n");
-    printf("PAPI initialized\n");
+    printf("ROI begin\n");
 
-    printf("PAPI region begin\n");
-
-    retval = PAPI_hl_region_begin("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
-    }
+    clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
 void roi_end_() {
-    printf("PAPI region end\n");
+    clock_gettime(CLOCK_MONOTONIC, &end);
 
-    int retval = PAPI_hl_region_end("0");
-    if (retval != PAPI_OK) {
-        printf("PAPI_hl_region_end failed due to %d.\n", retval);
-    }
-    printf("PAPI ended\nNow exiting the program\n");
+    long long time_taken = calculate_nsec_difference(start, end);
+    printf("Time taken: %lld\n", time_taken);
+    printf("Now exiting the program\n");
+    printf("ROI end\n");
+
     exit(0);
 }
 
@@ -597,3 +610,55 @@ void roi_end_() {
 }
 
 #endif // PAPI_NAIVE
+
+#ifdef LOOPPOINT_M5_FS
+
+#include "gem5/m5ops.h"
+#include "m5_mmap.h"
+#include <errno.h>
+#include <sys/utsname.h>
+#include <unistd.h>
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    struct utsname buffer;
+    errno = 0;
+    if (uname(&buffer) != 0) {
+        perror("uname");
+        exit(1);
+    }
+
+    printf("arch     = %s\n", buffer.machine);
+
+    if (strcmp(buffer.machine, "x86_64") == 0) {
+        m5op_addr = 0xFFFF0000;
+    } else if (strcmp(buffer.machine, "aarch64") == 0) {
+        m5op_addr = 0x10010000;
+    } else {
+        m5op_addr = 0x0;
+        printf("Unsupported architecture\n");
+    }
+    map_m5_mem();
+    printf("LOOPPOINT_M5_FS ADDR MOP initialized\n");
+    printf("LOOPPOINT_M5_FS ROI started\n");
+
+    char buf[256 * 1024];
+    int pid = getpid();
+    sprintf(buf,"cat /proc/%i/maps > proc_maps.txt;",pid);
+    printf("running %s\n",buf);
+    system(buf);
+    printf("ready to call m5 writefile\n");
+    system("m5 writefile proc_maps.txt;");
+
+    printf("calling M5 workbegin\n");
+    m5_work_begin_addr(0, 0);
+}
+
+void roi_end_() {
+    m5_work_end_addr(0, 0);
+    printf("M5 workend calledr\n");
+    printf("M5_FS ROI ended\n");
+    unmap_m5_mem();
+}
+
+#endif // LOOPPOINT_M5_FS

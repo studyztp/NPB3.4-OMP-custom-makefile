@@ -4,6 +4,7 @@ from pathlib import Path
 import os
 import argparse
 import shutil
+import json
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--region_size", type=int, default=1000_000_000)
@@ -51,8 +52,9 @@ size = args.size
 pool_size = args.pool_size
 
 workdir = Path().cwd()
-overhead_marker_info_dir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/nugget-paper")
-num_markers = 10
+
+with open("/home/studyztp/test_ground/experiments/hardware-profiling/nugget-paper/30_cluster_rep_rid.json", "r") as f:
+    rep_rids = json.load(f)
 
 must_env = os.environ
 must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/{arch}-unknown-linux-gnu"
@@ -65,21 +67,15 @@ if args.if_make_base:
         bench_env["SIZE"] = size
         bench_env["REGION_LENGTH"] = str(region_size)
         bench_env["TARGET_ARCH"] = arch
-        for i in range(num_markers):
-            bench_marker_dir = Path(overhead_marker_info_dir/f"{bench}-overhead-test-marker-info-dir")
-            marker_file = Path(bench_marker_dir/f"{bench}_{i}_info.txt")
-            print(marker_file.as_posix())
-            found_files = bench_marker_dir.glob(f"basic_block_info_output_*")
-            for f in found_files:
-                basic_block_info_file = Path(bench_marker_dir/f.name)
-            marker_env = bench_env.copy()
-            marker_env["OVERHEAD_MEASURING_BB_ORDER_FILE"] = basic_block_info_file.as_posix()
-            marker_env["OVERHEAD_MEASURING_INPUT_FILE"] = marker_file.as_posix()
-            marker_env["OVERHEAD_MEASURING_OUTPUT_NAME"] = f"{region_size}_{threads}_{i}"
+        bench_env["THREAD_SIZE"] = str(threads)
+        bench_rep_rids = rep_rids[bench]
+        for rid in bench_rep_rids:
+            region_env = bench_env.copy()
+            region_env["REGION_ID"] = str(rid)
             if threads == 1:
-                subprocess.run(["make", "single_thread_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
-            else:    
-                subprocess.run(["make", "c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+                subprocess.run(["make", "single_thread_c_marker_overhead_measuring"], cwd=workdir, env=region_env)
+            else:
+                subprocess.run(["make", "c_marker_overhead_measuring"], cwd=workdir, env=region_env)
 
 if args.if_make_final:
     for bench in benchmarks:
@@ -88,63 +84,60 @@ if args.if_make_final:
         bench_env["SIZE"] = size
         bench_env["REGION_LENGTH"] = str(region_size)
         bench_env["TARGET_ARCH"] = arch
-        bench_env["OMP_NUM_THREADS"] = str(threads)
-        for i in range(num_markers):
-            bench_marker_dir = Path(overhead_marker_info_dir/f"{bench}-overhead-test-marker-info-dir")
-            marker_file = Path(bench_marker_dir/f"{bench}_{i}_info.txt")
-            found_files = bench_marker_dir.glob(f"basic_block_info_output_*")
-            for f in found_files:
-                basic_block_info_file = Path(bench_marker_dir/f.name)
-            marker_env = bench_env.copy()
-            marker_env["OVERHEAD_MEASURING_BB_ORDER_FILE"] = basic_block_info_file.as_posix()
-            marker_env["OVERHEAD_MEASURING_INPUT_FILE"] = marker_file.as_posix()
-            marker_env["OVERHEAD_MEASURING_OUTPUT_NAME"] = f"{region_size}_{threads}_{i}"
+        bench_env["THREAD_SIZE"] = str(threads)
+        bench_rep_rids = rep_rids[bench]
+        for rid in bench_rep_rids:
+            region_env = bench_env.copy()
+            region_env["REGION_ID"] = str(rid)
             if threads == 1:
-                subprocess.run(["make", "final_compile_single_thread_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+                subprocess.run(["make", "final_compile_single_thread_c_marker_overhead_measuring"], cwd=workdir, env=region_env)
             else:
-                subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir.as_posix(), env=marker_env)
+                subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir, env=region_env)
 
 if args.if_run:
     runs = []
 
-    papi_event = None
-
-    if args.machine_name == "saphir":
-        papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCA'],]
-    elif args.machine_name == "challenger":
-        papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR'],]
-    elif args.machine_name == "saaz":
-        papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR'],]
-
     for bench in benchmarks:
-        if threads == 1:
-            bench_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_marker_overhead_measuring")
-            cpu_list = "0"
-        else:
-            bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring")
-            cpu_list = f"0-{threads-1}"
-        for i in range(num_markers):
-            run_dir = Path(bench_dir/f"{region_size}_{threads}_{i}/{arch}")
+        bench_rep_rids = rep_rids[bench]
+        for rid in bench_rep_rids:
             if threads == 1:
-                for f in run_dir.glob("*.single_thread_c_marker_overhead_measuring"):
-                    filename = f.name
+                region_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_marker_overhead_measuring/{threads}/{region_size}/{rid}/{arch}")
+                cpu_list = "0"
+                for file in region_dir.glob("*.single_thread_c_marker_overhead_measuring_start"):
+                    start_filename = file.name
+                for file in region_dir.glob("*.single_thread_c_marker_overhead_measuring_end"):
+                    end_filename = file.name
             else:
-                for f in run_dir.glob("*.c_marker_overhead_measuring"):
-                    filename = f.name
+                region_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring/{threads}/{region_size}/{rid}/{arch}")
+                cpu_list = f"0-{threads-1}"
+                for file in region_dir.glob("*.c_marker_overhead_measuring_start"):
+                    start_filename = file.name
+                for file in region_dir.glob("*.c_marker_overhead_measuring_end"):
+                    end_filename = file.name
+
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
-            run_env["PAPI_EVENTS"] = ",".join(papi_event[0])
-            print(f"PAPI_EVENTS: {run_env['PAPI_EVENTS']}")
+
             runs.append(
                 {
-                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
+                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{start_filename}"],
                     "env": run_env.copy(),
-                    "dir": run_dir.as_posix(),
-                    "stdout": run_dir/"stdout.log",
-                    "stderr": run_dir/"stderr.log"
+                    "dir": region_dir.as_posix(),
+                    "stdout": region_dir/f"start_stdout.log",
+                    "stderr": region_dir/f"start_stderr.log"
                 }
             )
-    
+
+            runs.append(
+                {
+                    "cmd": ["taskset", "--cpu-list", cpu_list, f"./{end_filename}"],
+                    "env": run_env.copy(),
+                    "dir": region_dir.as_posix(),
+                    "stdout": region_dir/f"end_stdout.log",
+                    "stderr": region_dir/f"end_stderr.log"
+                }
+            )
+
     with Pool(pool_size) as p:
         p.map(process_this, runs)
 

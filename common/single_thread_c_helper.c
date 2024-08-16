@@ -344,19 +344,45 @@ void roi_end_() {
 
 #include <papi.h>
 
+#ifdef START_MARKER
+
 __attribute__((no_profile_instrument_function))
-void warmup_event() {
-    printf("Warmup marker\n");
+void start_event() {
+    
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+    printf("PAPI region end\n");
+    printf("PAPI ended\nNow exiting the program\n");
+    printf("Start marker\n");
+    exit(0);
 }
+
+#elif defined(END_MARKER) // START_MARKER
 
 __attribute__((no_profile_instrument_function))
 void start_event() {
     printf("Start marker\n");
 }
 
+#endif // END_MARKER
+
+__attribute__((no_profile_instrument_function))
+void warmup_event() {
+    printf("Warmup marker\n");
+}
+
 __attribute__((no_profile_instrument_function))
 void end_event() {
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+    printf("PAPI region end\n");
+    printf("PAPI ended\nNow exiting the program\n");
     printf("End marker\n");
+    exit(0);
 }
 
 __attribute__((no_profile_instrument_function))
@@ -386,13 +412,13 @@ void roi_begin_() {
 }
 
 void roi_end_() {
-    printf("PAPI region end\n");
-    
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
+    printf("PAPI region end\n");
     printf("PAPI ended\nNow exiting the program\n");
+    printf("ROI end\n");
     exit(0);
 }
 
