@@ -484,8 +484,6 @@ void end_event() {
     printf("Now exiting the program\n");
 
     printf("End marker\n");
-
-    exit(0);
 }
 
 __attribute__((no_profile_instrument_function))
