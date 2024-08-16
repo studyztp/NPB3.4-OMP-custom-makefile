@@ -455,15 +455,8 @@ void warmup_event() {
 
 __attribute__((no_profile_instrument_function))
 void start_event() {
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    long long time_taken = calculate_nsec_difference(start, end);
-    printf("Time taken: %lld\n", time_taken);
-    printf("Now exiting the program\n");
-
     printf("Start marker\n");
-
-    exit(0);
+    end_threshold = 1
 }
 
 #elif defined(END_MARKER) // START_MARKER
@@ -477,12 +470,6 @@ void start_event() {
 
 __attribute__((no_profile_instrument_function))
 void end_event() {
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    long long time_taken = calculate_nsec_difference(start, end);
-    printf("Time taken: %lld\n", time_taken);
-    printf("Now exiting the program\n");
-
     printf("End marker\n");
 }
 
