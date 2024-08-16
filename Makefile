@@ -242,7 +242,7 @@ c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_
 
 c_marker_overhead_measuring: get_version c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
 c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_marker_overhead_measuring_start.ll ${COMMON}/c_marker_overhead_measuring_end.ll
-	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_papi_measuring
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_overhead_measuring
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring && mkdir -p ${THREAD_SIZE}
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
