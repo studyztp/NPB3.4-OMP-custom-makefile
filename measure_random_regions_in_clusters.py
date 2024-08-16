@@ -74,7 +74,8 @@ for bench, bench_data in raw_all_clusters_data.items():
             max_len = len(values) - 1
             if max_len == 0:
                 continue
-            randomly_selected = random.sample(values, min(sample_size, max_len))
+            filtered_values = [value for value in values if value not in bench_rep_rids]
+            randomly_selected = random.sample(filtered_values, min(sample_size, max_len))
             all_samples.extend(randomly_selected)
             output_info[bench][rid] = randomly_selected
         rep_rids[bench] = all_samples
