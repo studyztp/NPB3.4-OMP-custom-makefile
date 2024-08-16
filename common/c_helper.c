@@ -456,7 +456,7 @@ void warmup_event() {
 __attribute__((no_profile_instrument_function))
 void start_event() {
     printf("Start marker\n");
-    end_threshold = 1
+    end_threshold = 1;
 }
 
 #elif defined(END_MARKER) // START_MARKER
