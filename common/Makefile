@@ -15,15 +15,13 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	c_papi_measuring.ll \
 	c_m5_fs_measuring.ll \
 	c_papi_naive.ll \
-	c_marker_overhead_measuring_start.ll \
-	c_marker_overhead_measuring_end.ll \
+	c_marker_overhead_measuring.ll \
 	c_marker_looppoint_m5_fs.ll \
 	single_thread_c_profiling.ll \
 	single_thread_c_papi_profiling.ll \
 	single_thread_c_papi_measuring.ll \
 	single_thread_c_m5_fs_measuring.ll \
-	single_thread_c_marker_overhead_measuring_start.ll \
-	single_thread_c_marker_overhead_measuring_end.ll
+	single_thread_c_marker_overhead_measuring.ll \
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -84,13 +82,9 @@ c_papi_naive.ll: c_helper.c
 	${CC} ${FLAGS} -S -DPAPI_NAIVE -emit-llvm \
 	c_helper.c -o c_papi_naive.ll ${PAPI_LINE}
 
-c_marker_overhead_measuring_start.ll: c_helper.c
-	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -DSTART_MARKER \
-	-emit-llvm c_helper.c -o c_marker_overhead_measuring_start.ll ${PAPI_LINE}
-
-c_marker_overhead_measuring_end.ll: c_helper.c
-	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -DEND_MARKER \
-	-emit-llvm c_helper.c -o c_marker_overhead_measuring_end.ll ${PAPI_LINE}
+c_marker_overhead_measuring.ll: c_helper.c
+	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING \
+	-emit-llvm c_helper.c -o c_marker_overhead_measuring.ll ${PAPI_LINE}
 
 c_marker_looppoint_m5_fs.ll: c_helper.c
 	${CC} ${FLAGS} -S -DLOOPPOINT_M5_FS -emit-llvm \
@@ -116,13 +110,9 @@ single_thread_c_marker_overhead_measuring.ll: single_thread_c_helper.c
 	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -emit-llvm \
 	single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring.ll ${PAPI_LINE}
 
-single_thread_c_marker_overhead_measuring_start.ll: single_thread_c_helper.c
-	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -DSTART_MARKER \
-	-emit-llvm single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring_start.ll ${PAPI_LINE}
-
-single_thread_c_marker_overhead_measuring_end.ll: single_thread_c_helper.c
-	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -DEND_MARKER \
-	-emit-llvm single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring_end.ll ${PAPI_LINE}
+single_thread_c_marker_overhead_measuring.ll: single_thread_c_helper.c
+	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING \
+	-emit-llvm single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring.ll ${PAPI_LINE}
 
 clean:
 	rm -f *.ll

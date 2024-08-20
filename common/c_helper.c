@@ -451,22 +451,10 @@ void warmup_event() {
     printf("Warmup marker\n");
 }
 
-#ifdef START_MARKER
-
-__attribute__((no_profile_instrument_function))
-void start_event() {
-    printf("Start marker\n");
-    end_threshold = 1;
-}
-
-#elif defined(END_MARKER) // START_MARKER
-
 __attribute__((no_profile_instrument_function))
 void start_event() {
     printf("Start marker\n");
 }
-
-#endif // END_MARKER
 
 __attribute__((no_profile_instrument_function))
 void end_event() {
@@ -475,22 +463,35 @@ void end_event() {
 
 __attribute__((no_profile_instrument_function))
 void roi_begin_() {
-    num_threads = omp_get_max_threads();
-
+    
     if_warmup_not_met = TRUE;
 
-    printf("ROI begin\n");
+    int retval = PAPI_library_init(PAPI_VER_CURRENT);
+    if (retval != PAPI_VER_CURRENT) {
+        printf("PAPI_library_init failed due to %d.\n", retval);
+    }
+    retval = PAPI_set_domain(PAPI_DOM_ALL);
+    if (retval != PAPI_OK) {
+        printf("PAPI_set_domain failed due to %d.\n", retval);
+    }
+    printf("ROI started\n");
+    printf("PAPI initialized\n");
 
-    clock_gettime(CLOCK_MONOTONIC, &start);
+    printf("PAPI region begin\n");
+
+    retval = PAPI_hl_region_begin("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_begin failed due to %d.\n", retval);
+    }
 }
 
 void roi_end_() {
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    long long time_taken = calculate_nsec_difference(start, end);
-    printf("Time taken: %lld\n", time_taken);
-    printf("Now exiting the program\n");
-    printf("ROI end\n");
+    printf("PAPI region end\n");
+    int retval = PAPI_hl_region_end("0");
+    if (retval != PAPI_OK) {
+        printf("PAPI_hl_region_end failed due to %d.\n", retval);
+    }
+    printf("PAPI ended\nNow exiting the program\n");
 
     exit(0);
 }
@@ -595,6 +596,25 @@ void roi_end_() {
 }
 
 #endif // PAPI_NAIVE
+
+#ifdef TIMING_NAIVE
+struct timespec start, end;
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    printf("ROI started\n");
+    clock_gettime(CLOCK_MONOTONIC, &start);
+}
+
+void roi_end_() {
+    clock_gettime(CLOCK_MONOTONIC, &end);
+    printf("PAPI region end\n");
+    long long time_taken = calculate_nsec_difference(start, end);
+    printf("Time taken: %lld\n", time_taken);
+    exit(0);
+}
+
+#endif // TIMING_NAIVE
 
 #ifdef LOOPPOINT_M5_FS
 
