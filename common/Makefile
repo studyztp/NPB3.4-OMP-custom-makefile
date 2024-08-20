@@ -82,6 +82,10 @@ c_papi_naive.ll: c_helper.c
 	${CC} ${FLAGS} -S -DPAPI_NAIVE -emit-llvm \
 	c_helper.c -o c_papi_naive.ll ${PAPI_LINE}
 
+c_time_naive.ll: c_helper.c
+	${CC} ${FLAGS} -S -DTIMING_NAIVE -emit-llvm \
+	c_helper.c -o c_time_naive.ll
+
 c_marker_overhead_measuring.ll: c_helper.c
 	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING \
 	-emit-llvm c_helper.c -o c_marker_overhead_measuring.ll ${PAPI_LINE}

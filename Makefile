@@ -309,6 +309,11 @@ c_papi_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_papi_naive.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_papi_naive
 	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive && ${LLVM_LINK} -o ${PROGRAM}_papi_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_papi_naive.ll
 
+c_time_naive: get_version c_time_naive_${PROGRAM}_${SIZE}
+c_time_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_time_naive.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_time_naive
+	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive && ${LLVM_LINK} -o ${PROGRAM}_time_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_time_naive.ll
+
 c_marker_looppoint_m5_fs: get_version c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}
 c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_looppoint_m5_fs.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_looppoint_m5_fs
@@ -325,6 +330,12 @@ final_compile_c_papi_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_papi_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_papi_naive.o --march=$(subst _,-,$(TARGET_ARCH))
 	cd ${PROGRAM_PATH}/${SIZE}/c_papi_naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_papi_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_naive --target=${TARGET_ARCH}-unknown-linux-gnu
+
+final_compile_c_time_naive: get_version final_compile_c_time_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_c_time_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_time_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_time_naive.o --march=$(subst _,-,$(TARGET_ARCH))
+	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ${PROGRAM}_${TARGET_ARCH}_time_naive.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_time_naive --target=${TARGET_ARCH}-unknown-linux-gnu
 
 final_compile_c_marker_looppoint_m5_fs: get_version final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
