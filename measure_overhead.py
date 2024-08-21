@@ -96,6 +96,8 @@ if args.if_make_final:
             else:
                 subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir, env=region_env)
 
+papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR'],]
+
 if args.if_run:
     runs = []
 
@@ -119,22 +121,30 @@ if args.if_run:
 
             run_env = must_env.copy()
             run_env["OMP_NUM_THREADS"] = str(threads)
+            run_env["PAPI_EVENTS"] = ",".join(papi_event)
             
             for i in range(num_runs):
+
+                start_run_env = run_env.copy()
+                start_run_env["PAPI_OUTPUT_DIRECTORY"]=Path(region_dir/f"start_{i}_papi_output").as_posix()
+
                 runs.append(
                     {
                         "cmd": ["taskset", "--cpu-list", cpu_list, f"./{start_filename}"],
-                        "env": run_env.copy(),
+                        "env": start_run_env.copy(),
                         "dir": region_dir.as_posix(),
                         "stdout": region_dir/f"start_{i}_stdout.log",
                         "stderr": region_dir/f"start_{i}_stderr.log"
                     }
                 )
 
+                end_run_env = run_env.copy()
+                end_run_env["PAPI_OUTPUT_DIRECTORY"]=Path(region_dir/f"end_{i}_papi_output").as_posix()
+
                 runs.append(
                     {
                         "cmd": ["taskset", "--cpu-list", cpu_list, f"./{end_filename}"],
-                        "env": run_env.copy(),
+                        "env": end_run_env.copy(),
                         "dir": region_dir.as_posix(),
                         "stdout": region_dir/f"end_{i}_stdout.log",
                         "stderr": region_dir/f"end_{i}_stderr.log"
