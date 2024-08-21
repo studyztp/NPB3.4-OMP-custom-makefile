@@ -15,6 +15,7 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	c_papi_measuring.ll \
 	c_m5_fs_measuring.ll \
 	c_papi_naive.ll \
+	c_time_naive.ll \
 	c_marker_overhead_measuring.ll \
 	c_marker_looppoint_m5_fs.ll \
 	single_thread_c_profiling.ll \
