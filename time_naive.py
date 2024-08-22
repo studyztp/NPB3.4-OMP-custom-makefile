@@ -77,6 +77,16 @@ if args.if_make_base:
                         "stderr": Path(workdir/f"{bench.upper()}/make_base_c_time_naive_{size}_{region_size}.err").as_posix()
                     }
                 )
+                                # c_papi_naive
+                process_this(
+                    {
+                        "cmd": ["make", "c_papi_naive"],
+                        "env": region_size_env,
+                        "dir": workdir.as_posix(),
+                        "stdout": Path(workdir/f"{bench.upper()}/make_base_c_papi_naive_{size}_{region_size}.log").as_posix(),
+                        "stderr": Path(workdir/f"{bench.upper()}/make_base_c_papi_naive_{size}_{region_size}.err").as_posix()
+                    }
+                )
 
 if args.if_make_final:
     for bench in benchmarks:
@@ -99,43 +109,54 @@ if args.if_make_final:
                         "stderr": Path(workdir/f"{bench.upper()}/final_compile_c_time_naive_{size}_{region_size}.err").as_posix()
                     }
                 )
+                # final_compile_c_papi_naive
+                process_this(
+                    {
+                        "cmd": ["make", "final_compile_c_papi_naive"],
+                        "env": region_size_env,
+                        "dir": workdir.as_posix(),
+                        "stdout": Path(workdir/f"{bench.upper()}/final_compile_c_papi_naive_{size}_{region_size}.log").as_posix(),
+                        "stderr": Path(workdir/f"{bench.upper()}/final_compile_c_papi_naive_{size}_{region_size}.err").as_posix()
+                    }
+                )
 
 if args.if_run:
     runs = []
-    num_runs = 3
+    num_runs = 10
 
     papi_event = ['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCA']
 
     for bench in benchmarks:
         for size in size_list:
             for thread in threads:
-                must_env["OMP_NUM_THREADS"] = str(thread)
-                if thread == 1:
-                    cpu_list = "0"
-                else:
-                    cpu_list = f"0-{thread-1}"
-                for index in range(num_runs):
-                    event_env = must_env.copy()
-                    event_env["PAPI_EVENTS"] = ",".join(papi_event)
-                    # c_papi_naive
-                    exp_name = "c_time_naive"
-                    exp_dir = Path(workdir/f"{bench.upper()}/{size}/{exp_name}/{arch}")
-                    file = exp_dir.glob(f"*.{exp_name}")
-                    filename = None
-                    for f in file:
-                        print(f)
-                        filename = f.name
-                    run_env = event_env.copy()
-                    run_env["PAPI_OUTPUT_DIRECTORY"] = Path(exp_dir/f"papi_output_{thread}_{index}").as_posix()
-                    runs.append(
-                        {
-                            "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
-                            "env": run_env.copy(),
-                            "dir": exp_dir.as_posix(),
-                            "stdout": Path(exp_dir/f"{thread}_{index}.stdout"),
-                            "stderr": Path(exp_dir/f"{thread}_{index}.stderr")
-                        }
-                    )
+                for exp_name in ["c_time_naive", "c_papi_naive"]:
+                    must_env["OMP_NUM_THREADS"] = str(thread)
+                    if thread == 1:
+                        cpu_list = "0"
+                    else:
+                        cpu_list = f"0-{thread-1}"
+                    for index in range(num_runs):
+                        event_env = must_env.copy()
+                        event_env["PAPI_EVENTS"] = ",".join(papi_event)
+                        # c_papi_naive
+                        exp_name = "c_time_naive"
+                        exp_dir = Path(workdir/f"{bench.upper()}/{size}/{exp_name}/{arch}")
+                        file = exp_dir.glob(f"*.{exp_name}")
+                        filename = None
+                        for f in file:
+                            print(f)
+                            filename = f.name
+                        run_env = event_env.copy()
+                        run_env["PAPI_OUTPUT_DIRECTORY"] = Path(exp_dir/f"papi_output_{thread}_{index}").as_posix()
+                        runs.append(
+                            {
+                                "cmd": ["taskset", "--cpu-list", cpu_list, f"./{filename}"],
+                                "env": run_env.copy(),
+                                "dir": exp_dir.as_posix(),
+                                "stdout": Path(exp_dir/f"{thread}_{index}.stdout"),
+                                "stderr": Path(exp_dir/f"{thread}_{index}.stderr")
+                            }
+                        )
 
     with Pool(pool_size) as pool:
         pool.map(process_this, runs)

@@ -51,7 +51,7 @@ arch = args.arch
 size = args.size
 pool_size = args.pool_size
 
-num_runs = 3
+num_runs = 10
 
 workdir = Path().cwd()
 
@@ -96,7 +96,7 @@ if args.if_make_final:
             else:
                 subprocess.run(["make", "final_compile_c_marker_overhead_measuring"], cwd=workdir, env=region_env)
 
-papi_event = [['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR'],]
+papi_event = ['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR']
 
 if args.if_run:
     runs = []
