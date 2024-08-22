@@ -10,11 +10,11 @@ parser.add_argument("--region_size_list", nargs="+", type=int, default=[1000_000
 parser.add_argument("--arch", type=str, default="aarch64")
 parser.add_argument("--machine_name", type=str, default="saphir")
 parser.add_argument("--threads", nargs="+", type=int, default=[1, 8])
-parser.add_argument("--size_list", nargs="+", type=str, default=["D"])
+parser.add_argument("--size_list", nargs="+", type=str, default=["C"])
 parser.add_argument("--if_make_base", type=bool, default=False)
 parser.add_argument("--if_make_final", type=bool, default=False)
 parser.add_argument("--if_run", type=bool, default=False)
-parser.add_argument("--pool_size", type=int, default=16)
+parser.add_argument("--pool_size", type=int, default=1)
 
 args = parser.parse_args()
 
