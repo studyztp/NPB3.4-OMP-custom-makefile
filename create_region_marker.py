@@ -132,9 +132,11 @@ for bench in benchmarks:
     with open(output_dir/f"{bench}_{target_run_num}_info.json", "w") as f:
         json.dump(marker_info, f, indent=4)
 
-    region_output_dir = Path(output_dir/f"{bench}-region")
-    region_output_dir.mkdir(exist_ok=True)
+    bench_region_output_dir = Path(output_dir/f"{bench}-region")
+    bench_region_output_dir.mkdir(exist_ok=True)
     for rid, rdata in marker_info.items():
+        region_output_dir = Path(bench_region_output_dir/f"{rid}")
+        region_output_dir.mkdir(exist_ok=True)
         with open(region_output_dir/f"{rid}_marker_info.txt", "w") as f:
             f.write(f"{rdata['warmup_marker_fid']}\n")
             f.write(f"{rdata['warmup_marker_bbid']}\n")
@@ -145,3 +147,4 @@ for bench in benchmarks:
             f.write(f"{rdata['end_marker_fid']}\n")
             f.write(f"{rdata['end_marker_bbid']}\n")
             f.write(f"{rdata['end_marker_bbid_count']}\n")
+        shutil.copy(basic_block_info_file_path, Path(region_output_dir/filename))

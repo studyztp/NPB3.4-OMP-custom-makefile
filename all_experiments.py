@@ -34,6 +34,8 @@ def process_this(run_ball):
     command = run_ball["cmd"]
     env = run_ball["env"]
     dir = run_ball["dir"]
+    if not dir.exists():
+        dir.mkdir(exist_ok=False)
     if "stdout" in run_ball:
         stdout_path = run_ball["stdout"]
     else:
@@ -303,6 +305,7 @@ if args.if_make_final:
 
 if args.if_run:
     runs = []
+    run_filename = ""
 
     papi_event = ['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR']
 
