@@ -72,7 +72,7 @@ else:
 
 workdir = Path().cwd()
 
-default_cmd = ["cset", "-s", "measurement", "-e"]
+default_cmd = ["cset", "proc", "-s", "measurement", "-e"]
 
 must_env = os.environ
 must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/{arch}-unknown-linux-gnu"
