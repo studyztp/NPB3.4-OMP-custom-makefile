@@ -322,7 +322,7 @@ if args.if_run:
                             run_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_naive/{arch}")
                             run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                             for file in run_dir.glob("*.c_papi_naive"):
-                                run_filename = file.name
+                                run_filename = Path(file).as_posix()
                             runs.append(
                             {
                                 "cmd": default_cmd + [f"{run_filename}"],
@@ -336,7 +336,7 @@ if args.if_run:
                             run_dir = Path(workdir/f"{bench.upper()}/{size}/c_time_naive/{arch}")
                             run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                             for file in run_dir.glob("*.c_time_naive"):
-                                run_filename = file.name
+                                run_filename = Path(file).as_posix()
                             runs.append(
                                 {
                                     "cmd": default_cmd + [f"{run_filename}"],
@@ -355,13 +355,13 @@ if args.if_run:
                                 run_dir.mkdir(exist_ok=False)
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
                                 for file in run_base_dir.glob("*.single_thread_c_profiling"):
-                                    run_filename = file.name
+                                    run_filename = Path(file).as_posix()
                             else:
                                 run_base_dir = Path(workdir/f"{bench.upper()}/{size}/c_profiling/{region_length}/{arch}")
                                 run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
                                 for file in run_base_dir.glob("*.c_profiling"):
-                                    run_filename = file.name
+                                    run_filename = Path(file).as_posix()
                             runs.append(
                                 {
                                     "cmd": default_cmd + [f"{run_filename}"],
@@ -377,13 +377,13 @@ if args.if_run:
                                 run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
                                 for file in run_base_dir.glob("*.single_thread_c_papi_profiling"):
-                                    run_filename = file.name
+                                    run_filename = Path(file).as_posix()
                             else:
                                 run_base_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_profiling/{region_length}/{arch}")
                                 run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
                                 for file in run_base_dir.glob("*.c_papi_profiling"):
-                                    run_filename = file.name
+                                    run_filename = Path(file).as_posix()
                             runs.append(
                                 {
                                     "cmd": default_cmd + [f"{run_filename}"],
@@ -399,16 +399,16 @@ if args.if_run:
                                     run_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_marker_overhead_measuring/{thread}/{region_length}/{rid}/{arch}")
                                     run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                                     for file in run_dir.glob("*.single_thread_c_marker_overhead_measuring_start"):
-                                        start_filename = file.name
+                                        start_filename = Path(file).as_posix()
                                     for file in run_dir.glob("*.single_thread_c_marker_overhead_measuring_end"):
-                                        end_filename = file.name
+                                        end_filename = Path(file).as_posix()
                                 else:
                                     run_dir = Path(workdir/f"{bench.upper()}/{size}/c_marker_overhead_measuring/{thread}/{region_length}/{rid}/{arch}")
                                     run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                                     for file in run_dir.glob("*.c_marker_overhead_measuring_start"):
-                                        start_filename = file.name
+                                        start_filename = Path(file).as_posix()
                                     for file in run_dir.glob("*.c_marker_overhead_measuring_end"):
-                                        end_filename = file.name
+                                        end_filename = Path(file).as_posix()
                                 runs.append(
                                     {
                                         "cmd": default_cmd + [f"{start_filename}"],
@@ -433,12 +433,12 @@ if args.if_run:
                                     run_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_papi_measuring/{thread}/{region_length}/{rid}/{arch}")
                                     run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                                     for file in run_dir.glob("*.single_thread_c_papi_measuring"):
-                                        run_filename = file.name
+                                        run_filename = Path(file).as_posix()
                                 else:
                                     run_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_measuring/{thread}/{region_length}/{rid}/{arch}")
                                     run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
                                     for file in run_dir.glob("*.c_papi_measuring"):
-                                        run_filename = file.name
+                                        run_filename = Path(file).as_posix()
                                 runs.append(
                                     {
                                         "cmd": default_cmd + [f"{run_filename}"],
