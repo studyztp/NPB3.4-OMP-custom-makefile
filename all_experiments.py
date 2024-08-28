@@ -316,18 +316,18 @@ if args.if_run:
                     run_ball_env["PAPI_EVENTS"] = ",".join(papi_event)
                     for i in range(num_runs):
                         if args.papi_naive:
-                                run_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_naive/{arch}")
-                                run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
-                                for file in run_dir.glob("*.c_papi_naive"):
-                                    run_filename = file.name
+                            run_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_naive/{arch}")
+                            run_ball_env["PAPI_OUTPUT_DIRECTORY"] = Path(run_dir/f"run_{thread}_{i}").as_posix()
+                            for file in run_dir.glob("*.c_papi_naive"):
+                                run_filename = file.name
                             runs.append(
-                                {
-                                    "cmd": default_cmd + [f"./{run_filename}"],
-                                    "env": run_ball_env.copy(),
-                                    "dir": run_dir.as_posix(),
-                                    "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
-                                    "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
-                                }
+                            {
+                                "cmd": default_cmd + [f"./{run_filename}"],
+                                "env": run_ball_env.copy(),
+                                "dir": run_dir.as_posix(),
+                                "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
+                                "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
+                            }
                             )
                         if args.time_naive:
                             run_dir = Path(workdir/f"{bench.upper()}/{size}/c_time_naive/{arch}")
@@ -404,8 +404,8 @@ if args.if_run:
                                         "cmd": default_cmd + [f"./{start_filename}"],
                                         "env": run_ball_env.copy(),
                                         "dir": run_dir.as_posix(),
-                                        "stdout": Path(run_dir/f"run_{thread}_{i}_start.stdout").as_posix(),
-                                        "stderr": Path(run_dir/f"run_{thread}_{i}_start.stderr").as_posix()
+                                        "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
+                                        "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
                                     }
                                 )
                                 runs.append(
@@ -413,8 +413,8 @@ if args.if_run:
                                         "cmd": default_cmd + [f"./{end_filename}"],
                                         "env": run_ball_env.copy(),
                                         "dir": run_dir.as_posix(),
-                                        "stdout": Path(run_dir/f"run_{thread}_{i}_end.stdout").as_posix(),
-                                        "stderr": Path(run_dir/f"run_{thread}_{i}_end.stderr").as_posix()
+                                        "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
+                                        "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
                                     }
                                 )
                         if args.papi_measuring:
