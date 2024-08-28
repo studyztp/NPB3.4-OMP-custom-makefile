@@ -305,7 +305,6 @@ if args.if_make_final:
 
 if args.if_run:
     runs = []
-    run_filename = ""
 
     papi_event = ['PAPI_TOT_CYC', 'PAPI_TOT_INS', 'PAPI_BR_MSP', 'PAPI_L1_DCA', 'PAPI_L2_DCR']
 
@@ -349,19 +348,19 @@ if args.if_run:
                             )
                         if args.profiling:
                             if thread == 1:
-                                run_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_profiling/{region_length}/{arch}")
-                                run_dir = Path(run_dir/f"run_{thread}_{i}")
+                                run_base_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_profiling/{region_length}/{arch}")
+                                run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 if run_dir.exists():
                                     shutil.rmtree(run_dir)
                                 run_dir.mkdir(exist_ok=False)
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
-                                for file in run_dir.glob("*.single_thread_c_profiling"):
+                                for file in run_base_dir.glob("*.single_thread_c_profiling"):
                                     run_filename = file.name
                             else:
-                                run_dir = Path(workdir/f"{bench.upper()}/{size}/c_profiling/{region_length}/{arch}")
-                                run_dir = Path(run_dir/f"run_{thread}_{i}")
+                                run_base_dir = Path(workdir/f"{bench.upper()}/{size}/c_profiling/{region_length}/{arch}")
+                                run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
-                                for file in run_dir.glob("*.c_profiling"):
+                                for file in run_base_dir.glob("*.c_profiling"):
                                     run_filename = file.name
                             runs.append(
                                 {
@@ -374,16 +373,16 @@ if args.if_run:
                             )
                         if args.papi_profiling:
                             if thread == 1:
-                                run_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_papi_profiling/{region_length}/{arch}")
-                                run_dir = Path(run_dir/f"run_{thread}_{i}")
+                                run_base_dir = Path(workdir/f"{bench.upper()}/{size}/single_thread_c_papi_profiling/{region_length}/{arch}")
+                                run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
-                                for file in run_dir.glob("*.single_thread_c_papi_profiling"):
+                                for file in run_base_dir.glob("*.single_thread_c_papi_profiling"):
                                     run_filename = file.name
                             else:
-                                run_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_profiling/{region_length}/{arch}")
-                                run_dir = Path(run_dir/f"run_{thread}_{i}")
+                                run_base_dir = Path(workdir/f"{bench.upper()}/{size}/c_papi_profiling/{region_length}/{arch}")
+                                run_dir = Path(run_base_dir/f"run_{thread}_{i}")
                                 run_ball_env["PAPI_OUTPUT_DIRECTORY"] = run_dir.as_posix()
-                                for file in run_dir.glob("*.c_papi_profiling"):
+                                for file in run_base_dir.glob("*.c_papi_profiling"):
                                     run_filename = file.name
                             runs.append(
                                 {
