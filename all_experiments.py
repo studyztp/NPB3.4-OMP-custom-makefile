@@ -59,6 +59,7 @@ thread_list = args.thread_list
 region_size_list = args.region_size_list
 arch = args.arch
 size_list = args.size_list
+num_runs = args.num_run
 
 random.seed(627)
 
