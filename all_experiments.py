@@ -34,8 +34,8 @@ def process_this(run_ball):
     command = run_ball["cmd"]
     env = run_ball["env"]
     dir = run_ball["dir"]
-    if not dir.exists():
-        dir.mkdir(exist_ok=False)
+    if not Path(dir).exists():
+        Path(dir).mkdir(exist_ok=False)
     if "stdout" in run_ball:
         stdout_path = run_ball["stdout"]
     else:
