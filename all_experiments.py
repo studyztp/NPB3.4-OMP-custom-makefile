@@ -325,7 +325,7 @@ if args.if_run:
                                 run_filename = file.name
                             runs.append(
                             {
-                                "cmd": default_cmd + [f"./{run_filename}"],
+                                "cmd": default_cmd + [f"{run_filename}"],
                                 "env": run_ball_env.copy(),
                                 "dir": run_dir.as_posix(),
                                 "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -339,7 +339,7 @@ if args.if_run:
                                 run_filename = file.name
                             runs.append(
                                 {
-                                    "cmd": default_cmd + [f"./{run_filename}"],
+                                    "cmd": default_cmd + [f"{run_filename}"],
                                     "env": run_ball_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -364,7 +364,7 @@ if args.if_run:
                                     run_filename = file.name
                             runs.append(
                                 {
-                                    "cmd": default_cmd + [f"./{run_filename}"],
+                                    "cmd": default_cmd + [f"{run_filename}"],
                                     "env": run_ball_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -386,7 +386,7 @@ if args.if_run:
                                     run_filename = file.name
                             runs.append(
                                 {
-                                    "cmd": default_cmd + [f"./{run_filename}"],
+                                    "cmd": default_cmd + [f"{run_filename}"],
                                     "env": run_ball_env.copy(),
                                     "dir": run_dir.as_posix(),
                                     "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -411,7 +411,7 @@ if args.if_run:
                                         end_filename = file.name
                                 runs.append(
                                     {
-                                        "cmd": default_cmd + [f"./{start_filename}"],
+                                        "cmd": default_cmd + [f"{start_filename}"],
                                         "env": run_ball_env.copy(),
                                         "dir": run_dir.as_posix(),
                                         "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -420,7 +420,7 @@ if args.if_run:
                                 )
                                 runs.append(
                                     {
-                                        "cmd": default_cmd + [f"./{end_filename}"],
+                                        "cmd": default_cmd + [f"{end_filename}"],
                                         "env": run_ball_env.copy(),
                                         "dir": run_dir.as_posix(),
                                         "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
@@ -441,7 +441,7 @@ if args.if_run:
                                         run_filename = file.name
                                 runs.append(
                                     {
-                                        "cmd": default_cmd + [f"./{run_filename}"],
+                                        "cmd": default_cmd + [f"{run_filename}"],
                                         "env": run_ball_env.copy(),
                                         "dir": run_dir.as_posix(),
                                         "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
