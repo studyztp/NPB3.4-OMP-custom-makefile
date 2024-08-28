@@ -392,9 +392,8 @@ void roi_end_() {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
     printf("PAPI region end\n");
-    printf("PAPI ended\nNow exiting the program\n");
+    printf("PAPI ended\n");
     printf("ROI end\n");
-    exit(0);
 }
 
 #endif // MARKER_OVERHEAD_MEASURING

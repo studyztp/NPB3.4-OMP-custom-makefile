@@ -491,9 +491,7 @@ void roi_end_() {
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI ended\nNow exiting the program\n");
-
-    exit(0);
+    printf("PAPI ended\n");
 }
 
 #endif // MARKER_OVERHEAD_MEASURING
@@ -590,9 +588,7 @@ void roi_end_() {
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI ended\nNow exiting the program\n");
-
-    exit(0);
+    printf("PAPI ended\n")
 }
 
 #endif // PAPI_NAIVE
@@ -611,7 +607,6 @@ void roi_end_() {
     printf("PAPI region end\n");
     long long time_taken = calculate_nsec_difference(start, end);
     printf("Time taken: %lld\n", time_taken);
-    exit(0);
 }
 
 #endif // TIMING_NAIVE
