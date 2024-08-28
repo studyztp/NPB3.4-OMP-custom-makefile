@@ -588,7 +588,7 @@ void roi_end_() {
     if (retval != PAPI_OK) {
         printf("PAPI_hl_region_end failed due to %d.\n", retval);
     }
-    printf("PAPI ended\n")
+    printf("PAPI ended\n");
 }
 
 #endif // PAPI_NAIVE
