@@ -115,9 +115,5 @@ single_thread_c_marker_overhead_measuring.ll: single_thread_c_helper.c
 	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING -emit-llvm \
 	single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring.ll ${PAPI_LINE}
 
-single_thread_c_marker_overhead_measuring.ll: single_thread_c_helper.c
-	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING \
-	-emit-llvm single_thread_c_helper.c -o single_thread_c_marker_overhead_measuring.ll ${PAPI_LINE}
-
 clean:
 	rm -f *.ll

@@ -4,6 +4,13 @@
 #include <sys/time.h>
 #endif
 
+#include <stdio.h>
+
+__attribute__((no_profile_instrument_function))
+double __floatdidf(long long int x) {
+    return (double)x;
+}
+
 void wtime(double *t)
 {
    /* a generic timer */
