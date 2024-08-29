@@ -66,6 +66,8 @@ num_runs = args.num_run
 
 random.seed(627)
 
+print("all input arguments are", args)
+
 if args.region_info != "":
     with open(args.region_info, "r") as f:
         region_info = json.load(f)
