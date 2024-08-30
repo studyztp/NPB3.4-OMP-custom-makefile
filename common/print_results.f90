@@ -1,13 +1,12 @@
 
       subroutine print_results(name, class, n1, n2, n3, niter,  &
-     &               t, mops, optype, verified, npbversion,  &
+     &               optype, verified, npbversion,  &
      &               compiletime, cs1, cs2, cs3, cs4, cs5, cs6, cs7)
       
       implicit none
       character(len=*) name
       character class
       integer   n1, n2, n3, niter, j
-      double precision t, mops
       character optype*24, size*15
       logical   verified
       character(len=*) npbversion, compiletime,  &
@@ -58,9 +57,6 @@
 
          write (*, 5) niter
  5       format(' Iterations      = ', 12x, i12)
-         
-         write (*, 6) t
- 6       format(' Time in seconds = ',12x, f12.2)
 
          if (num_threads .gt. 0) write (*,7) num_threads
  7       format(' Total threads   = ', 12x, i12)
@@ -69,13 +65,7 @@
  8       format(' Avail threads   = ', 12x, i12)
 
          if (num_threads .ne. max_threads) write (*,88) 
- 88      format(' Warning: Threads used differ from threads available')
-
-         write (*,9) mops
- 9       format(' Mop/s total     = ',12x, f12.2)
-
-         if (num_threads .gt. 0) write (*,10) mops/float( num_threads )
- 10      format(' Mop/s/thread    = ', 12x, f12.2)        
+ 88      format(' Warning: Threads used differ from threads available')      
 
          write(*, 11) optype
  11      format(' Operation type  = ', a24)

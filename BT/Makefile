@@ -31,12 +31,12 @@ bt.bc: bt.ll bt_data.ll initialize.ll exact_solution.ll \
 	exact_rhs.ll set_constants.ll adi.ll rhs.ll \
 	x_solve$(BLK).ll y_solve$(BLK).ll solve_subs$(BLK).ll \
 	z_solve$(BLK).ll add.ll error.ll verify.ll work_lhs$(BLK).ll \
-	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
+	${COMMON}/print_results.ll
 	${LLVM_LINK} -o bt.bc bt.ll bt_data.ll initialize.ll exact_solution.ll \
 	exact_rhs.ll set_constants.ll adi.ll rhs.ll \
 	x_solve$(BLK).ll y_solve$(BLK).ll solve_subs$(BLK).ll \
 	z_solve$(BLK).ll add.ll error.ll verify.ll work_lhs$(BLK).ll \
-	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
+	${COMMON}/print_results.ll
 
 bt_O3.bc: bt.bc
 	${OPT} ${OPT_FLAGS} bt.bc -o bt_O3_${CURRENT_DATE}.bc

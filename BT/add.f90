@@ -15,7 +15,6 @@
 
       integer i, j, k, m
 
-      if (timeron) call timer_start(t_add)
 !$omp parallel do default(shared) private(i,j,k,m) collapse(2)
       do     k = 1, grid_points(3)-2
          do     j = 1, grid_points(2)-2
@@ -26,7 +25,6 @@
             enddo
          enddo
       enddo
-      if (timeron) call timer_stop(t_add)
 
       return
       end
