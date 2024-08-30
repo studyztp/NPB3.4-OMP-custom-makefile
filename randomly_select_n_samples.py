@@ -20,7 +20,7 @@ for bench in benchmarks:
         info = json.load(f)
     total_regions = len(info.keys())
     rid_list = [int(rid) for rid in info.keys()]
-    randomly_selected_regions = random.sample(rid_list, max(num_samples, total_regions))
+    randomly_selected_regions = random.sample(rid_list, min(num_samples, total_regions))
     all_bench_info[bench] = randomly_selected_regions
 
 with open(f"randomly_selected_{num_samples}_regions.json", "w") as f:
