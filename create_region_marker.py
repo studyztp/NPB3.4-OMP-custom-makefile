@@ -103,25 +103,20 @@ def create_region_marker(run_output_file, static_info, num_threads):
             line = f.readline()
     return marker_info
 
-                    
-        
-
 target_thread = 8
+target_experiment_name = "c_profiling"
 target_run_num = 0
 target_arch = "aarch64"
 size = "C"
 region_length = 1000_000_000
 safe_perf = 0.05
 
-# benchmarks =  ["bt", "cg", "ep", "is", "ft", "lu", "mg", "sp"]
-benchmarks = ["is"]
-# workdir = Path().cwd()
-workdir = Path("/home/studyztp/test_ground/experiments/hardware-profiling/nugget-paper/NPB3.4-OMP-custom-makefile")
-output_dir = Path(workdir/"markers")
-output_dir.mkdir(exist_ok=True)
+benchmarks =  ["bt", "cg", "ep", "is", "ft", "lu", "mg", "sp"]
+workdir = Path().cwd()
+output_dir = workdir
 
 for bench in benchmarks:
-    bench_dir = Path(workdir/f"{bench.upper()}/{size}/c_profiling/{region_length}")
+    bench_dir = Path(workdir/f"{bench.upper()}/{size}/{target_experiment_name}/{region_length}")
     run_dir = Path(bench_dir/f"{target_arch}/run_{target_thread}_{target_run_num}")
     for file in bench_dir.glob("basic_block_info_output_*"):
         basic_block_info_file_path = Path(bench_dir/file.name)
@@ -129,13 +124,18 @@ for bench in benchmarks:
         static_info = get_static_info(basic_block_info_file_path)
     run_output_file = Path(run_dir/f"all_output_{target_thread}_threads.txt")
     marker_info = create_region_marker(run_output_file, static_info, target_thread)
-    with open(output_dir/f"{bench}_{target_run_num}_info.json", "w") as f:
+    bench_output_base = Path(output_dir/f"{bench.upper()}/{size}/region_info")
+    bench_output_base.mkdir(exist_ok=True)
+    bench_thread_output = Path(bench_output_base/f"{target_thread}")
+    bench_thread_output.mkdir(exist_ok=True)
+    bench_thread_region_size_output = Path(bench_thread_output/f"{region_length}")
+    if bench_thread_region_size_output.exists():
+        shutil.rmtree(bench_thread_region_size_output)
+    bench_thread_region_size_output.mkdir(exist_ok=False)
+    with open(bench_thread_region_size_output/f"{bench}_{target_run_num}_info.json", "w") as f:
         json.dump(marker_info, f, indent=4)
-
-    bench_region_output_dir = Path(output_dir/f"{bench}-region")
-    bench_region_output_dir.mkdir(exist_ok=True)
     for rid, rdata in marker_info.items():
-        region_output_dir = Path(bench_region_output_dir/f"{rid}")
+        region_output_dir = Path(bench_thread_region_size_output/f"{rid}")
         region_output_dir.mkdir(exist_ok=True)
         with open(region_output_dir/f"{rid}_marker_info.txt", "w") as f:
             f.write(f"{rdata['warmup_marker_fid']}\n")
