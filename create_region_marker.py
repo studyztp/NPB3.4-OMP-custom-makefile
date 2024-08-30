@@ -51,12 +51,12 @@ def create_region_marker(run_output_file, static_info, num_threads):
         line = f.readline()
         while line:
             if "Region:" in line:
+                line = f.readline()
                 line = f.readline().split()
-                ir_inst_count = int(line[3])
+                ir_inst_count = int(line[5])
                 safe_period = int(float(1-safe_perf) * float(ir_inst_count))
                 regional_bbv = None
                 regional_timestamp = None
-                line = f.readline()
                 for _ in range(num_threads):
                     line = f.readline().split()
                     data = line[5][1:-2]
@@ -103,8 +103,8 @@ def create_region_marker(run_output_file, static_info, num_threads):
             line = f.readline()
     return marker_info
 
-target_thread = 8
-target_experiment_name = "c_profiling"
+target_thread = 1
+target_experiment_name = "single_thread_c_profiling"
 target_run_num = 0
 target_arch = "aarch64"
 size = "C"
