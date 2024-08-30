@@ -170,7 +170,7 @@ void roi_end_() {
     for (unsigned long long i = 0; i < region; i++) {
         fprintf(fptr, "Region: %llu\n", i);
         total_IR_inst += counter_array[i];
-        fprintf(fptr, "Total IR instructions: %llu\n", counter_array[i]);
+        fprintf(fptr, "Total IR instructions: %llu\n", total_IR_inst);
         fprintf(fptr, "Total IR instructions in region: %llu\n", counter_array[i]);
         for (unsigned long long j = 0; j < num_threads; j++) {
             fprintf(fptr, "Thread %llu BBV and Timesamp: [", j);

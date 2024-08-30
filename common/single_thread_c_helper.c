@@ -122,7 +122,8 @@ void roi_end_() {
     process_data();
 
     char outputfile[256];
-    sprintf(outputfile, "output.txt");
+    sprintf(outputfile, "all_output_1_threads.txt");
+
     FILE* fptr = fopen(outputfile, "w");
     if (fptr == NULL) {
         printf("Error: cannot open file\n");
@@ -132,13 +133,13 @@ void roi_end_() {
     unsigned long long total_IR_inst = 0;
 
     for (unsigned long long i = 0; i < region; i ++) {
-        fprintf(fptr, "Region %llu\n", i);
+        fprintf(fptr, "Region: %llu\n", i);
         total_IR_inst += counter_array[i];
         fprintf(fptr, "Total IR instructions: %llu\n", total_IR_inst);
         fprintf(fptr, "Total IR instructions in region: %llu\n", counter_array[i]);
         fprintf(fptr, "Thread 0 BBV and Timestamp: [");
         for (unsigned long long k = 0; k < total_num_bbs; k ++) {
-            fprintf(fptr, "%llu:%llu", bbv_array[i][k], timestamp_array[i][k]);
+            fprintf(fptr, "%llu:%llu,", bbv_array[i][k], timestamp_array[i][k]);
         }
         fprintf(fptr, "]\n");
     }
