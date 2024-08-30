@@ -27,6 +27,7 @@ parser.add_argument("--papi_profiling", type=bool, default=False)
 parser.add_argument("--marker_overhead", type=bool, default=False)
 parser.add_argument("--papi_measuring", type=bool, default=False)
 parser.add_argument("--region_info", type=str, default="")
+parser.add_argument("--num_pool", type=int, default=1)
 
 args = parser.parse_args()
 
@@ -451,7 +452,11 @@ if args.if_run:
                                     }
                                 )
     random.shuffle(runs)
-    for run in runs:
-        process_this(run)
+    if args.num_pool > 1:
+        with Pool(args.num_pool) as p:
+            p.map(process_this, runs)
+    else:
+        for run in runs:
+            process_this(run)
 
 print("All done!")
