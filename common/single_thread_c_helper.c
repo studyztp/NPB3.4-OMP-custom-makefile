@@ -311,6 +311,12 @@ void start_event() {
 
 __attribute__((no_profile_instrument_function))
 void end_event() {
+    printf("M5_FS End marker\n");
+    m5_work_end_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function))
+void roi_begin_() {
     if_warmup_not_met = TRUE;
 
     struct utsname buffer;
