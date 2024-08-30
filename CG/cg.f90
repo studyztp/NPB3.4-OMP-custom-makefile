@@ -66,34 +66,18 @@
       double precision   rnorm
       double precision   norm_temp1,norm_temp2,norm_temp3
 
-      double precision   t, mflops, tmax
       character          class
       logical            verified
       double precision   zeta_verify_value, epsilon, err
 
-      character t_names(t_last)*8
 !$    integer   omp_get_max_threads
 !$    external  omp_get_max_threads
 
-
-      do i = 1, T_last
-         call timer_clear( i )
-      end do
-
-      call check_timer_flag( timeron )
-      if (timeron) then
-         t_names(t_init) = 'init'
-         t_names(t_bench) = 'benchmk'
-         t_names(t_conj_grad) = 'conjgd'
-      endif
-
-      call timer_start( T_init )
 
       firstrow = 1
       lastrow  = na
       firstcol = 1
       lastcol  = na
-
 
       if( na .eq. 1400 .and.  &
      &    nonzer .eq. 7 .and.  &
@@ -275,12 +259,6 @@
 
       zeta  = 0.0d0
 
-      call timer_stop( T_init )
-
-      write (*, 2000) timer_read(T_init)
- 2000 format(' Initialization time = ',f15.3,' seconds')
-
-      call timer_start( T_bench )
       call roi_begin
 
 !---------------------------------------------------------------------
@@ -293,9 +271,7 @@
 !---------------------------------------------------------------------
 !  The call to the conjugate gradient routine:
 !---------------------------------------------------------------------
-         if ( timeron ) call timer_start( T_conj_grad )
          call conj_grad ( rnorm )
-         if ( timeron ) call timer_stop( T_conj_grad )
 
 
 !---------------------------------------------------------------------
@@ -340,13 +316,10 @@
 
       enddo                              ! end of main iter inv pow meth
       call roi_end
-      call timer_stop( T_bench )
 
 !---------------------------------------------------------------------
 !  End of timed section
 !---------------------------------------------------------------------
-
-      t = timer_read( T_bench )
 
 
       write(*,100)
@@ -384,19 +357,9 @@
       endif
 
 
-      if( t .ne. 0. ) then
-         mflops = 1.0d-6 * 2*niter*dble( na )  &
-     &               * ( 3.+nonzer*dble(nonzer+1)  &
-     &                 + 25.*(5.+nonzer*dble(nonzer+1))  &
-     &                 + 3. ) / t
-      else
-         mflops = 0.d0
-      endif
-
-
          call print_results('CG', class, na, 0, 0,  &
-     &                      niter, t,  &
-     &                      mflops, '          floating point',  &
+     &                      niter,  &
+     &                             '          floating point',  &
      &                      verified, npbversion, compiletime,  &
      &                      cs1, cs2, cs3, cs4, cs5, cs6, cs7)
 
@@ -408,27 +371,6 @@
 !---------------------------------------------------------------------
 !      More timers
 !---------------------------------------------------------------------
-      if (.not.timeron) goto 999
-
-      tmax = timer_read(T_bench)
-      if (tmax .eq. 0.0) tmax = 1.0
-
-      write(*,800)
- 800  format('  SECTION   Time (secs)')
-      do i=1, t_last
-         t = timer_read(i)
-         if (i.eq.t_init) then
-            write(*,810) t_names(i), t
-         else
-            write(*,810) t_names(i), t, t*100./tmax
-            if (i.eq.t_conj_grad) then
-               t = tmax - t
-               write(*,820) 'rest', t, t*100./tmax
-            endif
-         endif
- 810     format(2x,a8,':',f9.3:'  (',f6.2,'%)')
- 820     format('    --> ',a8,':',f9.3,'  (',f6.2,'%)')
-      end do
 
  999  continue
 

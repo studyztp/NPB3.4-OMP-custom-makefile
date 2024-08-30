@@ -32,9 +32,5 @@
       double precision x(2*nk), qq(0:nq-1), q(0:nq-1)
 !$omp threadprivate( x, qq )
 
-! ... timer constants
-      integer    t_total, t_gpairs, t_randn, t_rcomm, t_last
-      parameter (t_total=1, t_gpairs=2, t_randn=3, t_rcomm=4, t_last=4)
-
       end module ep_data
 

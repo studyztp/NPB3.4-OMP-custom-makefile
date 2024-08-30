@@ -46,14 +46,6 @@
       double precision         amult, tran
 !$omp threadprivate (amult, tran)
 
-      external         timer_read
-      double precision timer_read
-
-      integer T_init, T_bench, T_conj_grad, T_last
-      parameter (T_init=1, T_bench=2, T_conj_grad=3, T_last=3)
-
-      logical timeron
-
       end module cg_data
 
 
