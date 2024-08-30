@@ -61,12 +61,8 @@
 
       character class
       logical verified
-      double precision mflops
 
-      double precision t, tmax, timer_read, trecs(t_last)
-      external timer_read
       integer i
-      character t_names(t_last)*8
 
       
 
@@ -74,20 +70,6 @@
 !     Setup info for timers
 !---------------------------------------------------------------------
 
-      call check_timer_flag( timeron )
-      if (timeron) then
-         t_names(t_total) = 'total'
-         t_names(t_rhsx) = 'rhsx'
-         t_names(t_rhsy) = 'rhsy'
-         t_names(t_rhsz) = 'rhsz'
-         t_names(t_rhs) = 'rhs'
-         t_names(t_jacld) = 'jacld'
-         t_names(t_blts) = 'blts'
-         t_names(t_jacu) = 'jacu'
-         t_names(t_buts) = 'buts'
-         t_names(t_add) = 'add'
-         t_names(t_l2norm) = 'l2norm'
-      endif
 
 !---------------------------------------------------------------------
 !   read input data
@@ -152,46 +134,16 @@
 !   verification test
 !---------------------------------------------------------------------
       call verify ( rsdnm, errnm, frc, class, verified )
-      mflops = 1.0d-6*dble(itmax)*(1984.77*dble( nx0 )  &
-     &     *dble( ny0 )  &
-     &     *dble( nz0 )  &
-     &     -10923.3*(dble( nx0+ny0+nz0 )/3.)**2  &
-     &     +27770.9* dble( nx0+ny0+nz0 )/3.  &
-     &     -144010.)  &
-     &     / maxtime
 
       call print_results('LU', class, nx0,  &
      &  ny0, nz0, itmax,  &
-     &  maxtime, mflops, '          floating point', verified,  &
+     &   '          floating point', verified,  &
      &  npbversion, compiletime, cs1, cs2, cs3, cs4, cs5, cs6,  &
      &  '(none)')
 
 !---------------------------------------------------------------------
 !      More timers
 !---------------------------------------------------------------------
-      if (.not.timeron) goto 999
-
-      do i=1, t_last
-         trecs(i) = timer_read(i)
-      end do
-      tmax = maxtime
-      if ( tmax .eq. 0. ) tmax = 1.0
-
-      write(*,800)
- 800  format('  SECTION     Time (secs)')
-      do i=1, t_last
-         if (i.ne.t_jacld .and. i.ne.t_jacu) then
-            write(*,810) t_names(i), trecs(i), trecs(i)*100./tmax
-         endif
-         if (i.eq.t_rhs) then
-            t = trecs(t_rhsx) + trecs(t_rhsy) + trecs(t_rhsz)
-            write(*,820) 'sub-rhs', t, t*100./tmax
-            t = trecs(i) - t
-            write(*,820) 'rest-rhs', t, t*100./tmax
-         endif
- 810     format(2x,a8,':',f9.3,'  (',f6.2,'%)')
- 820     format(5x,'--> ',a8,':',f9.3,'  (',f6.2,'%)')
-      end do
 
  999  continue
       end

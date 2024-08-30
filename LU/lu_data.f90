@@ -105,23 +105,6 @@
 !---------------------------------------------------------------------
 !   timers
 !---------------------------------------------------------------------
-      integer t_rhsx,t_rhsy,t_rhsz,t_rhs,t_jacld,t_blts,  &
-     &        t_jacu,t_buts,t_add,t_l2norm,t_last,t_total
-      parameter (t_total = 1)
-      parameter (t_rhsx = 2)
-      parameter (t_rhsy = 3)
-      parameter (t_rhsz = 4)
-      parameter (t_rhs = 5)
-      parameter (t_jacld = 6)
-      parameter (t_blts = 7)
-      parameter (t_jacu = 8)
-      parameter (t_buts = 9)
-      parameter (t_add = 10)
-      parameter (t_l2norm = 11)
-      parameter (t_last = 11)
-
-      logical timeron
-      double precision maxtime
 
       end module lu_data
 
