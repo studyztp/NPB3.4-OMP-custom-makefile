@@ -30,7 +30,6 @@
 ! Prepare for z-solve, array redistribution   
 !---------------------------------------------------------------------
 
-       if (timeron) call timer_start(t_zsolve)
 !$omp parallel default(shared) private(i,j,k,k1,k2,ii,ib,im,  &
 !$omp&    ru1,fac1,fac2)
 
@@ -363,7 +362,6 @@
        end do
 !$omp end do nowait
 !$omp end parallel
-       if (timeron) call timer_stop(t_zsolve)
 
        call tzetar
 

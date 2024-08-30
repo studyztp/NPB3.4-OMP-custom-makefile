@@ -29,10 +29,9 @@ all: pre
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 
-mg.bc: mg.ll mg_data.ll ${COMMON}/print_results.ll ${COMMON}/${RAND}.ll \
-	${COMMON}/timers.ll ${COMMON}/wtime.ll
+mg.bc: mg.ll mg_data.ll ${COMMON}/print_results.ll ${COMMON}/${RAND}.ll 
 	${LLVM_LINK} -o mg.bc mg.ll mg_data.ll ${COMMON}/print_results.ll \
-	${COMMON}/${RAND}.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
+	${COMMON}/${RAND}.ll
 
 mg_O3.bc: mg.bc
 	${OPT} ${OPT_FLAGS} mg.bc -o mg_O3_${CURRENT_DATE}.bc

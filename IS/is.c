@@ -258,8 +258,6 @@ void c_print_results( char   *name,
                       int    n2,
                       int    n3,
                       int    niter,
-                      double t,
-                      double mops,
 		      char   *optype,
                       int    passed_verification,
                       char   *npbversion,
@@ -270,8 +268,6 @@ void c_print_results( char   *name,
                       char   *c_inc,
                       char   *cflags,
                       char   *clinkflags );
-
-#include "../common/c_timers.h"
 
 
 /*
@@ -872,23 +868,9 @@ void rank( int iteration )
 
 int main( int argc, char **argv )
 {
-    int             i, iteration, timer_on;
+    int             i, iteration;
 
     double          timecounter;
-
-
-/*  Initialize timers  */
-    timer_on = check_timer_flag();
-
-    timer_clear( 0 );
-    if (timer_on) {
-        timer_clear( 1 );
-        timer_clear( 2 );
-        timer_clear( 3 );
-    }
-
-    if (timer_on) timer_start( 3 );
-
 
 /*  Initialize the verification arrays if a valid class */
     for( i=0; i<TEST_ARRAY_SIZE; i++ )
@@ -936,14 +918,11 @@ int main( int argc, char **argv )
 #endif
     printf( "\n" );
 
-    if (timer_on) timer_start( 1 );
-
 /*  Generate random number sequence and subsequent keys on all procs */
     create_seq( 314159265.00,                    /* Random number gen seed */
                 1220703125.00 );                 /* Random number gen mult */
 
     alloc_key_buff();
-    if (timer_on) timer_stop( 1 );
 
 
 /*  Do one interation for free (i.e., untimed) to guarantee initialization of  
@@ -955,8 +934,6 @@ int main( int argc, char **argv )
 
     if( CLASS != 'S' ) printf( "\n   iteration\n" );
 
-/*  Start timer  */             
-    timer_start( 0 );
     roi_begin_();
 
 
@@ -970,18 +947,11 @@ int main( int argc, char **argv )
 
 /*  End of timing, obtain maximum time of all processors */
     roi_end_();
-    timer_stop( 0 );
-    timecounter = timer_read( 0 );
 
 
 /*  This tests that keys are in sequence: sorting of last ranked key seq
     occurs here, but is an untimed operation                             */
-    if (timer_on) timer_start( 2 );
     full_verify();
-    if (timer_on) timer_stop( 2 );
-
-    if (timer_on) timer_stop( 3 );
-
 
 /*  The final printout  */
     if( passed_verification != 5*MAX_ITERATIONS + 1 )
@@ -992,9 +962,6 @@ int main( int argc, char **argv )
                      TOTAL_KS2,
                      0,
                      MAX_ITERATIONS,
-                     timecounter,
-                     1.0e-6*(double)(TOTAL_KEYS)*MAX_ITERATIONS
-                                                  /timecounter,
                      "keys ranked", 
                      passed_verification,
                      NPBVERSION,
@@ -1005,26 +972,6 @@ int main( int argc, char **argv )
                      C_INC,
                      CFLAGS,
                      CLINKFLAGS );
-
-
-/*  Print additional timers  */
-    if (timer_on) {
-       double t_total, t_percent;
-
-       t_total = timer_read( 3 );
-       printf("\nAdditional timers -\n");
-       printf(" Total execution: %8.3f\n", t_total);
-       if (t_total == 0.0) t_total = 1.0;
-       timecounter = timer_read(1);
-       t_percent = timecounter/t_total * 100.;
-       printf(" Initialization : %8.3f (%5.2f%%)\n", timecounter, t_percent);
-       timecounter = timer_read(0);
-       t_percent = timecounter/t_total * 100.;
-       printf(" Benchmarking   : %8.3f (%5.2f%%)\n", timecounter, t_percent);
-       timecounter = timer_read(2);
-       t_percent = timecounter/t_total * 100.;
-       printf(" Sorting        : %8.3f (%5.2f%%)\n", timecounter, t_percent);
-    }
 
     return 0;
          /**************************/

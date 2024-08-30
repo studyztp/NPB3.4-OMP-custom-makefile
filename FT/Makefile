@@ -28,8 +28,8 @@ all: pre
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 
-ft.bc: ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll ft.ll ft_data.ll
-	${LLVM_LINK} -o ft.bc ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll ft.ll ft_data.ll
+ft.bc: ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ft.ll ft_data.ll
+	${LLVM_LINK} -o ft.bc ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ft.ll ft_data.ll
 
 ft_O3.bc: ft.bc
 	${OPT} ${OPT_FLAGS} ft.bc -o ft_O3_${CURRENT_DATE}.bc
@@ -39,12 +39,6 @@ ${COMMON}/${RAND}.ll: ${COMMON}/${RAND}.f90
 
 ${COMMON}/print_results.ll: ${COMMON}/print_results.f90
 	${FC} ${FLAGS} -S -emit-llvm ${COMMON}/print_results.f90 -o ${COMMON}/print_results.ll
-
-${COMMON}/timers.ll: ${COMMON}/timers.f90
-	${FC} ${FLAGS} -S -emit-llvm ${COMMON}/timers.f90 -o ${COMMON}/timers.ll
-
-${COMMON}/wtime.ll: ${COMMON}/wtime.c
-	${CC} ${FLAGS} -S -emit-llvm ${COMMON}/wtime.c -o ${COMMON}/wtime.ll
 
 blk_par.h: FORCE
 	sed -e 's/=0/=$(BLKFAC)/' blk_par0.h > blk_par.h_wk

@@ -26,7 +26,6 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-       if (timeron) call timer_start(t_ysolve)
 !$omp parallel do default(shared) private(i,j,k,j1,j2,m,  &
 !$omp&    ru1,fac1,fac2) collapse(2)
        do  k = 1, nz2
@@ -290,7 +289,6 @@
 
           end do
        end do
-       if (timeron) call timer_stop(t_ysolve)
 
 
        call pinvr

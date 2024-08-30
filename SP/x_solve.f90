@@ -26,7 +26,6 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
-       if (timeron) call timer_start(t_xsolve)
 !$omp parallel do default(shared) private(i,j,k,i1,i2,m,  &
 !$omp&    ru1,fac1,fac2) collapse(2)
        do  k = 1, nz2
@@ -295,7 +294,6 @@
           end do
 
        end do
-       if (timeron) call timer_stop(t_xsolve)
 
 !---------------------------------------------------------------------
 !      Do the block-diagonal inversion          

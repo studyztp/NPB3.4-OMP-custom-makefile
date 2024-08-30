@@ -52,11 +52,9 @@
        include 'blk_par.h'
 
        integer          i, niter, step, fstatus
-       external         timer_read
-       double precision mflops, n3, t, tmax, timer_read, trecs(t_last)
+       double precision  n3
        logical          verified
        character        class
-       character        t_names(t_last)*8
 !$     integer  omp_get_max_threads
 !$     external omp_get_max_threads
 
@@ -66,25 +64,6 @@
 !      Read input file (if it exists), else take
 !      defaults from parameters
 !---------------------------------------------------------------------
-          
-       call check_timer_flag( timeron )
-       if (timeron) then
-         t_names(t_total) = 'total'
-         t_names(t_rhsx) = 'rhsx'
-         t_names(t_rhsy) = 'rhsy'
-         t_names(t_rhsz) = 'rhsz'
-         t_names(t_rhs) = 'rhs'
-         t_names(t_xsolve) = 'xsolve'
-         t_names(t_ysolve) = 'ysolve'
-         t_names(t_zsolve) = 'zsolve'
-         t_names(t_rdis1) = 'redist1'
-         t_names(t_rdis2) = 'redist2'
-         t_names(t_tzetar) = 'tzetar'
-         t_names(t_ninvr) = 'ninvr'
-         t_names(t_pinvr) = 'pinvr'
-         t_names(t_txinvr) = 'txinvr'
-         t_names(t_add) = 'add'
-       endif
 
        write(*, 1000)
        open (unit=2,file='inputsp.data',status='old', iostat=fstatus)
@@ -130,10 +109,6 @@
        ny2 = grid_points(2) - 2
        nz2 = grid_points(3) - 2
 
-       do i = 1, t_last
-          call timer_clear(i)
-       end do
-
        call alloc_space
 
        call set_constants
@@ -148,10 +123,6 @@
        call adi
        call initialize
 
-       do i = 1, t_last
-          call timer_clear(i)
-       end do
-       call timer_start(1)
        call roi_begin
 
        do  step = 1, niter
@@ -166,58 +137,18 @@
        end do
        
        call roi_end
-       call timer_stop(1)
-       tmax = timer_read(1)
        
        call verify(niter, class, verified)
 
-       if( tmax .ne. 0. ) then
-          n3 = dble(grid_points(1))*grid_points(2)*grid_points(3)
-          t = (grid_points(1)+grid_points(2)+grid_points(3))/3.d0
-          mflops = 1.0d-6*dble( niter )*(881.174 * n3  &
-     &             -4683.91 * t**2  &
-     &             +11484.5 * t  &
-     &             -19272.4) / tmax
-       else
-          mflops = 0.d0
-       endif
-
       call print_results('SP', class, grid_points(1),  &
      &     grid_points(2), grid_points(3), niter,  &
-     &     tmax, mflops, '          floating point',  &
+     &      '          floating point',  &
      &     verified, npbversion,compiletime, cs1, cs2, cs3, cs4, cs5,  &
      &     cs6, '(none)')
 
 !---------------------------------------------------------------------
 !      More timers
 !---------------------------------------------------------------------
-       if (.not.timeron) goto 999
-
-       do i=1, t_last
-          trecs(i) = timer_read(i)
-       end do
-       if (tmax .eq. 0.0) tmax = 1.0
-
-       write(*,800)
- 800   format('  SECTION   Time (secs)')
-
-       do i=1, t_last
-          write(*,810) t_names(i), trecs(i), trecs(i)*100./tmax
-          if (i.eq.t_rhs) then
-             t = trecs(t_rhsx) + trecs(t_rhsy) + trecs(t_rhsz)
-             write(*,820) 'sub-rhs', t, t*100./tmax
-             t = trecs(t_rhs) - t
-             write(*,820) 'rest-rhs', t, t*100./tmax
-          elseif (i.eq.t_zsolve) then
-             t = trecs(t_zsolve) - trecs(t_rdis1) - trecs(t_rdis2)
-             write(*,820) 'sub-zsol', t, t*100./tmax
-          elseif (i.eq.t_rdis2) then
-             t = trecs(t_rdis1) + trecs(t_rdis2)
-             write(*,820) 'redist', t, t*100./tmax
-          endif
- 810      format(2x,a8,':',f9.3,'  (',f6.2,'%)')
- 820      format('    --> ',a8,':',f9.3,'  (',f6.2,'%)')
-       end do
 
  999   continue
 

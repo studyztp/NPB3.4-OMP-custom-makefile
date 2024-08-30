@@ -68,22 +68,7 @@
 ! the array dimensions are stored in dims(coord, phase)
       integer dims(3)
 
-      integer T_total, T_setup, T_fft, T_evolve, T_checksum,  &
-     &        T_fftx, T_ffty,  &
-     &        T_fftz, T_max
-      parameter (T_total = 1, T_setup = 2, T_fft = 3,  &
-     &           T_evolve = 4, T_checksum = 5,  &
-     &           T_fftx = 6,  &
-     &           T_ffty = 7,  &
-     &           T_fftz = 8, T_max = 8)
 
-
-
-      logical timers_enabled
-
-
-      external timer_read
-      double precision timer_read
       external ilog2
       integer ilog2
 
