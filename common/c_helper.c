@@ -485,6 +485,7 @@ void roi_begin_() {
     }
 }
 
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     printf("PAPI region end\n");
     int retval = PAPI_hl_region_end("0");
@@ -582,6 +583,7 @@ void roi_begin_() {
     }
 }
 
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     printf("PAPI region end\n");
     int retval = PAPI_hl_region_end("0");
@@ -602,6 +604,7 @@ void roi_begin_() {
     clock_gettime(CLOCK_MONOTONIC, &start);
 }
 
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     clock_gettime(CLOCK_MONOTONIC, &end);
     printf("PAPI region end\n");
@@ -654,6 +657,7 @@ void roi_begin_() {
     m5_work_begin_addr(0, 0);
 }
 
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     m5_work_end_addr(0, 0);
     printf("M5 workend calledr\n");
@@ -662,3 +666,48 @@ void roi_end_() {
 }
 
 #endif // LOOPPOINT_M5_FS
+
+#ifdef M5_FS_NAIVE
+
+#include "gem5/m5ops.h"
+#include "m5_mmap.h"
+#include <errno.h>
+#include <sys/utsname.h>
+#include <unistd.h>
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    struct utsname buffer;
+    errno = 0;
+    if (uname(&buffer) != 0) {
+        perror("uname");
+        exit(1);
+    }
+
+    printf("arch     = %s\n", buffer.machine);
+
+    if (strcmp(buffer.machine, "x86_64") == 0) {
+        m5op_addr = 0xFFFF0000;
+    } else if (strcmp(buffer.machine, "aarch64") == 0) {
+        m5op_addr = 0x10010000;
+    } else {
+        m5op_addr = 0x0;
+        printf("Unsupported architecture\n");
+    }
+    map_m5_mem();
+    printf("M5_FS ADDR MOP initialized\n");
+    printf("M5_FS ROI started\n");
+
+    printf("calling M5 workbegin\n");
+    m5_work_begin_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_end_() {
+    m5_work_end_addr(0, 0);
+    printf("M5 workend calledr\n");
+    printf("M5_FS ROI ended\n");
+    unmap_m5_mem();
+}
+
+#endif // M5_FS_NAIVE

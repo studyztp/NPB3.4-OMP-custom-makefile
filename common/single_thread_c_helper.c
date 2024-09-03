@@ -393,6 +393,7 @@ void roi_begin_() {
     }
 }
 
+__attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
     int retval = PAPI_hl_region_end("0");
     if (retval != PAPI_OK) {

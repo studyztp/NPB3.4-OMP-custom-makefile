@@ -301,6 +301,11 @@ c_time_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_time_naive.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_time_naive
 	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive && ${LLVM_LINK} -o ${PROGRAM}_time_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_time_naive.ll
 
+c_m5_fs_naive: get_version c_m5_fs_naive_${PROGRAM}_${SIZE}
+c_m5_fs_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_m5_fs_naive.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_m5_fs_naive
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_naive.ll
+
 c_marker_looppoint_m5_fs: get_version c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}
 c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_looppoint_m5_fs.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_looppoint_m5_fs
@@ -325,6 +330,11 @@ final_compile_c_marker_looppoint_m5_fs: get_version final_compile_c_marker_loopp
 final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ../${PROGRAM}_marker_looppoint_m5_fs.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_looppoint_m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
+final_compile_c_m5_fs_naive: get_version final_compile_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ../${PROGRAM}_m5_fs_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_naive --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 clean:
 	cd ${COMMON} && make clean
