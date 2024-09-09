@@ -799,9 +799,6 @@ void setup_threshold(unsigned long long warm_up, unsigned long long start, unsig
         warmup_threshold = 1;
     }
 
-    start_threshold = 0;
-    end_threshold = 0;
-
     printf("Warmup threshold: %llu\n", warmup_threshold);
 
     atomic_init(&warmup_counter, 0);
