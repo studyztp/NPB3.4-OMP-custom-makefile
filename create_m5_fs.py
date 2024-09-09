@@ -18,6 +18,7 @@ parser.add_argument("--if_make_final", type=bool, default=False)
 parser.add_argument("--looppoint", type=bool, default=False)
 parser.add_argument("--m5_fs_measuring", type=bool, default=False)
 parser.add_argument("--m5_fs_naive", type=bool, default=False)
+parser.add_argument("--m5_fs_warmup_marker_only", type=bool, default=False)
 parser.add_argument("--region_info", type=str, default="")
 
 args = parser.parse_args()
@@ -74,6 +75,9 @@ if args.m5_fs_naive:
 if args.looppoint:
     program_types.append("c_marker_looppoint_m5_fs")
 
+if args.m5_fs_warmup_marker_only:
+    program_types.append("c_m5_fs_warmup_marker_only")
+
 print("all input arguments are", args)
 
 with open(args.region_info, "r") as f:
@@ -90,7 +94,7 @@ if args.if_make_base:
         output_log_dir = Path(workdir/f"{bench.upper()}/m5_output_logs")
         output_log_dir.mkdir(exist_ok=True)
         for program_type in program_types:
-            if program_type == "c_m5_fs_measuring" or program_type == "single_thread_c_m5_fs_measuring":
+            if program_type == "c_m5_fs_measuring" or program_type == "single_thread_c_m5_fs_measuring" or program_type == "c_m5_fs_warmup_marker_only":
                 for rid in region_info[bench]:
                     rid_env = must_env.copy()
                     rid_env["REGION_ID"] = str(rid)
@@ -128,7 +132,7 @@ if args.if_make_final:
         output_log_dir = Path(workdir/f"{bench.upper()}/m5_output_logs")
         output_log_dir.mkdir(exist_ok=True)
         for program_type in program_types:
-            if program_type == "c_m5_fs_measuring" or program_type == "single_thread_c_m5_fs_measuring":
+            if program_type == "c_m5_fs_measuring" or program_type == "single_thread_c_m5_fs_measuring" or program_type == "c_m5_fs_warmup_marker_only":
                 for rid in region_info[bench]:
                     rid_env = must_env.copy()
                     rid_env["REGION_ID"] = str(rid)
