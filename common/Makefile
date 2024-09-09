@@ -18,6 +18,7 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	c_time_naive.ll \
 	c_marker_overhead_measuring.ll \
 	c_marker_looppoint_m5_fs.ll \
+	c_m5_fs_warmup_marker_only.ll \
 	single_thread_c_profiling.ll \
 	single_thread_c_papi_profiling.ll \
 	single_thread_c_papi_measuring.ll \
@@ -91,6 +92,10 @@ c_time_naive.ll: c_helper.c
 c_marker_overhead_measuring.ll: c_helper.c
 	${CC} ${FLAGS} -S -DMEASURING -DMARKER_OVERHEAD_MEASURING \
 	-emit-llvm c_helper.c -o c_marker_overhead_measuring.ll ${PAPI_LINE}
+
+c_m5_fs_warmup_marker_only.ll: c_helper.c
+	${CC} ${FLAGS} -S -DM5_FS_WARMUP_MARKER_ONLY -emit-llvm \
+	c_helper.c -o c_m5_fs_warmup_marker_only.ll ${M5_LINE}
 
 c_marker_looppoint_m5_fs.ll: c_helper.c
 	${CC} ${FLAGS} -S -DLOOPPOINT_M5_FS -emit-llvm \

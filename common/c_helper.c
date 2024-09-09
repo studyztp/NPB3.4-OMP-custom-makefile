@@ -711,3 +711,100 @@ void roi_end_() {
 }
 
 #endif // M5_FS_NAIVE
+
+#ifdef M5_FS_WARMUP_MARKER_ONLY
+
+#include "gem5/m5ops.h"
+#include "m5_mmap.h"
+#include <errno.h>
+#include <sys/utsname.h>
+#include <unistd.h>
+
+#include <stdatomic.h>
+
+atomic_ullong warmup_counter;
+
+unsigned num_threads = 0;
+
+unsigned long long warmup_threshold;
+
+BOOL if_warmup_not_met = FALSE;
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_begin_() {
+    struct utsname buffer;
+    errno = 0;
+    if (uname(&buffer) != 0) {
+        perror("uname");
+        exit(1);
+    }
+
+    printf("arch     = %s\n", buffer.machine);
+
+    if (strcmp(buffer.machine, "x86_64") == 0) {
+        m5op_addr = 0xFFFF0000;
+    } else if (strcmp(buffer.machine, "aarch64") == 0) {
+        m5op_addr = 0x10010000;
+    } else {
+        m5op_addr = 0x0;
+        printf("Unsupported architecture\n");
+    }
+    map_m5_mem();
+    printf("M5_FS ADDR MOP initialized\n");
+    printf("M5_FS ROI started\n");
+
+    if_warmup_not_met = TRUE;
+
+    printf("calling M5 workbegin\n");
+    m5_work_begin_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function, noinline))
+void roi_end_() {
+    m5_work_end_addr(0, 0);
+    printf("M5 workend calledr\n");
+    printf("M5_FS ROI ended\n");
+    unmap_m5_mem();
+}
+
+__attribute__((no_profile_instrument_function))
+void warmup_event() {
+    printf("M5_FS Warmup marker\n");
+    m5_work_begin_addr(0, 0);
+}
+
+__attribute__((no_profile_instrument_function))
+void warmup_hook() {
+    if (if_warmup_not_met) {
+        unsigned long long curr_count = atomic_fetch_add(&warmup_counter, 1) + 1;
+        if (curr_count == warmup_threshold) {
+            warmup_event();
+            if_warmup_not_met = FALSE;
+        }
+    }
+}
+
+__attribute__((no_profile_instrument_function))
+void start_hook() {
+}
+
+__attribute__((no_profile_instrument_function))
+void end_hook() {
+}
+
+__attribute__((no_profile_instrument_function))
+void setup_threshold(unsigned long long warm_up, unsigned long long start, unsigned long long end) {
+    warmup_threshold = warm_up;
+    if (warmup_threshold == 0) {
+        warmup_threshold = 1;
+    }
+
+    start_threshold = 0;
+    end_threshold = 0;
+
+    printf("Warmup threshold: %llu\n", warmup_threshold);
+
+    atomic_init(&warmup_counter, 0);
+}
+
+#endif // M5_FS_WARMUP_MARKER_ONLY

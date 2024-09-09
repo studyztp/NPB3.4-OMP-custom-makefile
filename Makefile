@@ -255,6 +255,20 @@ c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${
 	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_c_marker_overhead_measuring_end.bc -o ${PROGRAM}_c_marker_overhead_measuring_end_opt.bc \
 	2>> phase_bound_log_end_${VERSION_STAMP}.log
 
+c_m5_fs_warmup_marker_only: get_version c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}
+c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_m5_fs_warmup_marker_only.ll
+	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_m5_fs_warmup_marker_only
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only && mkdir -p ${THREAD_SIZE}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_warmup_marker_only.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_warmup_marker_only.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
+	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
+	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
+	-phase-bound-output-file=basic_block_info_output_${VERSION_STAMP}.txt ${PROGRAM}_m5_fs_warmup_marker_only.bc -o ${PROGRAM}_m5_fs_warmup_marker_only_opt.bc \
+	2>> phase_bound_log_${VERSION_STAMP}.log
+
+
 final_compile_c_profiling: get_version final_compile_c_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}
 final_compile_c_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_profiling/${REGION_LENGTH} && mkdir -p ${TARGET_ARCH}
@@ -285,6 +299,11 @@ final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${RE
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ../${PROGRAM}_c_marker_overhead_measuring_start_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_overhead_measuring_start --target=${TARGET_ARCH}-unknown-linux-gnu
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ${PAPI_LINE} ../${PROGRAM}_c_marker_overhead_measuring_end_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_overhead_measuring_end --target=${TARGET_ARCH}-unknown-linux-gnu
+
+final_copmile_c_m5_fs_warmup_marker_only: get_version final_compile_c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
+final_compile_c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${LIB_FLAGS} ../${PROGRAM}_m5_fs_warmup_marker_only_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_warmup_marker_only --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 naive: get_version naive_${PROGRAM}_${SIZE}
 naive_${PROGRAM}_${SIZE}: ${COMMON}/c_naive.ll
