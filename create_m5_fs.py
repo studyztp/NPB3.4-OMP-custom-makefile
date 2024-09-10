@@ -80,8 +80,9 @@ if args.m5_fs_warmup_marker_only:
 
 print("all input arguments are", args)
 
-with open(args.region_info, "r") as f:
-    region_info = json.load(f)
+if not args.region_info == "":
+    with open(args.region_info, "r") as f:
+        region_info = json.load(f)
 
 workdir = Path().cwd()
 
