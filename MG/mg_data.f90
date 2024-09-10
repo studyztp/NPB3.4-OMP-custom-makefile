@@ -58,6 +58,13 @@
 !      parameter( m=1037 )
       parameter( m=nm+1 )
 
+      logical timeron
+      integer T_init, T_bench, T_psinv, T_resid, T_rprj3, T_interp,  &
+     &        T_norm2, T_mg3P, T_resid2, T_comm3, T_last
+      parameter (T_init=1, T_bench=2, T_mg3P=3,  &
+     &        T_psinv=4, T_resid=5, T_resid2=6, T_rprj3=7,  &
+     &        T_interp=8, T_norm2=9, T_comm3=10, T_last=10)
+
 
       end module mg_data
 

@@ -33,13 +33,13 @@ lu.bc: lu.ll lu_data.ll read_input.ll \
 	erhs.ll ssor${SVER}.ll rhs.ll l2norm.ll \
 	jacld.ll blts.ll jacu.ll buts.ll error.ll \
 	pintgr.ll verify.ll ${COMMON}/print_results.ll \
-	syncs.ll
+	syncs.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 	${LLVM_LINK} -o lu.bc lu.ll lu_data.ll read_input.ll \
 	domain.ll setcoeff.ll setbv.ll exact.ll setiv.ll \
 	erhs.ll ssor${SVER}.ll rhs.ll l2norm.ll \
 	jacld.ll blts.ll jacu.ll buts.ll error.ll \
 	pintgr.ll verify.ll ${COMMON}/print_results.ll \
-	syncs.ll
+	syncs.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
 lu_O3.bc: lu.bc
 	${OPT} ${OPT_FLAGS} lu.bc -o lu_O3_${CURRENT_DATE}.bc

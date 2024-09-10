@@ -69,6 +69,7 @@
       integer i
 
       integer iter
+      double precision total_time, mflops
       logical verified
       character class
 
@@ -78,6 +79,9 @@
 ! This reduces variable startup costs, which is important for such a 
 ! short benchmark. The other NPB 2 implementations are similar. 
 !---------------------------------------------------------------------
+      do i = 1, t_max
+         call timer_clear(i)
+      end do
 
       call alloc_space
 
@@ -92,8 +96,13 @@
 ! Start over from the beginning. Note that all operations must
 ! be timed, in contrast to other benchmarks. 
 !---------------------------------------------------------------------
+      do i = 1, t_max
+         call timer_clear(i)
+      end do
 
+      call timer_start(T_total)
       call roi_begin
+      if (timers_enabled) call timer_start(T_setup)
 
       call compute_indexmap(twiddle, dims(1), dims(2), dims(3))
 
@@ -101,23 +110,43 @@
 
       call fft_init (dims(1))
 
+      if (timers_enabled) call timer_stop(T_setup)
+      if (timers_enabled) call timer_start(T_fft)
       call fft(1, u1, u0)
+      if (timers_enabled) call timer_stop(T_fft)
 
       do iter = 1, niter
+         if (timers_enabled) call timer_start(T_evolve)
          call evolve(u0, u1, twiddle, dims(1), dims(2), dims(3))
+         if (timers_enabled) call timer_stop(T_evolve)
+         if (timers_enabled) call timer_start(T_fft)
 !         call fft(-1, u1, u2)
          call fft(-1, u1, u1)
+         if (timers_enabled) call timer_stop(T_fft)
+         if (timers_enabled) call timer_start(T_checksum)
 !         call checksum(iter, u2, dims(1), dims(2), dims(3))
          call checksum(iter, u1, dims(1), dims(2), dims(3))
+         if (timers_enabled) call timer_stop(T_checksum)
       end do
 
       call verify(nx, ny, nz, niter, verified, class)
 
       call roi_end
+      call timer_stop(t_total)
+      total_time = timer_read(t_total)
 
-      call print_results('FT', class, nx, ny, nz, niter,  &
-     &  '          floating point', verified,  &
-     &  npbversion, compiletime, cs1, cs2, cs3, cs4, cs5, cs6, cs7)
+      if( total_time .ne. 0. ) then
+         mflops = 1.0d-6*ntotal_f *  &
+     &             (14.8157+7.19641*log(ntotal_f)  &
+     &          +  (5.23518+7.21113*log(ntotal_f))*niter)  &
+     &                 /total_time
+      else
+         mflops = 0.0
+      endif
+!      call print_results('FT', class, nx, ny, nz, niter,  &
+!     &  total_time, mflops, '          floating point', verified,  &
+!     &  npbversion, compiletime, cs1, cs2, cs3, cs4, cs5, cs6, cs7)
+      if (timers_enabled) call print_timers()
 
       end
 
@@ -298,11 +327,9 @@
 
 !$    integer  omp_get_max_threads
 !$    external omp_get_max_threads
-
-      
-      
       debug = .FALSE.
 
+      call check_timer_flag( timers_enabled )
 
       write(*, 1000)
 
@@ -404,9 +431,37 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
+      subroutine print_timers()
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
+
+      use ft_data
+      implicit none
+
+      integer i
+      double precision t, t_m
+      character*25 tstrings(T_max)
+      data tstrings / '          total ',  &
+     &                '          setup ',  &
+     &                '            fft ',  &
+     &                '         evolve ',  &
+     &                '       checksum ',  &
+     &                '           fftx ',  &
+     &                '           ffty ',  &
+     &                '           fftz ' /
+
+      t_m = timer_read(T_total)
+      if (t_m .le. 0.0d0) t_m = 1.0d0
+      do i = 1, t_max
+         t = timer_read(i)
+         write(*, 100) i, tstrings(i), t, t*100.0/t_m
+      end do
+ 100  format(' timer ', i2, '(', A16,  ') :', F9.4, ' (',F6.2,'%)')
+      return
+      end
+
+
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -465,6 +520,7 @@
 
       logd1 = ilog2(d1)
 
+      if (timers_enabled) call timer_start(T_fftx)
 !$omp parallel do default(shared) private(i,j,k,jj,y1,y2,jn)  &
 !$omp&  shared(is,logd1,d1) collapse(2)
       do k = 1, d3
@@ -487,6 +543,7 @@
             enddo
          enddo
       enddo
+      if (timers_enabled) call timer_stop(T_fftx)
 
       return
       end
@@ -511,6 +568,7 @@
 
       logd2 = ilog2(d2)
 
+      if (timers_enabled) call timer_start(T_ffty)
 !$omp parallel do default(shared) private(i,j,k,ii,y1,y2,in)  &
 !$omp&  shared(is,logd2,d2) collapse(2)
       do k = 1, d3
@@ -532,6 +590,7 @@
            enddo
         enddo
       enddo
+      if (timers_enabled) call timer_stop(T_ffty)
 
       return
       end
@@ -556,6 +615,7 @@
 
       logd3 = ilog2(d3)
 
+      if (timers_enabled) call timer_start(T_fftz)
 !$omp parallel do default(shared) private(i,j,k,ii,y1,y2,in)  &
 !$omp&  shared(is) collapse(2)
       do j = 1, d2
@@ -577,6 +637,7 @@
            enddo
         enddo
       enddo
+      if (timers_enabled) call timer_stop(T_fftz)
 
       return
       end

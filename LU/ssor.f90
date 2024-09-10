@@ -24,11 +24,18 @@
       double precision  tmp, tmp2
       double precision  delunm(5)
 
+      external timer_read
+      double precision timer_read
+
  
 !---------------------------------------------------------------------
 !   begin pseudo-time stepping iterations
 !---------------------------------------------------------------------
       tmp = 1.0d+00 / ( omega * ( 2.0d+00 - omega ) ) 
+
+      do i = 1, t_last
+         call timer_clear(i)
+      end do
 
 !---------------------------------------------------------------------
 !   compute the steady-state residuals
@@ -42,6 +49,15 @@
      &             ist, iend, jst, jend,  &
      &             rsd, rsdnm )
 
+ 
+      do i = 1, t_last
+         call timer_clear(i)
+      end do
+      call timer_start(1)
+
+      if (niter > 1) then
+         call roi_begin
+      endif
  
 !---------------------------------------------------------------------
 !   the timestep loop
@@ -61,6 +77,9 @@
 !$omp parallel default(shared) private(i,j,k,m,tmp2)  &
 !$omp&  shared(ist,iend,jst,jend,nx,ny,nz,nx0,ny0,omega)
 
+!$omp master
+         if (timeron) call timer_start(t_rhs)
+!$omp end master
          tmp2 = dt
 !$omp do schedule(static) collapse(2)
          do k = 2, nz - 1
@@ -73,6 +92,11 @@
             end do
          end do
 !$omp end do nowait
+!$omp master
+         if (timeron) call timer_stop(t_rhs)
+
+         if (timeron) call timer_start(t_blts)
+!$omp end master
 
          call sync_init( jend-jst )
 !$omp barrier
@@ -104,6 +128,11 @@
 
          end do
 !$omp barrier
+!$omp master
+         if (timeron) call timer_stop(t_blts)
+
+         if (timeron) call timer_start(t_buts)
+!$omp end master
          do k = nz - 1, 2, -1
 
             call sync_left( isiz1, isiz2, isiz3, rsd )
@@ -131,13 +160,17 @@
 
          end do
 !$omp barrier
-
+!$omp master
+         if (timeron) call timer_stop(t_buts)
+!$omp end master
 
 !---------------------------------------------------------------------
 !   update the variables
 !---------------------------------------------------------------------
 
-
+!$omp master
+         if (timeron) call timer_start(t_add)
+!$omp end master
          tmp2 = tmp
 !$omp do schedule(static) collapse(2)
          do k = 2, nz-1
@@ -151,15 +184,20 @@
             end do
          end do
 !$omp end do nowait
+!$omp master
+         if (timeron) call timer_stop(t_add)
+!$omp end master
 !$omp end parallel
  
 !---------------------------------------------------------------------
 !   compute the max-norms of newton iteration corrections
 !---------------------------------------------------------------------
          if ( mod ( istep, inorm ) .eq. 0 ) then
+            if (timeron) call timer_start(t_l2norm)
             call l2norm( isiz1, isiz2, isiz3, nx0, ny0, nz0,  &
      &                   ist, iend, jst, jend,  &
      &                   rsd, delunm )
+            if (timeron) call timer_stop(t_l2norm)
 !            if ( ipr .eq. 1 ) then
 !                write (*,1006) ( delunm(m), m = 1, 5 )
 !            else if ( ipr .eq. 2 ) then
@@ -177,9 +215,11 @@
 !---------------------------------------------------------------------
          if ( ( mod ( istep, inorm ) .eq. 0 ) .or.  &
      &        ( istep .eq. itmax ) ) then
+            if (timeron) call timer_start(t_l2norm)
             call l2norm( isiz1, isiz2, isiz3, nx0, ny0, nz0,  &
      &                   ist, iend, jst, jend,  &
      &                   rsd, rsdnm )
+            if (timeron) call timer_stop(t_l2norm)
 !            if ( ipr .eq. 1 ) then
 !                write (*,1007) ( rsdnm(m), m = 1, 5 )
 !            end if
@@ -202,6 +242,12 @@
       end do
   900 continue
 
+      if (niter > 1) then
+         call roi_begin
+      endif
+
+      call timer_stop(1)
+      maxtime= timer_read(1)
 
 
       return

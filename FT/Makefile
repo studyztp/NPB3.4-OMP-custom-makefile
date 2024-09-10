@@ -28,8 +28,10 @@ all: pre
 pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 
-ft.bc: ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ft.ll ft_data.ll
-	${LLVM_LINK} -o ft.bc ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ft.ll ft_data.ll
+ft.bc: ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll ft.ll ft_data.ll \
+	${COMMON}/timers.ll ${COMMON}/wtime.ll
+	${LLVM_LINK} -o ft.bc ${COMMON}/${RAND}.ll ${COMMON}/print_results.ll \
+	ft.ll ft_data.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
 ft_O3.bc: ft.bc
 	${OPT} ${OPT_FLAGS} ft.bc -o ft_O3_${CURRENT_DATE}.bc

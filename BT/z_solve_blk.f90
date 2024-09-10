@@ -28,6 +28,7 @@
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 
+      if (timeron) call timer_start(t_zsolve)
 
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
@@ -51,6 +52,7 @@
       do j = 1, grid_points(2)-2
          do ii = 1, grid_points(1)-2, bsize
 
+            if (timeron) call timer_start(t_rdis1)
             do k=0,ksize
             do ib = 1, bsize
                i = min(ii+ib-1, grid_points(1)-2)
@@ -61,6 +63,7 @@
                rhsx(ib,5,k) = rhs(5,i,j,k)
             end do
             end do
+            if (timeron) call timer_stop(t_rdis1)
 
             call lhsinit(0)
 
@@ -350,6 +353,7 @@
 !     outer most do loops - sweeping in i direction
 !---------------------------------------------------------------------
 
+            if (timeron) call timer_start(t_solsub)
 !---------------------------------------------------------------------
 !     multiply c(i,j,0) by b_inverse and copy back to c
 !     multiply rhs(0) by b_inverse(0) and copy to rhs
@@ -418,6 +422,7 @@
      &                       rhsx(1,1,ksize) )
             endif
 
+            if (timeron) call timer_stop(t_solsub)
 
             enddo
 
@@ -446,6 +451,7 @@
             enddo
             enddo
 
+            if (timeron) call timer_start(t_rdis1)
             do ib = 1, bsize
                i = ii+ib-1
                if (i < grid_points(1)-1) then
@@ -458,10 +464,12 @@
                end do
                endif
             end do
+            if (timeron) call timer_stop(t_rdis1)
 
          enddo
       enddo
 !$omp end parallel
+      if (timeron) call timer_stop(t_zsolve)
 
       return
       end

@@ -33,12 +33,12 @@ sp.bc: sp.ll sp_data.ll initialize.ll exact_solution.ll exact_rhs.ll \
 	set_constants.ll adi.ll rhs.ll work_lhs${BLK}.ll \
 	x_solve${BLK}.ll ninvr.ll y_solve${BLK}.ll pinvr.ll \
 	z_solve${BLK}.ll tzetar.ll add.ll txinvr.ll error.ll verify.ll \
-	${COMMON}/print_results.ll
+	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 	${LLVM_LINK} -o sp.bc sp.ll sp_data.ll initialize.ll exact_solution.ll \
 	exact_rhs.ll set_constants.ll adi.ll rhs.ll work_lhs${BLK}.ll \
 	x_solve${BLK}.ll ninvr.ll y_solve${BLK}.ll pinvr.ll \
 	z_solve${BLK}.ll tzetar.ll add.ll txinvr.ll error.ll verify.ll \
-	${COMMON}/print_results.ll
+	${COMMON}/print_results.ll ${COMMON}/timers.ll ${COMMON}/wtime.ll
 
 sp_O3.bc: sp.bc
 	${OPT} ${OPT_FLAGS} sp.bc -o sp_O3_${CURRENT_DATE}.bc

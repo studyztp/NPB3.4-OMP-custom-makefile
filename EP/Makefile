@@ -27,9 +27,11 @@ pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 
 ep.bc: ep.ll ep_data.ll verify.ll \
-	${COMMON}/print_results.ll ${COMMON}/${RAND}.ll 
+	${COMMON}/print_results.ll ${COMMON}/${RAND}.ll ${COMMON}/timers.ll \
+	${COMMON}/wtime.ll
 	${LLVM_LINK} -o ep.bc ep.ll ep_data.ll verify.ll \
-	${COMMON}/print_results.ll ${COMMON}/${RAND}.ll 
+	${COMMON}/print_results.ll ${COMMON}/${RAND}.ll ${COMMON}/timers.ll \
+	${COMMON}/wtime.ll
 
 ep_O3.bc: ep.bc
 	${OPT} ${OPT_FLAGS} ep.bc -o ep_O3_${CURRENT_DATE}.bc

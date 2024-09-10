@@ -28,9 +28,9 @@ pre: ${SYS_DIR}/setparams.c
 	${CC} -o setparams ${SYS_DIR}/setparams.c --target=${HOST_ARCH}
 
 is.bc: is.ll \
-	${COMMON}/c_print_results.ll 
+	${COMMON}/c_print_results.ll ${COMMON}/c_timers.ll ${COMMON}/wtime.ll
 	${LLVM_LINK} -o is.bc is.ll \
-	${COMMON}/c_print_results.ll 
+	${COMMON}/c_print_results.ll ${COMMON}/c_timers.ll ${COMMON}/wtime.ll
 
 is_O3.bc: is.bc
 	${OPT} ${OPT_FLAGS} is.bc -o is_O3_${CURRENT_DATE}.bc

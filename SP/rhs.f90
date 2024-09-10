@@ -14,6 +14,7 @@
      &                  wijk, wp1, wm1
 
 
+       if (timeron) call timer_start(t_rhs)
 !$omp parallel default(shared) private(i,j,k,m,rho_inv,aux,uijk,up1,um1,  &
 !$omp&   vijk,vp1,vm1,wijk,wp1,wm1)
 !---------------------------------------------------------------------
@@ -66,6 +67,9 @@
 !---------------------------------------------------------------------
 !      compute xi-direction fluxes 
 !---------------------------------------------------------------------
+!$omp master
+       if (timeron) call timer_start(t_rhsx)
+!$omp end master
 !$omp do schedule(static) collapse(2)
        do    k = 1, nz2
           do    j = 1, ny2
@@ -163,11 +167,14 @@
           end do
        end do
 !$omp end do nowait
+!$omp master
+       if (timeron) call timer_stop(t_rhsx)
 
 !---------------------------------------------------------------------
 !      compute eta-direction fluxes 
 !---------------------------------------------------------------------
-
+       if (timeron) call timer_start(t_rhsy)
+!$omp end master
 !$omp do schedule(static) collapse(2)
        do     k = 1, nz2
           do     j = 1, ny2
@@ -272,12 +279,14 @@
           end do
        end do
 !$omp end do nowait
-
+!$omp master
+       if (timeron) call timer_stop(t_rhsy)
 
 !---------------------------------------------------------------------
 !      compute zeta-direction fluxes 
 !---------------------------------------------------------------------
-
+       if (timeron) call timer_start(t_rhsz)
+!$omp end master
 !$omp do schedule(static) collapse(2)
        do    k = 1, grid_points(3)-2
           do     j = 1, grid_points(2)-2
@@ -382,6 +391,9 @@
           end do
        end do
 !$omp end do nowait
+!$omp master
+       if (timeron) call timer_stop(t_rhsz)
+!$omp end master
 
 !$omp do schedule(static) collapse(2)
        do    k = 1, nz2
@@ -395,6 +407,7 @@
        end do
 !$omp end do nowait
 !$omp end parallel
+        if (timeron) call timer_stop(t_rhs)
    
        return
        end

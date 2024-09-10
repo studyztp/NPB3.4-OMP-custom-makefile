@@ -24,6 +24,7 @@
       parameter        (aa=1, bb=2, cc=3, BLOCK_SIZE=5)
 
       integer           grid_points(3)
+      double precision  elapsed_time
 
       double precision  tx1, tx2, tx3, ty1, ty2, ty3, tz1, tz2, tz3,    &
      &                  dx1, dx2, dx3, dx4, dx5, dy1, dy2, dy3, dy4,    &
@@ -65,6 +66,22 @@
 !-----------------------------------------------------------------------
 !   Timer constants
 !-----------------------------------------------------------------------
+      integer t_rhsx, t_rhsy, t_rhsz, t_xsolve, t_ysolve, t_zsolve, &
+     &        t_rdis1, t_solsub, t_add, t_rhs, t_last, t_total
+      parameter (t_total = 1)
+      parameter (t_rhsx = 2)
+      parameter (t_rhsy = 3)
+      parameter (t_rhsz = 4)
+      parameter (t_rhs = 5)
+      parameter (t_xsolve = 6)
+      parameter (t_ysolve = 7)
+      parameter (t_zsolve = 8)
+      parameter (t_rdis1 = 9)
+      parameter (t_solsub = 10)
+      parameter (t_add = 11)
+      parameter (t_last = 11)
+
+      logical timeron
 
       end module bt_data
 

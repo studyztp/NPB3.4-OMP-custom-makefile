@@ -62,6 +62,27 @@
 !-----------------------------------------------------------------------
 !   Timer constants
 !-----------------------------------------------------------------------
+      integer t_rhsx, t_rhsy, t_rhsz, t_xsolve, t_ysolve, t_zsolve,  &
+     &        t_rdis1, t_rdis2, t_tzetar, t_ninvr, t_pinvr, t_add,  &
+     &        t_rhs, t_txinvr, t_last, t_total
+      parameter (t_total = 1)
+      parameter (t_rhsx = 2)
+      parameter (t_rhsy = 3)
+      parameter (t_rhsz = 4)
+      parameter (t_rhs = 5)
+      parameter (t_xsolve = 6)
+      parameter (t_ysolve = 7)
+      parameter (t_zsolve = 8)
+      parameter (t_rdis1 = 9)
+      parameter (t_rdis2 = 10)
+      parameter (t_txinvr = 11)
+      parameter (t_pinvr = 12)
+      parameter (t_ninvr = 13)
+      parameter (t_tzetar = 14)
+      parameter (t_add = 15)
+      parameter (t_last = 15)
+
+      logical timeron
 
       end module sp_data
 

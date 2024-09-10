@@ -61,21 +61,20 @@
       integer          i, ik, kk, l, k, nit,  &
      &                 np, k_offset, j
 
-      logical          verified
+      logical          verified, timers_enabled
 
-      external         randlc
-      double precision randlc
+      external         randlc, timer_read
+      double precision randlc, timer_read
 
       character        size*15, classv
 
 !$    integer  omp_get_max_threads
 !$    external omp_get_max_threads
 
-      
-
       data             dum /1.d0, 1.d0, 1.d0/
 
 
+      call check_timer_flag( timers_enabled )
 
 !   Because the size of the problem is too large to store in a 32-bit
 !   integer for some classes, we put it into a string (for printing).
@@ -117,8 +116,12 @@
          x(i) = -1.d99
  5    continue
 
+      call timer_clear(1)
+      if (timers_enabled) call timer_clear(2)
+      if (timers_enabled) call timer_clear(3)
 !$omp end parallel
 
+      call timer_start(1)
       call roi_begin
 
       t1 = a
@@ -162,6 +165,7 @@
 
 !        Find starting seed t1 for this kk.
 
+         if (timers_enabled) call timer_start(3)
          do 120 i = 1, 100
             ik = kk / 2
             if (2 * ik .ne. kk) t3 = randlc(t1, t2)
@@ -174,11 +178,13 @@
  130     continue
 
          call vranlc(2 * nk, t1, a, x)
+         if (timers_enabled) call timer_stop(3)
 
 !        Compute Gaussian deviates by acceptance-rejection method and 
 !        tally counts in concentric square annuli.  This loop is not 
 !        vectorizable. 
 
+         if (timers_enabled) call timer_start(2)
 
          do 140 i = 1, nk
             x1 = 2.d0 * x(2*i-1) - 1.d0
@@ -195,6 +201,7 @@
             endif
  140     continue
 
+         if (timers_enabled) call timer_stop(2)
 
  150  continue
 !$omp end do nowait
@@ -210,10 +217,13 @@
  160  continue
 
       call roi_end
+      call timer_stop(1)
+      tm  = timer_read(1)
 
       call verify(m, sx, sy, gc, verified, classv)
 
       nit=0
+      Mops = 2.d0**(m+1)/tm/1000000.d0
 
       write (6,11) tm, m, gc, sx, sy, (i, q(i), i = 0, nq - 1)
  11   format ('EP Benchmark Results:'//'CPU Time =',f10.3/'N = 2^',  &
@@ -221,9 +231,22 @@
      &        'Counts:'/(i3,0p,f15.0))
 
       call print_results('EP', class, m+1, 0, 0, nit,  &
+     &                   tm, Mops,  &
      &                   'Random numbers generated',  &
      &                   verified, npbversion, compiletime, cs1,  &
      &                   cs2, cs3, cs4, cs5, cs6, cs7)
+
+
+      if (timers_enabled) then
+         if (tm .le. 0.d0) tm = 1.0
+         tt = timer_read(1)
+         print 810, 'Total time:    ', tt, tt*100./tm
+         tt = timer_read(2)
+         print 810, 'Gaussian pairs:', tt, tt*100./tm
+         tt = timer_read(3)
+         print 810, 'Random numbers:', tt, tt*100./tm
+810      format(1x,a,f9.3,' (',f6.2,'%)')
+      endif
 
 
       end
