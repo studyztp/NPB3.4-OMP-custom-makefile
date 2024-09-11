@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -150,6 +146,7 @@
           call timer_clear(i)
        end do
        call timer_start(1)
+
        call roi_begin
 
        do  step = 1, niter
@@ -162,12 +159,15 @@
           call adi
 
        end do
-       
+
        call roi_end
+
        call timer_stop(1)
        tmax = timer_read(1)
        
        call verify(niter, class, verified)
+
+       call free_space
 
        if( tmax .ne. 0. ) then
           n3 = dble(grid_points(1))*grid_points(2)*grid_points(3)

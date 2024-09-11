@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -280,6 +276,7 @@
  2000 format(' Initialization time = ',f15.3,' seconds')
 
       call timer_start( T_bench )
+
       call roi_begin
 
 !---------------------------------------------------------------------
@@ -318,9 +315,11 @@
 
 
 !$omp master
-         zeta = shift + 1.0d0 / norm_temp1
-         if( it .eq. 1 ) write( *,9000 )
-         write( *,9001 ) it, rnorm, zeta
+         if( it.eq.1 .or. it.eq.niter .or. mod(it,5).eq.0 )then
+            zeta = shift + 1.0d0 / norm_temp1
+            if( it .eq. 1 ) write( *,9000 )
+            write( *,9001 ) it, rnorm, zeta
+         endif
 !$omp end master
 
  9000    format( /,'   iteration           ||r||                 zeta' )
@@ -338,7 +337,9 @@
 
 
       enddo                              ! end of main iter inv pow meth
+
       call roi_end
+
       call timer_stop( T_bench )
 
 !---------------------------------------------------------------------
@@ -382,6 +383,7 @@
  401     format(' NO VERIFICATION PERFORMED')
       endif
 
+      call free_space
 
       if( t .ne. 0. ) then
          mflops = 1.0d-6 * 2*niter*dble( na )  &

@@ -365,3 +365,34 @@
 
       return
       end
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+      subroutine free_space
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+!---------------------------------------------------------------------
+! free dynamically allocated space
+!---------------------------------------------------------------------
+
+      use ua_data
+      implicit none
+
+      integer ios
+
+      deallocate (ta1, ta2, trhs, t, tmult, dpcelm, pdiff, pdiffp,  &
+     &        umor, tmmor, rmor, dpcmor, pmorx, ppmor, mormult, tmort,  &
+     &        idmo, idel, sje, sje_new, ijel, ijel_new, cbc, cbc_new,  &
+     &        vassign, emo, nemo, diagn,  &
+     &        tree, mt_to_id, newc, mt_to_id_old, newi, id_to_mt,  &
+     &        newe, ref_front_id, front, action, ich, size_e, treenew,  &
+     &        ifpcmor, eassign, if_1_edge, ncon_edge, skip, ifcoa,  &
+     &        ifcoa_id, fassign, edgevis,  &
+     &        xc, yc, zc, xc_new, yc_new, zc_new,  &
+     &        stat = ios)
+
+      return
+      end

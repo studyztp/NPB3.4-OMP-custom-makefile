@@ -9,8 +9,8 @@ FLAGS=${BASIC_FLAGS}
 
 all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	randi8_safe.ll randi8.ll timers.ll wtime.ll \
-	cpp_profiling.ll c_profiling.ll \
-	cpp_naive.ll c_naive.ll \
+	c_profiling.ll \
+	c_naive.ll \
 	c_papi_profiling.ll \
 	c_papi_measuring.ll \
 	c_m5_fs_measuring.ll \
@@ -53,17 +53,9 @@ timers.ll: timers.f90
 wtime.ll: wtime.c
 	${CC} ${FLAGS} -S -emit-llvm wtime.c -o wtime.ll
 
-cpp_naive.ll: cpp_helper.cpp 
-	${CPP} ${FLAGS} -S -DNAIVE -emit-llvm \
-	cpp_helper.cpp -o cpp_naive.ll
-
 c_naive.ll: c_helper.c
 	${CC} ${FLAGS} -S -DNAIVE -emit-llvm \
 	c_helper.c -o c_naive.ll
-
-cpp_profiling.ll: cpp_helper.cpp 
-	${CPP} ${FLAGS} -S -DPROFILING -emit-llvm \
-	cpp_helper.cpp -o cpp_profiling.ll
 
 c_profiling.ll: c_helper.c 
 	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \

@@ -4,8 +4,6 @@
 #include <sys/time.h>
 #endif
 
-#include <stdio.h>
-
 void wtime(double *t)
 {
    /* a generic timer */

@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -236,6 +232,7 @@
       end do
 
       call timer_start(T_bench)
+
       call roi_begin
 
       if (timeron) call timer_start(T_resid2)
@@ -260,7 +257,9 @@
 
 
       call norm2u3(r,n1,n2,n3,rnm2,rnmu,nx(lt),ny(lt),nz(lt))
+
       call roi_end
+
       call timer_stop(T_bench)
 
       t = timer_read(T_bench)
@@ -317,6 +316,8 @@
  400     format(' Problem size unknown')
  401     format(' NO VERIFICATION PERFORMED')
       endif
+
+      call free_space
 
       nn = 1.0d0*nx(lt)*ny(lt)*nz(lt)
 

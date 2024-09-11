@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -134,6 +130,7 @@
 !   perform the SSOR iterations
 !---------------------------------------------------------------------
       call ssor(itmax)
+
 !---------------------------------------------------------------------
 !   compute the solution error
 !---------------------------------------------------------------------
@@ -148,6 +145,9 @@
 !   verification test
 !---------------------------------------------------------------------
       call verify ( rsdnm, errnm, frc, class, verified )
+
+      call free_space
+
       mflops = 1.0d-6*dble(itmax)*(1984.77*dble( nx0 )  &
      &     *dble( ny0 )  &
      &     *dble( nz0 )  &

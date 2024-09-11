@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -101,8 +97,9 @@
       end do
 
       call timer_start(T_total)
-      call roi_begin
       if (timers_enabled) call timer_start(T_setup)
+
+      call roi_begin
 
       call compute_indexmap(twiddle, dims(1), dims(2), dims(3))
 
@@ -132,8 +129,11 @@
       call verify(nx, ny, nz, niter, verified, class)
 
       call roi_end
+
       call timer_stop(t_total)
       total_time = timer_read(t_total)
+
+      call free_space
 
       if( total_time .ne. 0. ) then
          mflops = 1.0d-6*ntotal_f *  &
@@ -143,9 +143,9 @@
       else
          mflops = 0.0
       endif
-!      call print_results('FT', class, nx, ny, nz, niter,  &
-!     &  total_time, mflops, '          floating point', verified,  &
-!     &  npbversion, compiletime, cs1, cs2, cs3, cs4, cs5, cs6, cs7)
+      call print_results('FT', class, nx, ny, nz, niter,  &
+     &  total_time, mflops, '          floating point', verified,  &
+     &  npbversion, compiletime, cs1, cs2, cs3, cs4, cs5, cs6, cs7)
       if (timers_enabled) call print_timers()
 
       end

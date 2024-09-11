@@ -243,11 +243,12 @@
   900 continue
 
       if (niter > 1) then
-         call roi_begin
+         call roi_end
       endif
-
+ 
       call timer_stop(1)
       maxtime= timer_read(1)
+ 
 
 
       return

@@ -14,8 +14,9 @@
       integer(kind2) nxp, ntotalp
       parameter (nxp=nx+1)
       parameter (ntotalp=nxp*ny*nz)
-      double precision ntotal_f
-      parameter (ntotal_f=dble(nx)*ny*nz)
+      double precision nx_f, ntotal_f
+      parameter (nx_f=dble(nx))
+      parameter (ntotal_f=nx_f*ny*nz)
 
 
 ! If processor array is 1x1 -> 0D grid decomposition
@@ -182,6 +183,30 @@
          write(*,*) 'Error encountered in allocating space'
          stop
       endif
+
+      return
+      end
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+      subroutine free_space
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+!---------------------------------------------------------------------
+! free dynamically allocated space
+!---------------------------------------------------------------------
+
+      use ft_fields
+
+      implicit none
+
+      integer ios
+
+      deallocate (u0, pad1, u1, pad2, twiddle,  &
+     &            stat = ios)
 
       return
       end

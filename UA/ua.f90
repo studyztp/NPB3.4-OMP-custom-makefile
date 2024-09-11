@@ -27,11 +27,7 @@
 !                                                                         c
 !          NAS Parallel Benchmarks Group                                  c
 !          NASA Ames Research Center                                      c
-!          Mail Stop: T27A-1                                              c
 !          Moffett Field, CA   94035-1000                                 c
-!                                                                         c
-!          E-mail:  npb@nas.nasa.gov                                      c
-!          Fax:     (650) 604-3957                                        c
 !                                                                         c
 !-------------------------------------------------------------------------c
 
@@ -242,6 +238,8 @@
       tmax = timer_read(1)
        
       call verify(class, verified)
+
+      call free_space
 
 !.....compute millions of collocation points advanced per second.
 !.....diffusion: nmxh advancements, convection: 1 advancement

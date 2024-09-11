@@ -27,11 +27,7 @@
  *                                                                       *
  *         NAS Parallel Benchmarks Group                                 *
  *         NASA Ames Research Center                                     *
- *         Mail Stop: T27A-1                                             *
  *         Moffett Field, CA   94035-1000                                *
- *                                                                       *
- *         E-mail:  npb@nas.nasa.gov                                     *
- *         Fax:     (650) 604-3957                                       *
  *                                                                       *
  ************************************************************************* 
  *                                                                       * 
@@ -47,10 +43,9 @@
 #include <omp.h>
 #endif
 
-// forward declarations for roi functions
+// forward declare roi_begin and roi_end functions
 void roi_begin_();
 void roi_end_();
-
 
 /*****************************************************************/
 /* For serial IS, buckets are not really req'd to solve NPB1 IS  */
@@ -523,6 +518,32 @@ void alloc_key_buff( void )
 }
 
 
+void free_key_buff( void )
+{
+    INT_TYPE i;
+    int      num_threads = 1;
+
+#ifdef _OPENMP
+    num_threads = omp_get_max_threads();
+#endif
+
+#ifdef USE_BUCKETS
+
+    for (i = 0; i < num_threads; i++) {
+        free(bucket_size[i]);
+    }
+    free(bucket_size);
+
+#else /*USE_BUCKETS*/
+
+    for (i = 1; i < num_threads; i++) {
+        free(key_buff1_aptr[i]);
+    }
+    free(key_buff1_aptr);
+
+#endif /*USE_BUCKETS*/
+}
+
 
 /*****************************************************************/
 /*************    F  U  L  L  _  V  E  R  I  F  Y     ************/
@@ -959,6 +980,7 @@ int main( int argc, char **argv )
 
 /*  Start timer  */             
     timer_start( 0 );
+
     roi_begin_();
 
 
@@ -969,9 +991,9 @@ int main( int argc, char **argv )
         rank( iteration );
     }
 
+    roi_end_();
 
 /*  End of timing, obtain maximum time of all processors */
-    roi_end_();
     timer_stop( 0 );
     timecounter = timer_read( 0 );
 
@@ -983,6 +1005,8 @@ int main( int argc, char **argv )
     if (timer_on) timer_stop( 2 );
 
     if (timer_on) timer_stop( 3 );
+
+    free_key_buff();
 
 
 /*  The final printout  */

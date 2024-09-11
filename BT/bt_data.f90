@@ -120,7 +120,7 @@
      &   forcing (5, 0:IMAXP, 0:JMAXP, 0:KMAX-1),  &
      &   u       (5, 0:IMAXP, 0:JMAXP, 0:KMAX-1),  &
      &   rhs     (5, 0:IMAXP, 0:JMAXP, 0:KMAX-1),  &
-     &         stat = ios)
+     &   stat = ios)
 
       if (ios .ne. 0) then
          write(*,*) 'Error encountered in allocating space'
@@ -130,4 +130,27 @@
       return
       end
 
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+      subroutine free_space
+
+!---------------------------------------------------------------------
+!---------------------------------------------------------------------
+
+!---------------------------------------------------------------------
+! free dynamically allocated space
+!---------------------------------------------------------------------
+
+      use bt_data
+      implicit none
+
+      integer ios
+
+      deallocate (us, vs, ws, qs, rho_i,  &
+     &            square, forcing, u, rhs,  &
+     &            stat = ios)
+
+      return
+      end
 

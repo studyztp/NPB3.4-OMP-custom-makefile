@@ -13,6 +13,8 @@ void c_print_results( char   *name,
                       int    n2,
                       int    n3,
                       int    niter,
+                      double t,
+                      double mops,
 		      char   *optype,
                       int    passed_verification,
                       char   *npbversion,
@@ -54,6 +56,8 @@ void c_print_results( char   *name,
         printf( " Size            =             %4dx%4dx%4d\n", n1,n2,n3 );
 
     printf( " Iterations      =             %12d\n", niter );
+ 
+    printf( " Time in seconds =             %12.2f\n", t );
 
     if (num_threads > 0)
         printf( " Total threads   =             %12d\n", num_threads);
@@ -63,6 +67,12 @@ void c_print_results( char   *name,
 
     if (num_threads != max_threads) 
         printf( " Warning: Threads used differ from threads available\n");
+
+    printf( " Mop/s total     =             %12.2f\n", mops );
+
+    if (num_threads > 0)
+        printf( " Mop/s/thread    =             %12.2f\n",
+               mops/(double)num_threads );
 
     printf( " Operation type  = %24s\n", optype);
 

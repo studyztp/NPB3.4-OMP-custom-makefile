@@ -27,11 +27,7 @@
 !                                                                         !
 !          NAS Parallel Benchmarks Group                                  !
 !          NASA Ames Research Center                                      !
-!          Mail Stop: T27A-1                                              !
 !          Moffett Field, CA   94035-1000                                 !
-!                                                                         !
-!          E-mail:  npb@nas.nasa.gov                                      !
-!          Fax:     (650) 604-3957                                        !
 !                                                                         !
 !-------------------------------------------------------------------------!
 
@@ -122,6 +118,7 @@
 !$omp end parallel
 
       call timer_start(1)
+
       call roi_begin
 
       t1 = a
@@ -217,6 +214,7 @@
  160  continue
 
       call roi_end
+
       call timer_stop(1)
       tm  = timer_read(1)
 
