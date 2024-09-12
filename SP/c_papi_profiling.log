@@ -1,0 +1,10 @@
+PROGRAM_PATH=/scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C
+PROGRAM=sp
+FILE=/scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C/sp_O3_2024-09-12-01-12-26.bc
+2024-09-12-01-12-26
+cd /scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C && mkdir -p c_papi_profiling
+cd /scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C/c_papi_profiling && mkdir -p 1000000000
+cd /scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C/c_papi_profiling/1000000000 && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o sp_papi_profiling.bc /scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C/sp_O3_2024-09-12-01-12-26.bc /scr/studyztp/test/NPB3.4-OMP-custom-makefile/common/c_papi_profiling.ll
+cd /scr/studyztp/test/NPB3.4-OMP-custom-makefile/SP/C/c_papi_profiling/1000000000 && /scr/studyztp/compiler/llvm-dir/bin/opt -passes=phase-analysis -phase-analysis-output-file=basic_block_info_output_2024-09-12-01-12-26.txt sp_papi_profiling.bc -o sp_papi_profiling_opt.bc \
+	-phase-analysis-using-papi=true -phase-analysis-region-length=1000000000 \
+	2>> phase_analysis_log_2024-09-12-01-12-26.log
