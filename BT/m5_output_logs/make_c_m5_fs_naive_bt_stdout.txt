@@ -1,0 +1,6 @@
+PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/BT/C
+PROGRAM=bt
+FILE=/scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/BT/C/bt_O3_2024-09-12-01-05-57.bc
+2024-09-12-01-05-57
+cd /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/BT/C && mkdir -p c_m5_fs_naive
+cd /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/BT/C/c_m5_fs_naive && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o bt_m5_fs_naive.bc /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/BT/C/bt_O3_2024-09-12-01-05-57.bc /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/common/c_m5_fs_naive.ll
