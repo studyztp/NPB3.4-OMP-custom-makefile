@@ -18,6 +18,7 @@ target triple = "aarch64-unknown-linux-gnu"
 @if_warmup_not_met = dso_local local_unnamed_addr global i8 0, align 4
 @if_start_not_met = dso_local local_unnamed_addr global i8 0, align 4
 @if_end_not_met = dso_local local_unnamed_addr global i8 0, align 4
+@if_using_m5_addr_version = dso_local local_unnamed_addr global i8 0, align 4
 @.str.3 = private unnamed_addr constant [6 x i8] c"uname\00", align 1
 @.str.4 = private unnamed_addr constant [15 x i8] c"arch     = %s\0A\00", align 1
 @.str.5 = private unnamed_addr constant [7 x i8] c"x86_64\00", align 1
@@ -56,7 +57,19 @@ declare void @llvm.lifetime.end.p0(i64 immarg, ptr nocapture) #1
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @warmup_event() local_unnamed_addr #2 {
   %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str)
+  %2 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %3 = icmp eq i8 %2, 0
+  br i1 %3, label %5, label %4
+
+4:                                                ; preds = %0
   tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+5:                                                ; preds = %0
+  tail call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+6:                                                ; preds = %5, %4
   ret void
 }
 
@@ -65,31 +78,59 @@ declare noundef i32 @printf(ptr nocapture noundef readonly, ...) local_unnamed_a
 
 declare void @m5_work_begin_addr(i64 noundef, i64 noundef) local_unnamed_addr #4
 
+declare void @m5_work_begin(i64 noundef, i64 noundef) local_unnamed_addr #4
+
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @start_event() local_unnamed_addr #2 {
   %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.14)
+  %2 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %3 = icmp eq i8 %2, 0
+  br i1 %3, label %5, label %4
+
+4:                                                ; preds = %0
   tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+5:                                                ; preds = %0
+  tail call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+6:                                                ; preds = %5, %4
   ret void
 }
 
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @end_event() local_unnamed_addr #2 {
   %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.15)
+  %2 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %3 = icmp eq i8 %2, 0
+  br i1 %3, label %5, label %4
+
+4:                                                ; preds = %0
   tail call void @m5_work_end_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+5:                                                ; preds = %0
+  tail call void @m5_work_end(i64 noundef 0, i64 noundef 0) #12
+  br label %6
+
+6:                                                ; preds = %5, %4
   ret void
 }
 
 declare void @m5_work_end_addr(i64 noundef, i64 noundef) local_unnamed_addr #4
 
+declare void @m5_work_end(i64 noundef, i64 noundef) local_unnamed_addr #4
+
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @roi_begin_() local_unnamed_addr #2 {
   %1 = alloca %struct.utsname, align 1
   %2 = tail call i32 @omp_get_max_threads()
-  store i32 %2, ptr @num_threads, align 4, !tbaa !7
-  store i8 1, ptr @if_warmup_not_met, align 4, !tbaa !11
+  store i32 %2, ptr @num_threads, align 4, !tbaa !10
+  store i8 1, ptr @if_warmup_not_met, align 4, !tbaa !7
   call void @llvm.lifetime.start.p0(i64 390, ptr nonnull %1) #12
   %3 = tail call ptr @__errno_location() #13
-  store i32 0, ptr %3, align 4, !tbaa !7
+  store i32 0, ptr %3, align 4, !tbaa !10
   %4 = call i32 @uname(ptr noundef nonnull %1) #12
   %5 = icmp eq i32 %4, 0
   br i1 %5, label %7, label %6
@@ -108,6 +149,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 12:                                               ; preds = %7
   store i64 4294901760, ptr @m5op_addr, align 8, !tbaa !12
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  call void @map_m5_mem() #12
   br label %19
 
 13:                                               ; preds = %7
@@ -117,6 +160,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 16:                                               ; preds = %13
   store i64 268500992, ptr @m5op_addr, align 8, !tbaa !12
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  call void @map_m5_mem() #12
   br label %19
 
 17:                                               ; preds = %13
@@ -125,7 +170,6 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
   br label %19
 
 19:                                               ; preds = %16, %17, %12
-  call void @map_m5_mem() #12
   %20 = call i32 @puts(ptr nonnull dereferenceable(1) @str.17)
   %21 = call i32 @puts(ptr nonnull dereferenceable(1) @str.18)
   call void @llvm.lifetime.end.p0(i64 390, ptr nonnull %1) #12
@@ -152,7 +196,15 @@ declare void @map_m5_mem(...) local_unnamed_addr #4
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @roi_end_() local_unnamed_addr #2 {
   %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.19)
+  %2 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %3 = icmp eq i8 %2, 0
+  br i1 %3, label %5, label %4
+
+4:                                                ; preds = %0
   tail call void @unmap_m5_mem() #12
+  br label %5
+
+5:                                                ; preds = %4, %0
   ret void
 }
 
@@ -193,81 +245,117 @@ define dso_local void @setup_threshold(i64 noundef %0, i64 noundef %1, i64 nound
   %16 = tail call i32 (ptr, ...) @printf(ptr noundef nonnull dereferenceable(1) @.str.12, i64 noundef %15)
   %17 = load i64, ptr @end_threshold, align 8, !tbaa !14
   %18 = tail call i32 (ptr, ...) @printf(ptr noundef nonnull dereferenceable(1) @.str.13, i64 noundef %17)
-  store i64 0, ptr @warmup_counter, align 8, !tbaa !11
-  store i64 0, ptr @start_counter, align 8, !tbaa !11
-  store i64 0, ptr @end_counter, align 8, !tbaa !11
+  store i64 0, ptr @warmup_counter, align 8, !tbaa !7
+  store i64 0, ptr @start_counter, align 8, !tbaa !7
+  store i64 0, ptr @end_counter, align 8, !tbaa !7
   ret void
 }
 
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @warmup_hook() local_unnamed_addr #2 {
-  %1 = load i8, ptr @if_warmup_not_met, align 4, !tbaa !11
+  %1 = load i8, ptr @if_warmup_not_met, align 4, !tbaa !7
   %2 = icmp eq i8 %1, 0
-  br i1 %2, label %10, label %3
+  br i1 %2, label %15, label %3
 
 3:                                                ; preds = %0
   %4 = atomicrmw add ptr @warmup_counter, i64 1 seq_cst, align 8
   %5 = add i64 %4, 1
   %6 = load i64, ptr @warmup_threshold, align 8, !tbaa !14
   %7 = icmp eq i64 %5, %6
-  br i1 %7, label %8, label %10
+  br i1 %7, label %8, label %15
 
 8:                                                ; preds = %3
   %9 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str)
-  tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
-  store i8 0, ptr @if_warmup_not_met, align 4, !tbaa !11
-  store i8 1, ptr @if_start_not_met, align 4, !tbaa !11
-  br label %10
+  %10 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %11 = icmp eq i8 %10, 0
+  br i1 %11, label %13, label %12
 
-10:                                               ; preds = %3, %8, %0
+12:                                               ; preds = %8
+  tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+13:                                               ; preds = %8
+  tail call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+14:                                               ; preds = %12, %13
+  store i8 0, ptr @if_warmup_not_met, align 4, !tbaa !7
+  store i8 1, ptr @if_start_not_met, align 4, !tbaa !7
+  br label %15
+
+15:                                               ; preds = %3, %14, %0
   ret void
 }
 
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @start_hook() local_unnamed_addr #2 {
-  %1 = load i8, ptr @if_start_not_met, align 4, !tbaa !11
+  %1 = load i8, ptr @if_start_not_met, align 4, !tbaa !7
   %2 = icmp eq i8 %1, 0
-  br i1 %2, label %10, label %3
+  br i1 %2, label %15, label %3
 
 3:                                                ; preds = %0
   %4 = atomicrmw add ptr @start_counter, i64 1 seq_cst, align 8
   %5 = add i64 %4, 1
   %6 = load i64, ptr @start_threshold, align 8, !tbaa !14
   %7 = icmp eq i64 %5, %6
-  br i1 %7, label %8, label %10
+  br i1 %7, label %8, label %15
 
 8:                                                ; preds = %3
   %9 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.14)
-  tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
-  store i8 0, ptr @if_start_not_met, align 4, !tbaa !11
-  store i8 1, ptr @if_end_not_met, align 4, !tbaa !11
-  br label %10
+  %10 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %11 = icmp eq i8 %10, 0
+  br i1 %11, label %13, label %12
 
-10:                                               ; preds = %3, %8, %0
+12:                                               ; preds = %8
+  tail call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+13:                                               ; preds = %8
+  tail call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+14:                                               ; preds = %12, %13
+  store i8 0, ptr @if_start_not_met, align 4, !tbaa !7
+  store i8 1, ptr @if_end_not_met, align 4, !tbaa !7
+  br label %15
+
+15:                                               ; preds = %3, %14, %0
   ret void
 }
 
 ; Function Attrs: noprofile nounwind uwtable
 define dso_local void @end_hook() local_unnamed_addr #2 {
-  %1 = load i8, ptr @if_end_not_met, align 4, !tbaa !11
+  %1 = load i8, ptr @if_end_not_met, align 4, !tbaa !7
   %2 = icmp eq i8 %1, 0
-  br i1 %2, label %10, label %3
+  br i1 %2, label %15, label %3
 
 3:                                                ; preds = %0
   %4 = atomicrmw add ptr @end_counter, i64 1 seq_cst, align 8
   %5 = add i64 %4, 1
   %6 = load i64, ptr @end_threshold, align 8, !tbaa !14
   %7 = icmp eq i64 %5, %6
-  br i1 %7, label %8, label %10
+  br i1 %7, label %8, label %15
 
 8:                                                ; preds = %3
   %9 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.15)
-  tail call void @m5_work_end_addr(i64 noundef 0, i64 noundef 0) #12
-  store i8 0, ptr @if_end_not_met, align 4, !tbaa !11
-  store atomic i64 0, ptr @end_counter seq_cst, align 8
-  br label %10
+  %10 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !7
+  %11 = icmp eq i8 %10, 0
+  br i1 %11, label %13, label %12
 
-10:                                               ; preds = %3, %8, %0
+12:                                               ; preds = %8
+  tail call void @m5_work_end_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+13:                                               ; preds = %8
+  tail call void @m5_work_end(i64 noundef 0, i64 noundef 0) #12
+  br label %14
+
+14:                                               ; preds = %12, %13
+  store i8 0, ptr @if_end_not_met, align 4, !tbaa !7
+  store atomic i64 0, ptr @end_counter seq_cst, align 8
+  br label %15
+
+15:                                               ; preds = %3, %14, %0
   ret void
 }
 
@@ -305,11 +393,11 @@ attributes #15 = { noreturn nounwind }
 !5 = !{i32 7, !"frame-pointer", i32 1}
 !6 = !{!"clang version 19.0.0git (git@github.com:studyztp/llvm-project.git ea54371a8e03ebdb4d383b89964705018ddf3d9e)"}
 !7 = !{!8, !8, i64 0}
-!8 = !{!"int", !9, i64 0}
-!9 = !{!"omnipotent char", !10, i64 0}
-!10 = !{!"Simple C/C++ TBAA"}
-!11 = !{!9, !9, i64 0}
+!8 = !{!"omnipotent char", !9, i64 0}
+!9 = !{!"Simple C/C++ TBAA"}
+!10 = !{!11, !11, i64 0}
+!11 = !{!"int", !8, i64 0}
 !12 = !{!13, !13, i64 0}
-!13 = !{!"long", !9, i64 0}
+!13 = !{!"long", !8, i64 0}
 !14 = !{!15, !15, i64 0}
-!15 = !{!"long long", !9, i64 0}
+!15 = !{!"long long", !8, i64 0}

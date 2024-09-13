@@ -5,6 +5,7 @@ target triple = "aarch64-unknown-linux-gnu"
 
 %struct.utsname = type { [65 x i8], [65 x i8], [65 x i8], [65 x i8], [65 x i8], [65 x i8] }
 
+@if_using_m5_addr_version = dso_local local_unnamed_addr global i8 0, align 4
 @.str = private unnamed_addr constant [6 x i8] c"uname\00", align 1
 @.str.1 = private unnamed_addr constant [15 x i8] c"arch     = %s\0A\00", align 1
 @.str.2 = private unnamed_addr constant [7 x i8] c"x86_64\00", align 1
@@ -65,6 +66,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 12:                                               ; preds = %7
   store i64 4294901760, ptr @m5op_addr, align 8, !tbaa !11
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  call void @map_m5_mem() #12
   br label %19
 
 13:                                               ; preds = %7
@@ -74,6 +77,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 16:                                               ; preds = %13
   store i64 268500992, ptr @m5op_addr, align 8, !tbaa !11
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  call void @map_m5_mem() #12
   br label %19
 
 17:                                               ; preds = %13
@@ -82,7 +87,6 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
   br label %19
 
 19:                                               ; preds = %16, %17, %12
-  call void @map_m5_mem() #12
   %20 = call i32 @puts(ptr nonnull dereferenceable(1) @str.14)
   %21 = call i32 @puts(ptr nonnull dereferenceable(1) @str.15)
   call void @llvm.lifetime.start.p0(i64 262144, ptr nonnull %2) #12
@@ -93,7 +97,19 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
   %26 = call i32 @puts(ptr nonnull dereferenceable(1) @str.16)
   %27 = call i32 @system(ptr noundef nonnull @.str.10) #12
   %28 = call i32 @puts(ptr nonnull dereferenceable(1) @str.17)
+  %29 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  %30 = icmp eq i8 %29, 0
+  br i1 %30, label %32, label %31
+
+31:                                               ; preds = %19
   call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #12
+  br label %33
+
+32:                                               ; preds = %19
+  call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #12
+  br label %33
+
+33:                                               ; preds = %32, %31
   call void @llvm.lifetime.end.p0(i64 262144, ptr nonnull %2) #12
   call void @llvm.lifetime.end.p0(i64 390, ptr nonnull %1) #12
   ret void
@@ -127,18 +143,34 @@ declare noundef i32 @system(ptr nocapture noundef readonly) local_unnamed_addr #
 
 declare void @m5_work_begin_addr(i64 noundef, i64 noundef) local_unnamed_addr #7
 
+declare void @m5_work_begin(i64 noundef, i64 noundef) local_unnamed_addr #7
+
 ; Function Attrs: noinline noprofile nounwind uwtable
 define dso_local void @roi_end_() local_unnamed_addr #2 {
+  %1 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  %2 = icmp eq i8 %1, 0
+  br i1 %2, label %4, label %3
+
+3:                                                ; preds = %0
   tail call void @m5_work_end_addr(i64 noundef 0, i64 noundef 0) #12
-  %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.18)
-  %2 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.19)
   tail call void @unmap_m5_mem() #12
+  br label %5
+
+4:                                                ; preds = %0
+  tail call void @m5_work_end(i64 noundef 0, i64 noundef 0) #12
+  br label %5
+
+5:                                                ; preds = %4, %3
+  %6 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.18)
+  %7 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.19)
   ret void
 }
 
 declare void @m5_work_end_addr(i64 noundef, i64 noundef) local_unnamed_addr #7
 
 declare void @unmap_m5_mem(...) local_unnamed_addr #7
+
+declare void @m5_work_end(i64 noundef, i64 noundef) local_unnamed_addr #7
 
 ; Function Attrs: nofree nounwind willreturn memory(argmem: read)
 declare i32 @bcmp(ptr nocapture, ptr nocapture, i64) local_unnamed_addr #10
@@ -179,3 +211,4 @@ attributes #15 = { noreturn nounwind }
 !10 = !{!"Simple C/C++ TBAA"}
 !11 = !{!12, !12, i64 0}
 !12 = !{!"long", !9, i64 0}
+!13 = !{!9, !9, i64 0}

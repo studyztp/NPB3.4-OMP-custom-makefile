@@ -5,6 +5,7 @@ target triple = "aarch64-unknown-linux-gnu"
 
 %struct.utsname = type { [65 x i8], [65 x i8], [65 x i8], [65 x i8], [65 x i8], [65 x i8] }
 
+@if_using_m5_addr_version = dso_local local_unnamed_addr global i8 0, align 4
 @.str = private unnamed_addr constant [6 x i8] c"uname\00", align 1
 @.str.1 = private unnamed_addr constant [15 x i8] c"arch     = %s\0A\00", align 1
 @.str.2 = private unnamed_addr constant [7 x i8] c"x86_64\00", align 1
@@ -60,6 +61,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 11:                                               ; preds = %6
   store i64 4294901760, ptr @m5op_addr, align 8, !tbaa !11
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  call void @map_m5_mem() #10
   br label %18
 
 12:                                               ; preds = %6
@@ -69,6 +72,8 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
 
 15:                                               ; preds = %12
   store i64 268500992, ptr @m5op_addr, align 8, !tbaa !11
+  store i8 1, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  call void @map_m5_mem() #10
   br label %18
 
 16:                                               ; preds = %12
@@ -77,11 +82,22 @@ define dso_local void @roi_begin_() local_unnamed_addr #2 {
   br label %18
 
 18:                                               ; preds = %15, %16, %11
-  call void @map_m5_mem() #10
   %19 = call i32 @puts(ptr nonnull dereferenceable(1) @str.10)
   %20 = call i32 @puts(ptr nonnull dereferenceable(1) @str.11)
   %21 = call i32 @puts(ptr nonnull dereferenceable(1) @str.12)
+  %22 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  %23 = icmp eq i8 %22, 0
+  br i1 %23, label %25, label %24
+
+24:                                               ; preds = %18
   call void @m5_work_begin_addr(i64 noundef 0, i64 noundef 0) #10
+  br label %26
+
+25:                                               ; preds = %18
+  call void @m5_work_begin(i64 noundef 0, i64 noundef 0) #10
+  br label %26
+
+26:                                               ; preds = %25, %24
   call void @llvm.lifetime.end.p0(i64 390, ptr nonnull %1) #10
   ret void
 }
@@ -105,18 +121,34 @@ declare void @map_m5_mem(...) local_unnamed_addr #7
 
 declare void @m5_work_begin_addr(i64 noundef, i64 noundef) local_unnamed_addr #7
 
+declare void @m5_work_begin(i64 noundef, i64 noundef) local_unnamed_addr #7
+
 ; Function Attrs: noinline noprofile nounwind uwtable
 define dso_local void @roi_end_() local_unnamed_addr #2 {
+  %1 = load i8, ptr @if_using_m5_addr_version, align 4, !tbaa !13
+  %2 = icmp eq i8 %1, 0
+  br i1 %2, label %4, label %3
+
+3:                                                ; preds = %0
   tail call void @m5_work_end_addr(i64 noundef 0, i64 noundef 0) #10
-  %1 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.13)
-  %2 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.14)
   tail call void @unmap_m5_mem() #10
+  br label %5
+
+4:                                                ; preds = %0
+  tail call void @m5_work_end(i64 noundef 0, i64 noundef 0) #10
+  br label %5
+
+5:                                                ; preds = %4, %3
+  %6 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.13)
+  %7 = tail call i32 @puts(ptr nonnull dereferenceable(1) @str.14)
   ret void
 }
 
 declare void @m5_work_end_addr(i64 noundef, i64 noundef) local_unnamed_addr #7
 
 declare void @unmap_m5_mem(...) local_unnamed_addr #7
+
+declare void @m5_work_end(i64 noundef, i64 noundef) local_unnamed_addr #7
 
 ; Function Attrs: nofree nounwind willreturn memory(argmem: read)
 declare i32 @bcmp(ptr nocapture, ptr nocapture, i64) local_unnamed_addr #8
@@ -155,3 +187,4 @@ attributes #13 = { noreturn nounwind }
 !10 = !{!"Simple C/C++ TBAA"}
 !11 = !{!12, !12, i64 0}
 !12 = !{!"long", !9, i64 0}
+!13 = !{!9, !9, i64 0}

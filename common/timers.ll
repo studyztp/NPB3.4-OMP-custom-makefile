@@ -7,7 +7,7 @@ target triple = "aarch64-unknown-linux-gnu"
 
 $_QQclX4E50425F54494D45525F464C4147 = comdat any
 
-$_QQclXcfdfb2342145643a26a8c68b0958a9bf = comdat any
+$_QQclX805dd8f87c409f8e29366f1e169469f5 = comdat any
 
 $_QQclX31 = comdat any
 
@@ -32,7 +32,7 @@ $_QQclX6F6C64 = comdat any
 @_QMtimersEelapsed = global [64 x double] zeroinitializer
 @_QMtimersEstart = global [64 x double] zeroinitializer
 @_QQclX4E50425F54494D45525F464C4147 = linkonce constant [14 x i8] c"NPB_TIMER_FLAG", comdat
-@_QQclXcfdfb2342145643a26a8c68b0958a9bf = linkonce constant [64 x i8] c"/scr/studyztp/test/NPB3.4-OMP-custom-makefile/common/timers.f90\00", comdat
+@_QQclX805dd8f87c409f8e29366f1e169469f5 = linkonce constant [95 x i8] c"/scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/common/timers.f90\00", comdat
 @_QQclX31 = linkonce constant [1 x i8] c"1", comdat
 @_QQclX39 = linkonce constant [1 x i8] c"9", comdat
 @_QQclX6F6E = linkonce constant [2 x i8] c"on", comdat
@@ -156,7 +156,7 @@ define void @check_timer_flag_(ptr nocapture writeonly %0) local_unnamed_addr #1
   store i8 0, ptr %.fca.5.gep19, align 2, !tbaa !38
   %.fca.6.gep21 = getelementptr inbounds i8, ptr %2, i64 23
   store i8 0, ptr %.fca.6.gep21, align 1, !tbaa !38
-  %7 = call i32 @_FortranAGetEnvVariable(ptr nonnull %4, ptr nonnull %3, ptr nonnull %2, i1 true, ptr null, ptr nonnull @_QQclXcfdfb2342145643a26a8c68b0958a9bf, i32 147)
+  %7 = call i32 @_FortranAGetEnvVariable(ptr nonnull %4, ptr nonnull %3, ptr nonnull %2, i1 true, ptr null, ptr nonnull @_QQclX805dd8f87c409f8e29366f1e169469f5, i32 147)
   %8 = icmp eq i32 %7, 0
   br i1 %8, label %9, label %36
 
@@ -194,7 +194,7 @@ define void @check_timer_flag_(ptr nocapture writeonly %0) local_unnamed_addr #1
   br i1 %35, label %.sink.split, label %48
 
 36:                                               ; preds = %1
-  %37 = call ptr @_FortranAioBeginOpenUnit(i32 2, ptr nonnull @_QQclXcfdfb2342145643a26a8c68b0958a9bf, i32 162)
+  %37 = call ptr @_FortranAioBeginOpenUnit(i32 2, ptr nonnull @_QQclX805dd8f87c409f8e29366f1e169469f5, i32 162)
   %38 = call {} @_FortranAioEnableHandlers(ptr %37, i1 true, i1 false, i1 false, i1 false, i1 false)
   %39 = call i1 @_FortranAioSetFile(ptr %37, ptr nonnull @_QQclX74696D65722E666C6167, i64 10)
   br i1 %39, label %40, label %42
@@ -209,7 +209,7 @@ define void @check_timer_flag_(ptr nocapture writeonly %0) local_unnamed_addr #1
   br i1 %44, label %45, label %48
 
 45:                                               ; preds = %42
-  %46 = call ptr @_FortranAioBeginClose(i32 2, ptr nonnull @_QQclXcfdfb2342145643a26a8c68b0958a9bf, i32 164)
+  %46 = call ptr @_FortranAioBeginClose(i32 2, ptr nonnull @_QQclX805dd8f87c409f8e29366f1e169469f5, i32 164)
   %47 = call i32 @_FortranAioEndIoStatement(ptr %46)
   br label %.sink.split
 
