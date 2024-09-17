@@ -1,6 +1,6 @@
-PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/MG/C
+PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/C
 PROGRAM=mg
-FILE=/scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/MG/C/mg_O3_2024-09-12-01-11-31.bc
+FILE=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/C/mg_O3_2024-09-12-01-11-31.bc
 2024-09-12-01-11-31
-cd /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/MG/C && mkdir -p c_marker_looppoint_m5_fs
-cd /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/MG/C/c_marker_looppoint_m5_fs && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o mg_marker_looppoint_m5_fs.bc /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/MG/C/mg_O3_2024-09-12-01-11-31.bc /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile/common/c_marker_looppoint_m5_fs.ll
+cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/C && mkdir -p c_marker_looppoint_m5_fs
+cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/C/c_marker_looppoint_m5_fs && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o mg_marker_looppoint_m5_fs.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/C/mg_O3_2024-09-12-01-11-31.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/c_marker_looppoint_m5_fs.ll
