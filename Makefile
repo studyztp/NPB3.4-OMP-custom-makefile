@@ -69,7 +69,7 @@ else
 M5_MODE = m5_fs_inst
 endif
 
-ifeq ($(WITH_COMPILER_RT),)
+ifeq ($(WITH_COMPILER_RT),1)
 LIB_FLAGS += -fuse-ld=lld \
 	-L${LLVM_BIN}/../lib/clang/19/lib/${TARGET_ARCH}-unknown-linux-gnu \
 	-openmp -lm -lclang_rt.builtins
