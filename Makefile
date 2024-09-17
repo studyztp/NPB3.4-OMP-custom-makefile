@@ -63,6 +63,18 @@ ifeq ($(REGION_LENGTH),)
 REGION_LENGTH = 100000000
 endif
 
+ifeq ($(M5_INST_MODE), )
+M5_MODE = m5_fs
+else
+M5_MODE = m5_fs_inst
+endif
+
+ifeq ($(WITH_COMPILER_RT),)
+LIB_FLAGS += -fuse-ld=lld \
+	-L${LLVM_BIN}/../lib/clang/19/lib/${TARGET_ARCH}-unknown-linux-gnu \
+	-openmp -lm -lclang_rt.builtins
+endif
+
 VERSION_STAMP= 
 
 # environment variables for sub-makefiles
@@ -228,7 +240,7 @@ c_m5_fs_measuring_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${COMMON}/c_
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring && mkdir -p ${THREAD_SIZE}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_measuring.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_measuring.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_${M5_MODE}_measuring.ll
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
 	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
 	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
@@ -261,7 +273,7 @@ c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${REGION_LENGTH}_${REGION_ID}: ${C
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only && mkdir -p ${THREAD_SIZE}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE} && mkdir -p ${REGION_LENGTH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH} && mkdir -p ${REGION_ID}
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_warmup_marker_only.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_warmup_marker_only.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_warmup_marker_only.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_${M5_MODE}_warmup_marker_only.ll
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && ${OPT} -passes=phase-bound \
 	-phase-bound-bb-order-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/basic_block_info_output_${VERSION_STAMP}.txt \
 	-phase-bound-input-file=${PROGRAM_PATH}/${SIZE}/region_info/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${REGION_ID}_marker_info.txt \
@@ -323,12 +335,12 @@ c_time_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_time_naive.ll
 c_m5_fs_naive: get_version c_m5_fs_naive_${PROGRAM}_${SIZE}
 c_m5_fs_naive_${PROGRAM}_${SIZE}: ${COMMON}/c_m5_fs_naive.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_m5_fs_naive
-	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_m5_fs_naive.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && ${LLVM_LINK} -o ${PROGRAM}_m5_fs_naive.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_${M5_MODE}_naive.ll
 
 c_marker_looppoint_m5_fs: get_version c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}
 c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}: ${COMMON}/c_marker_looppoint_m5_fs.ll
 	cd ${PROGRAM_PATH}/${SIZE} && mkdir -p c_marker_looppoint_m5_fs
-	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs && ${LLVM_LINK} -o ${PROGRAM}_marker_looppoint_m5_fs.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_looppoint_m5_fs.ll
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs && ${LLVM_LINK} -o ${PROGRAM}_marker_looppoint_m5_fs.bc ${PROGRAM_PATH}/${SIZE}/${PROGRAM}_O3_${VERSION_STAMP}.bc ${COMMON}/c_marker_looppoint_${M5_MODE}.ll
 
 final_compile_naive: get_version final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:

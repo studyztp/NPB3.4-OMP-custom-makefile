@@ -14,17 +14,21 @@ all: c_print_results.ll c_timers.ll print_results.ll randdp.ll randdpvec.ll \
 	c_papi_profiling.ll \
 	c_papi_measuring.ll \
 	c_m5_fs_measuring.ll \
+	c_m5_fs_inst_measuring.ll \
 	c_papi_naive.ll \
 	c_time_naive.ll \
 	c_marker_overhead_measuring.ll \
 	c_marker_looppoint_m5_fs.ll \
+	c_marker_looppoint_m5_fs_inst.ll \
 	c_m5_fs_warmup_marker_only.ll \
+	c_m5_fs_inst_warmup_marker_only.ll \
 	single_thread_c_profiling.ll \
 	single_thread_c_papi_profiling.ll \
 	single_thread_c_papi_measuring.ll \
 	single_thread_c_m5_fs_measuring.ll \
 	single_thread_c_marker_overhead_measuring.ll \
-	c_m5_fs_naive.ll
+	c_m5_fs_naive.ll \
+	c_m5_fs_inst_naive.ll
 
 c_print_results.ll: c_print_results.c
 	${CC} ${FLAGS} -S -emit-llvm c_print_results.c -o c_print_results.ll
@@ -73,6 +77,11 @@ c_m5_fs_measuring.ll: c_helper.c
 	${CC} ${FLAGS} -S -DMEASURING -DM5_FS_MEASURING -emit-llvm \
 	c_helper.c -o c_m5_fs_measuring.ll ${M5_LINE}
 
+c_m5_fs_inst_measuring.ll: c_helper.c
+	${CC} ${FLAGS} -S -DMEASURING -DM5_FS_MEASURING \
+	-DUSING_INST_MODE -emit-llvm \
+	c_helper.c -o c_m5_fs_inst_measuring.ll ${M5_LINE}
+
 c_papi_naive.ll: c_helper.c
 	${CC} ${FLAGS} -S -DPAPI_NAIVE -emit-llvm \
 	c_helper.c -o c_papi_naive.ll ${PAPI_LINE}
@@ -89,9 +98,17 @@ c_m5_fs_warmup_marker_only.ll: c_helper.c
 	${CC} ${FLAGS} -S -DM5_FS_WARMUP_MARKER_ONLY -emit-llvm \
 	c_helper.c -o c_m5_fs_warmup_marker_only.ll ${M5_LINE}
 
+c_m5_fs_inst_warmup_marker_only.ll: c_helper.c
+	${CC} ${FLAGS} -S -DM5_FS_WARMUP_MARKER_ONLY -DUSING_INST_MODE \
+	-emit-llvm c_helper.c -o c_m5_fs_inst_warmup_marker_only.ll ${M5_LINE}
+
 c_marker_looppoint_m5_fs.ll: c_helper.c
 	${CC} ${FLAGS} -S -DLOOPPOINT_M5_FS -emit-llvm \
 	c_helper.c -o c_marker_looppoint_m5_fs.ll ${M5_LINE}
+
+c_marker_looppoint_m5_fs_inst.ll: c_helper.c
+	${CC} ${FLAGS} -S -DLOOPPOINT_M5_FS -DUSING_INST_MODE -emit-llvm \
+	c_helper.c -o c_marker_looppoint_m5_fs_inst.ll ${M5_LINE}
 
 single_thread_c_profiling.ll: single_thread_c_helper.c
 	${CC} ${FLAGS} -S -DPROFILING -emit-llvm \
@@ -116,6 +133,10 @@ single_thread_c_marker_overhead_measuring.ll: single_thread_c_helper.c
 c_m5_fs_naive.ll: c_helper.c
 	${CC} ${FLAGS} -S -DM5_FS_NAIVE -emit-llvm \
 	c_helper.c -o c_m5_fs_naive.ll ${M5_LINE}
+
+c_m5_fs_inst_naive.ll: c_helper.c 
+	${CC} ${FLAGS} -S -DM5_FS_NAIVE -DUSING_INST_MODE -emit-llvm \
+	c_helper.c -o c_m5_fs_inst_naive.ll ${M5_LINE}
 
 clean:
 	rm -f *.ll

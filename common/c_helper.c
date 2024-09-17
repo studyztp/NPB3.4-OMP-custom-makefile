@@ -390,36 +390,34 @@ void roi_end_() {
 #include <errno.h>
 #include <sys/utsname.h>
 
-BOOL if_using_m5_addr_version = FALSE;
-
 __attribute__((no_profile_instrument_function))
 void warmup_event() {
     printf("M5_FS Warmup marker\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function))
 void start_event() {
     printf("M5_FS Start marker\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function))
 void end_event() {
     printf("M5_FS End marker\n");
-    if (if_using_m5_addr_version) {
-        m5_work_end_addr(0, 0);
-    } else {
-        m5_work_end(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_end(0, 0);
+#else
+    m5_work_end_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function))
@@ -439,26 +437,25 @@ void roi_begin_() {
 
     if (strcmp(buffer.machine, "x86_64") == 0) {
         m5op_addr = 0xFFFF0000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else if (strcmp(buffer.machine, "aarch64") == 0) {
         m5op_addr = 0x10010000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else {
         m5op_addr = 0x0;
         printf("Unsupported architecture\n");
     }
     printf("M5_FS ADDR MOP initialized\n");
     printf("M5_FS ROI started\n");
+#ifndef USING_INST_MODE
+    map_m5_mem();
+#endif
 }
 
 __attribute__((no_profile_instrument_function))
 void roi_end_() {
     printf("M5_FS ROI ended\n");
-    if (if_using_m5_addr_version) {
-        unmap_m5_mem();
-    }
+#ifndef USING_INST_MODE
+    unmap_m5_mem();
+#endif
 }
 
 #elif defined(MARKER_OVERHEAD_MEASURING) // M5_FS_MEASURING
@@ -641,8 +638,6 @@ void roi_end_() {
 #include <sys/utsname.h>
 #include <unistd.h>
 
-BOOL if_using_m5_addr_version = FALSE;
-
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
     struct utsname buffer;
@@ -656,12 +651,8 @@ void roi_begin_() {
 
     if (strcmp(buffer.machine, "x86_64") == 0) {
         m5op_addr = 0xFFFF0000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else if (strcmp(buffer.machine, "aarch64") == 0) {
         m5op_addr = 0x10010000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else {
         m5op_addr = 0x0;
         printf("Unsupported architecture\n");
@@ -678,21 +669,22 @@ void roi_begin_() {
     system("m5 writefile proc_maps.txt;");
 
     printf("calling M5 workbegin\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    map_m5_mem();
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
-    if (if_using_m5_addr_version) {
-        m5_work_end_addr(0, 0);
-        unmap_m5_mem();
-    } else {
-        m5_work_end(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_end(0, 0);
+#else
+    m5_work_end_addr(0, 0);
+    unmap_m5_mem();
+#endif
     printf("M5 workend calledr\n");
     printf("M5_FS ROI ended\n");
 }
@@ -707,8 +699,6 @@ void roi_end_() {
 #include <sys/utsname.h>
 #include <unistd.h>
 
-BOOL if_using_m5_addr_version = FALSE;
-
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
     struct utsname buffer;
@@ -722,12 +712,8 @@ void roi_begin_() {
 
     if (strcmp(buffer.machine, "x86_64") == 0) {
         m5op_addr = 0xFFFF0000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else if (strcmp(buffer.machine, "aarch64") == 0) {
         m5op_addr = 0x10010000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else {
         m5op_addr = 0x0;
         printf("Unsupported architecture\n");
@@ -737,21 +723,22 @@ void roi_begin_() {
     printf("M5_FS ROI started\n");
 
     printf("calling M5 workbegin\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    map_m5_mem();
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
-    if (if_using_m5_addr_version) {
-        m5_work_end_addr(0, 0);
-        unmap_m5_mem();
-    } else {
-        m5_work_end(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_end(0, 0);
+#else
+    m5_work_end_addr(0, 0);
+    unmap_m5_mem();
+#endif
     printf("M5 workend calledr\n");
     printf("M5_FS ROI ended\n");
 }
@@ -775,7 +762,6 @@ unsigned num_threads = 0;
 unsigned long long warmup_threshold;
 
 BOOL if_warmup_not_met = FALSE;
-BOOL if_using_m5_addr_version = FALSE;
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_begin_() {
@@ -790,12 +776,9 @@ void roi_begin_() {
 
     if (strcmp(buffer.machine, "x86_64") == 0) {
         m5op_addr = 0xFFFF0000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
     } else if (strcmp(buffer.machine, "aarch64") == 0) {
         m5op_addr = 0x10010000;
-        if_using_m5_addr_version = TRUE;
-        map_m5_mem();
+
     } else {
         m5op_addr = 0x0;
         printf("Unsupported architecture\n");
@@ -807,21 +790,22 @@ void roi_begin_() {
     if_warmup_not_met = TRUE;
 
     printf("calling M5 workbegin\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    map_m5_mem();
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function, noinline))
 void roi_end_() {
-    if (if_using_m5_addr_version) {
-        m5_work_end_addr(0, 0);
-        unmap_m5_mem();
-    } else {
-        m5_work_end(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_end(0, 0);
+#else
+    m5_work_end_addr(0, 0);
+    unmap_m5_mem();
+#endif
     printf("M5 workend calledr\n");
     printf("M5_FS ROI ended\n");
 }
@@ -829,11 +813,11 @@ void roi_end_() {
 __attribute__((no_profile_instrument_function))
 void warmup_event() {
     printf("M5_FS Warmup marker\n");
-    if (if_using_m5_addr_version) {
-        m5_work_begin_addr(0, 0);
-    } else {
-        m5_work_begin(0, 0);
-    }
+#ifdef USING_INST_MODE
+    m5_work_begin(0, 0);
+#else
+    m5_work_begin_addr(0, 0);
+#endif
 }
 
 __attribute__((no_profile_instrument_function))
