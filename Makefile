@@ -9,7 +9,6 @@ LLVM_LINK = ${LLVM_BIN}/llvm-link
 
 # compiler related flags
 DEBUG_FLAGS =
-HW_FLAGS =
 LIB_FLAGS = -fopenmp -lm 
 OPT_FLAGS = -O3 
 LLC_FLAGS = -relocation-model=pic -filetype=obj
