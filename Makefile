@@ -12,7 +12,8 @@ DEBUG_FLAGS =
 LIB_FLAGS = -fopenmp -lm 
 OPT_FLAGS = -O3 
 LLC_FLAGS = -relocation-model=pic -filetype=obj
-BASIC_FLAGS = ${HW_FLAGS} ${LIB_FLAGS} ${OPT_FLAGS} ${DEBUG_FLAGS} 
+LLC_FLAGS += ${EXTRA_LLC_FLAGS}
+BASIC_FLAGS = ${LIB_FLAGS} ${OPT_FLAGS} ${DEBUG_FLAGS} 
 
 # helper library paths
 COMMON = ${PWD}/common
@@ -78,7 +79,7 @@ VERSION_STAMP=
 
 # environment variables for sub-makefiles
 ENV_VARS = FC='${FC}' CC='${CC}' CPP='${CPP}' OPT='${OPT}' \
-	LLVM_LINK='${LLVM_LINK}' HW_FLAGS='${HW_FLAGS}' LIB_FLAGS='${LIB_FLAGS}' \
+	LLVM_LINK='${LLVM_LINK}' LIB_FLAGS='${LIB_FLAGS}' \
 	OPT_FLAGS='${OPT_FLAGS}' LLC='${LLC}' LLC_FLAGS='${LLC_FLAGS}' \
 	BASIC_FLAGS='${BASIC_FLAGS}' COMMON='${COMMON}' SYS_DIR='${SYS_DIR}' \
 	PAPI_LINE='${PAPI_LINE}' M5_LINE='${M5_LINE}' M5_INCLUDE='${M5_INCLUDE}' \
@@ -305,6 +306,12 @@ final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGT
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
+final_compile_with_llc_c_m5_fs_measuring: get_version final_compile_with_llc_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
+final_compile_with_llc_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_measuring --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
 final_compile_c_marker_overhead_measuring: get_version final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_c_marker_overhead_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_overhead_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
@@ -315,6 +322,12 @@ final_compile_c_m5_fs_warmup_marker_only: get_version final_compile_c_m5_fs_warm
 final_compile_c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_m5_fs_warmup_marker_only_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_warmup_marker_only --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
+final_compile_with_llc_c_m5_fs_warmup_marker_only: get_version final_compile_with_llc_c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
+final_compile_with_llc_c_m5_fs_warmup_marker_only_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_warmup_marker_only_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_warmup_marker_only/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_warmup_marker_only --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 naive: get_version naive_${PROGRAM}_${SIZE}
 naive_${PROGRAM}_${SIZE}: ${COMMON}/c_naive.ll
@@ -365,6 +378,12 @@ final_compile_c_m5_fs_naive: get_version final_compile_c_m5_fs_naive_${PROGRAM}_
 final_compile_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_m5_fs_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_naive --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
+final_compile_with_llc_c_m5_fs_naive: get_version final_compile_with_llc_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_with_llc_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_m5_fs_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o
+	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_m5_fs_naive --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
 clean:
 	cd ${COMMON} && make clean
