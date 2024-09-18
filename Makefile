@@ -374,6 +374,12 @@ final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs && mkdir -p ${TARGET_ARCH}
 	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_marker_looppoint_m5_fs.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_looppoint_m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
 
+final_compile_with_llc_c_marker_looppoint_m5_fs: get_version final_compile_with_llc_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}
+final_compile_with_llc_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs && mkdir -p ${TARGET_ARCH}
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs/${TARGET_ARCH} && ${LLC} ${LLC_FLAGS} ../${PROGRAM}_marker_looppoint_m5_fs.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o
+	cd ${PROGRAM_PATH}/${SIZE}/c_marker_looppoint_m5_fs/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.o -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_marker_looppoint_m5_fs --target=${TARGET_ARCH}-unknown-linux-gnu ${M5_LINE}
+
 final_compile_c_m5_fs_naive: get_version final_compile_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_m5_fs_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_m5_fs_naive && mkdir -p ${TARGET_ARCH}

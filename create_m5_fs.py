@@ -19,6 +19,7 @@ parser.add_argument("--looppoint", type=bool, default=False)
 parser.add_argument("--m5_fs_measuring", type=bool, default=False)
 parser.add_argument("--m5_fs_naive", type=bool, default=False)
 parser.add_argument("--m5_fs_warmup_marker_only", type=bool, default=False)
+parser.add_argument("--with_llc", type=bool, default=False)
 parser.add_argument("--region_info", type=str, default="")
 
 args = parser.parse_args()
@@ -55,6 +56,9 @@ thread = args.thread
 region_size = args.region_size
 arch = args.arch
 size = args.size
+compile_header = "final_compile_"
+if args.with_llc:
+    compile_header += "with_llc_"
 
 if thread == 1:
     program_type = "single_thread_c_m5_fs_measuring"
@@ -109,8 +113,8 @@ if args.if_make_base:
                         "cmd": ["make", program_type],
                         "env": rid_env,
                         "dir": workdir.as_posix(),
-                        "stdout": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_{rid}_stdout.txt",
-                        "stderr": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_{rid}_stderr.txt"
+                        "stdout": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_{rid}.stdout",
+                        "stderr": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_{rid}.stderr"
                     })
             else:
                 run_env = must_env.copy()
@@ -124,8 +128,8 @@ if args.if_make_base:
                     "cmd": ["make", program_type],
                     "env": run_env,
                     "dir": workdir.as_posix(),
-                    "stdout": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_stdout.txt",
-                    "stderr": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}_stderr.txt"
+                    "stdout": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}.stdout",
+                    "stderr": f"{output_log_dir.as_posix()}/make_{program_type}_{bench}.stderr"
                 })
 
 if args.if_make_final:
@@ -144,11 +148,11 @@ if args.if_make_final:
                     rid_env["TARGET_ARCH"] = arch
                     
                     process_this({
-                        "cmd": ["make", f"final_compile_{program_type}"],
+                        "cmd": ["make", f"{compile_header}{program_type}"],
                         "env": rid_env,
                         "dir": workdir.as_posix(),
-                        "stdout": f"{output_log_dir.as_posix()}/final_compile_{program_type}_{bench}_{rid}_stdout.txt",
-                        "stderr": f"{output_log_dir.as_posix()}/final_compile_{program_type}_{bench}_{rid}_stderr.txt"
+                        "stdout": f"{output_log_dir.as_posix()}/{compile_header}{program_type}_{bench}_{rid}.stdout",
+                        "stderr": f"{output_log_dir.as_posix()}/{compile_header}{program_type}_{bench}_{rid}.stderr"
                     })
             else:
                 run_env = must_env.copy()
@@ -159,11 +163,11 @@ if args.if_make_final:
                 run_env["REGION_LENGTH"] = str(region_size)
 
                 process_this( {
-                    "cmd": ["make", f"final_compile_{program_type}"],
+                    "cmd": ["make", f"{compile_header}{program_type}"],
                     "env": run_env,
                     "dir": workdir.as_posix(),
-                    "stdout": f"{output_log_dir.as_posix()}/final_compile_{program_type}_{bench}_stdout.txt",
-                    "stderr": f"{output_log_dir.as_posix()}/final_compile_{program_type}_{bench}_stderr.txt"
+                    "stdout": f"{output_log_dir.as_posix()}/{compile_header}{program_type}_{bench}.stdout",
+                    "stderr": f"{output_log_dir.as_posix()}/{compile_header}{program_type}_{bench}.stderr"
                 })
 
 print("All done!")
