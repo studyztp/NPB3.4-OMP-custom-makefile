@@ -1,0 +1,6 @@
+PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/SP/B
+PROGRAM=sp
+FILE=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/SP/B/sp_O3_2024-09-12-01-12-26.bc
+2024-09-12-01-12-26
+cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/SP/B && mkdir -p c_m5_fs_naive
+cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/SP/B/c_m5_fs_naive && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o sp_m5_fs_naive.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/SP/B/sp_O3_2024-09-12-01-12-26.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/c_m5_fs_naive.ll
