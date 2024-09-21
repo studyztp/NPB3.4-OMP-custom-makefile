@@ -93,6 +93,7 @@ workdir = Path().cwd()
 must_env = os.environ
 must_env["LD_LIBRARY_PATH"] = f"{workdir.as_posix()}/common/{arch}-unknown-linux-gnu"
 must_env["LD_LIBRARY_PATH"] += f":{workdir.as_posix()}/common/all_papi/{arch}/lib"
+must_env["M5_INST_MODE"] = "1"
 
 if args.if_make_base:
     for bench in benchmarks:

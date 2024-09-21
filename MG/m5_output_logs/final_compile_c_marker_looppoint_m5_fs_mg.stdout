@@ -1,6 +1,0 @@
-PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/B
-PROGRAM=mg
-FILE=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/B/mg_O3_2024-09-12-01-11-31.bc
-2024-09-12-01-11-31
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/B/c_marker_looppoint_m5_fs && mkdir -p aarch64
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/MG/B/c_marker_looppoint_m5_fs/aarch64 && /scr/studyztp/compiler/llvm-dir/bin/flang-new  -fopenmp -lm  ../mg_marker_looppoint_m5_fs.bc -o mg_aarch64_2024-09-12-01-11-31.c_marker_looppoint_m5_fs --target=aarch64-unknown-linux-gnu -no-pie -I/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/gem5 -L/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/gem5/all_outs/aarch64 -lm5

@@ -1,6 +1,0 @@
-PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/CG/B
-PROGRAM=cg
-FILE=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/CG/B/cg_O3_2024-09-12-01-08-10.bc
-2024-09-12-01-08-10
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/CG/B && mkdir -p c_marker_looppoint_m5_fs
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/CG/B/c_marker_looppoint_m5_fs && /scr/studyztp/compiler/llvm-dir/bin/llvm-link -o cg_marker_looppoint_m5_fs.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/CG/B/cg_O3_2024-09-12-01-08-10.bc /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/c_marker_looppoint_m5_fs.ll

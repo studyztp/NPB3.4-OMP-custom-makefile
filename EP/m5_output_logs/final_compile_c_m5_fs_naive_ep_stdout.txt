@@ -1,6 +1,0 @@
-PROGRAM_PATH=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/EP/C
-PROGRAM=ep
-FILE=/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/EP/C/ep_O3_2024-09-12-01-08-34.bc
-2024-09-12-01-08-34
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/EP/C/c_m5_fs_naive && mkdir -p aarch64
-cd /scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/EP/C/c_m5_fs_naive/aarch64 && /scr/studyztp/compiler/llvm-dir/bin/flang-new -fopenmp -lm  ../ep_m5_fs_naive.bc -o ep_aarch64_2024-09-12-01-08-34.c_m5_fs_naive --target=aarch64-unknown-linux-gnu -no-pie -I/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/gem5 -L/scr/studyztp/experiments/hardware_profiling/NPB3.4-OMP-custom-makefile/common/gem5/all_outs/aarch64 -lm5

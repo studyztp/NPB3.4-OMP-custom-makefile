@@ -1,0 +1,10 @@
+all input arguments are Namespace(region_size=1000000000, arch='aarch64', machine_name='saphir', thread=8, size='B', if_make_base=True, if_make_final=False, looppoint=False, m5_fs_measuring=False, m5_fs_naive=True, m5_fs_warmup_marker_only=False, with_llc=False, region_info='')
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+finished /scr/studyztp/experiments/hardware_profiling/gem5/NPB3.4-OMP-custom-makefile ['make', 'c_m5_fs_naive'] 0 threads CompletedProcess(args=['make', 'c_m5_fs_naive'], returncode=0)
+All done!
