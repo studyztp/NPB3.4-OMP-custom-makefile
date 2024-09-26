@@ -412,22 +412,26 @@ if args.if_run:
                                         start_filename = Path(file).as_posix()
                                     for file in run_dir.glob("*.c_marker_overhead_measuring_end"):
                                         end_filename = Path(file).as_posix()
+                                start_run_ball = run_ball_env.copy()
+                                start_run_ball["PAPI_OUTPUT_DIRECTORY"] += "_start"
+                                end_run_ball = run_ball_env.copy()
+                                end_run_ball["PAPI_OUTPUT_DIRECTORY"] += "_end"
                                 runs.append(
                                     {
                                         "cmd": default_cmd + [f"{start_filename}"],
-                                        "env": run_ball_env.copy(),
+                                        "env": start_run_ball.copy(),
                                         "dir": run_dir.as_posix(),
-                                        "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
-                                        "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
+                                        "stdout": Path(run_dir/f"run_{thread}_{i}_start.stdout").as_posix(),
+                                        "stderr": Path(run_dir/f"run_{thread}_{i}_start.stderr").as_posix()
                                     }
                                 )
                                 runs.append(
                                     {
                                         "cmd": default_cmd + [f"{end_filename}"],
-                                        "env": run_ball_env.copy(),
+                                        "env": end_run_ball.copy(),
                                         "dir": run_dir.as_posix(),
-                                        "stdout": Path(run_dir/f"run_{thread}_{i}.stdout").as_posix(),
-                                        "stderr": Path(run_dir/f"run_{thread}_{i}.stderr").as_posix()
+                                        "stdout": Path(run_dir/f"run_{thread}_{i}_end.stdout").as_posix(),
+                                        "stderr": Path(run_dir/f"run_{thread}_{i}_end.stderr").as_posix()
                                     }
                                 )
                         if args.papi_measuring:

@@ -347,8 +347,6 @@ BOOL if_end_not_met = FALSE;
 struct timespec start, end;
 
 #ifdef PAPI_MEASURING
-#include <papi.h>
-
 
 __attribute__((no_profile_instrument_function))
 void warmup_event() {}
@@ -666,7 +664,11 @@ void roi_begin_() {
     printf("running %s\n",buf);
     system(buf);
     printf("ready to call m5 writefile\n");
-    system("m5 writefile proc_maps.txt;");
+    if (m5op_addr == 0x10010000) {
+        system("m5 --addr 0x10010000 writefile proc_maps.txt;");
+    } else {
+        system("m5 writefile proc_maps.txt;");
+    }
 
     printf("calling M5 workbegin\n");
 #ifdef USING_INST_MODE

@@ -299,7 +299,7 @@ final_compile_c_papi_profiling_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH
 final_compile_c_papi_measuring: get_version final_compile_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_c_papi_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID} && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PAPI_LINE} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
+	cd ${PROGRAM_PATH}/${SIZE}/c_papi_measuring/${THREAD_SIZE}/${REGION_LENGTH}/${REGION_ID}/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_papi_measuring_opt.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_papi_measuring --target=${TARGET_ARCH}-unknown-linux-gnu
 
 final_compile_c_m5_fs_measuring: get_version final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}
 final_compile_c_m5_fs_measuring_${PROGRAM}_${SIZE}_${TARGET_ARCH}_${REGION_LENGTH}_${REGION_ID}:
@@ -367,7 +367,7 @@ final_compile_c_papi_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 final_compile_c_time_naive: get_version final_compile_c_time_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_time_naive_${PROGRAM}_${SIZE}_${TARGET_ARCH}:
 	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive && mkdir -p ${TARGET_ARCH}
-	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ${PAPI_LINE} ../${PROGRAM}_time_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_time_naive --target=${TARGET_ARCH}-unknown-linux-gnu
+	cd ${PROGRAM_PATH}/${SIZE}/c_time_naive/${TARGET_ARCH} && ${COMPILER} ${HW_FLAGS} ${LIB_FLAGS} ../${PROGRAM}_time_naive.bc -o ${PROGRAM}_${TARGET_ARCH}_${VERSION_STAMP}.c_time_naive --target=${TARGET_ARCH}-unknown-linux-gnu
 
 final_compile_c_marker_looppoint_m5_fs: get_version final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}
 final_compile_c_marker_looppoint_m5_fs_${PROGRAM}_${SIZE}_${TARGET_ARCH}:

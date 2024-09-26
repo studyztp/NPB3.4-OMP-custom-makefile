@@ -71,7 +71,7 @@ c_papi_profiling.ll: c_helper.c
 
 c_papi_measuring.ll: c_helper.c 
 	${CC} ${FLAGS} -S -DMEASURING -DPAPI_MEASURING -emit-llvm \
-	c_helper.c -o c_papi_measuring.ll ${PAPI_LINE}
+	c_helper.c -o c_papi_measuring.ll 
 
 c_m5_fs_measuring.ll: c_helper.c 
 	${CC} ${FLAGS} -S -DMEASURING -DM5_FS_MEASURING -emit-llvm \
